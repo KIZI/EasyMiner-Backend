@@ -1,0 +1,75 @@
+*.class
+*.log
+
+# sbt specific
+.cache/
+.history/
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+
+# =========================
+# Operating System Files
+# =========================
+
+# OSX
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+# =========================
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+.idea/
+webapp
+cesnet-conf
+sandbox-conf.xml
+hive-site.xml
+cesnet-conf-prod/
+cesnet-conf-test/
+EasyMiner-Data/src/main/scala/cz/vse/easyminer/data/impl/db/hive
+EasyMiner-Preprocessing/src/main/scala/cz/vse/easyminer/preprocessing/impl/db/hive/*
+EasyMiner-Miner/src/main/scala/cz/vse/easyminer/miner/impl/spark
