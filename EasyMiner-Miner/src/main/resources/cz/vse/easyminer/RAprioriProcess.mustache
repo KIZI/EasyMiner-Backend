@@ -1,0 +1,13 @@
+{{!
+@param Integer        minlen
+@param Integer        maxlen
+@param Boolean        auto
+}}
+{{#auto}}
+    rules <- processauto()
+{{/auto}}
+{{^auto}}
+    rules <- process({{{minlen}}}, {{{maxlen}}})
+{{/auto}}
+
+capture.output(print(rules))

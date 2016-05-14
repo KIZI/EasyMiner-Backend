@@ -1,0 +1,76 @@
+{{!
+@param Double         confidence
+@param Double         support
+@param Double         lift                   optional
+@param Integer        limit
+@param String         consequent             optional
+@param String         both                   optional
+@param String         defaultAppearance
+@param Boolean        cba                    optional
+}}
+
+mine <- function(minlen, maxlen) {
+    rules <- processWithTimeout(function() apriori(txns, parameter = list(confidence = {{{confidence}}}, support = {{{support}}}, minlen = minlen, maxlen = maxlen), appearance = list({{#consequent}}rhs = c({{{consequent}}}), {{/consequent}}{{#both}}both = c({{{both}}}), {{/both}}default="{{{defaultAppearance}}}")), timeout=15)
+    {{#lift}}
+    rules <- subset(rules, subset = lift >= {{{lift}}})
+    {{/lift}}
+    return(rules)
+}
+
+process <- function(minlen, maxlen) {
+    if (minlen > maxlen) {
+        minlen <- maxlen
+    }
+
+    maxrules <- {{{limit}}}
+
+    rules <- new("rules", lhs=new("itemMatrix"), rhs=new("itemMatrix"))
+    messages <- data.frame(rules=factor(), support=character(), confidence=character(), lift=character(), stringsAsFactors = FALSE)
+    curlen <- minlen
+    tryCatch({
+        for (i in minlen:maxlen) {
+            curlen <- i
+            if (i == minlen && i <= 3) {
+                curlen <- 3
+                if (maxlen < 3) {
+                    curlen <- maxlen
+                }
+                prules <- mine(i, curlen)
+                if (length(rules) == 0) {
+                    rules <- prules
+                } else {
+                    rules <- union(rules, prules)
+                }
+            } else if (i > 3 && i <= ncol(train)) {
+                prules <- mine(i, i)
+                if (length(rules) == 0) {
+                    rules <- prules
+                } else {
+                    rules <- union(rules, prules)
+                }
+            }
+            if (length(rules) >= maxrules) {
+                messages <- rbind(messages, data.frame(rules=NA, support=paste("limit rulelen=", curlen, " size=", length(rules), sep=""), confidence="", lift="", stringsAsFactors = FALSE))
+                break
+            }
+        }
+    }, error=function(ex) {
+        if (conditionMessage(ex) == "timeout") {
+            messages <<- rbind(messages, data.frame(rules=NA, support=paste("timeout rulelen=", curlen, sep=""), confidence="", lift="", stringsAsFactors = FALSE))
+        } else {
+            stop(ex)
+        }
+    })
+    rulessize <- length(rules)
+    rules <- as(rules, "data.frame")
+    if (rulessize >= maxrules) {
+        rules <- head(rules[with(rules, order(-confidence, -support)), ], maxrules)
+    }
+    {{#cba}}
+    if(nrow(rules) > 0) {
+        rules <- pruning(train, rules, method="m2cba")
+        #rules = transform(rules, confidence = as.numeric(confidence), support = as.numeric(support))
+    }
+    {{/cba}}
+    return(rbind(messages, rules))
+}

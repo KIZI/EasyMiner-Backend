@@ -1,0 +1,85 @@
+{{!
+@param Integer        number-of-rules
+@param Seq            bbas
+@param  String         id
+@param  String         text           
+@param  String         name           
+@param  String         value          
+@param Seq            dbas           
+@param  String         id             
+@param  String         text           
+@param  Seq[String]    barefs         
+@param Seq            arules         
+@param  String         id
+@param  String         id-antecedent
+@param  String         id-consequent
+@param  Integer        a
+@param  Integer        b
+@param  Integer        c
+@param  Integer        d
+@param Boolean        has-headers
+@param Seq            headers
+@param  String         name
+@param  String         value
+}}
+<?xml version="1.0" encoding="UTF-8"?>
+<PMML version="4.0" xmlns="http://www.dmg.org/PMML-4_0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:pmml="http://www.dmg.org/PMML-4_0"
+      xsi:schemaLocation="http://www.dmg.org/PMML-4_0 http://sewebar.vse.cz/schemas/PMML4.0+GUHA0.1.xsd"
+        >
+
+    {{#has-headers}}
+        <Header>
+            {{#headers}}
+                <Extension name="{{name}}" value="{{value}}"></Extension>
+            {{/headers}}
+        </Header>
+    {{/has-headers}}
+
+    <guha:AssociationModel xmlns=""
+                           xsi:schemaLocation="http://keg.vse.cz/ns/GUHA0.1rev1 http://sewebar.vse.cz/schemas/GUHA0.1rev1.xsd"
+                           xmlns:guha="http://keg.vse.cz/ns/GUHA0.1rev1"
+                           modelName="c402d7406a440a39029c9296fe105eba"
+                           functionName="associationRules"
+                           algorithmName="Apriori"
+                           numberOfTransactions="0"
+                           numberOfCategories="0"
+                           numberOfRules="{{number-of-rules}}"
+            >
+
+        <AssociationRules>
+
+            {{#bbas}}
+                <BBA id="{{id}}" literal="false">
+                    <Text>{{text}}</Text>
+                    <FieldRef>{{name}}</FieldRef>
+                    <CatRef>{{value}}</CatRef>
+                </BBA>
+            {{/bbas}}
+
+            {{#dbas}}
+                <DBA id="{{id}}" connective="Conjunction" literal="true">
+                    <Text>{{text}}</Text>
+                    {{#barefs}}
+                        <BARef>{{.}}</BARef>
+                    {{/barefs}}
+                </DBA>
+            {{/dbas}}
+
+            {{#arules}}
+                <AssociationRule id="{{id}}"
+                    {{#id-antecedent}}
+                                 antecedent="{{id-antecedent}}"
+                    {{/id-antecedent}}
+                                 consequent="{{id-consequent}}"
+                        >
+                    <Text>{{text}}</Text>
+                    <FourFtTable a="{{a}}" b="{{b}}" c="{{c}}" d="{{d}}"/>
+                </AssociationRule>
+            {{/arules}}
+        </AssociationRules>
+
+    </guha:AssociationModel>
+
+</PMML> 

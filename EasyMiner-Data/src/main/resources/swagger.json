@@ -1,0 +1,1063 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This application provides RESTful service for uploading CSV files in HTTP stream and saving it to a MySQL database. You can access to saved data and their stats by REST HTTP requests including update and delete operations.",
+    "version": "1.0",
+    "title": "EasyMiner-Data",
+    "contact": {
+      "name": "prozeman@gmail.com"
+    }
+  },
+  "basePath": "/api/v1",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "apiKeyHeader": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
+    "apiKeyQuery": {
+      "type": "apiKey",
+      "name": "apiKey",
+      "in": "query"
+    }
+  },
+  "security": [
+    {
+      "apiKeyHeader": []
+    },
+    {
+      "apiKeyQuery": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Upload",
+      "description": "This service provides operations for uploading of large datasets to a database in HTTP stream."
+    },
+    {
+      "name": "Data source",
+      "description": "This service provides operations for reading and modifying of data sources details."
+    },
+    {
+      "name": "Field",
+      "description": "This service provides operations for reading and modifying of data source fields details."
+    },
+    {
+      "name": "Value",
+      "description": "This service provides operations for reading values of a specific data source and field."
+    },
+    {
+      "name": "Background tasks",
+      "description": "This service provides operations for reading of a background task status or results."
+    }
+  ],
+  "paths": {
+    "/upload/start": {
+      "post": {
+        "summary": "Start upload process.",
+        "description": "This operation initializes an upload process. It consumes JSON document with required settings and returns ID for the streaming upload.",
+        "tags": ["Upload"],
+        "consumes": ["application/json; charset=utf-8"],
+        "produces": ["text/plain"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Upload JSON settings.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Upload"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The upload process has been initialized with an ID which is placed in the content body.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "405": {
+            "description": "Unsupported content type. JSON upload settings is required.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "400": {
+            "description": "Invalid settings parameters.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/upload/{id}": {
+      "post": {
+        "summary": "Upload data chunk to the server in HTTP stream.",
+        "description": "This operation uploads input data chunk. You need to split input dataset to small chunks (maximal chunk size is 1MB); the chunks should being sent sequentially by this operation. There are three common response status codes: 200, 202 and 429. If some chunk was uploaded and 202 was returned you should send the next chunk; if 429 your uploading process is too fast, so wait a moment and send the same chunk again. After all chunks have been uploaded you should send an empty chunk (with the empty content). Then the system will return 202 if the saving process is still in progress or 200 if the whole uploading process has finished successfully (it will return information about the uploaded datasource as a JSON doc) If the uploading task does not receive any request in 30 seconds or there is some exception, the whole uploading task will be rolled back.",
+        "tags": ["Upload"],
+        "consumes": ["text/plain"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Uploading task ID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Uploading data chunk.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The upload process has been finished successfully.",
+            "schema": {
+              "$ref": "#/definitions/DataSource"
+            }
+          },
+          "202": {
+            "description": "The data chunk has been uploaded successfully and the uploading process is still in progress. It may return some information about a state of the uploading process in the body content."
+          },
+          "429": {
+            "description": "The uploading process is too fast. Slow down and send the same chunk again."
+          },
+          "400": {
+            "description": "Invalid data were received.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "This uploading task does not longer exist."
+          }
+        }
+      }
+    },
+    "/upload/preview/start": {
+      "post": {
+        "summary": "Start preview upload process.",
+        "description": "This operation initializes a preview upload process. It consumes JSON document with required settings and returns ID for the streaming upload. The preview upload ends as soon as it reaches a specific number of lines; after this the system will return first X lines of the uploading file, so the file need not be uploaded all.",
+        "tags": ["Upload"],
+        "consumes": ["application/json; charset=utf-8"],
+        "produces": ["text/plain"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Upload JSON settings.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PreviewUpload"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The upload process has been initialized with an ID which is placed in the content body.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "405": {
+            "description": "Unsupported content type. JSON upload settings is required.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "400": {
+            "description": "Invalid settings parameters.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/upload/preview/{id}": {
+      "post": {
+        "summary": "Upload data chunk to the server in HTTP stream.",
+        "description": "This operation uploads input data chunk. You need to split input dataset to small chunks (maximal chunk size for the preview upload is 100kB); the chunks should being sent sequentially by this operation. If some chunk was uploaded and 202 was returned you should send the next chunk. You should be uploading chunks until the 200 response code. If the system returns 200 first X lines of the uploaded file are occurring in the response content body. You should send (repeatedly until 200) an empty chunk (with the empty content) if the process has not reached the maxLines threshold and the file has been uploaded all.",
+        "tags": ["Upload"],
+        "consumes": ["text/plain"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Uploading task ID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Uploading data chunk.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The upload process has been finished successfully. There are first X lines of the uploaded file in the content body where X is lower than or is equal the maxLines threshold."
+          },
+          "202": {
+            "description": "The data chunk has been uploaded successfully and the uploading process is still in progress."
+          },
+          "400": {
+            "description": "Invalid data were received.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "This uploading task does not longer exist."
+          }
+        }
+      }
+    },
+    "/datasource": {
+      "get": {
+        "summary": "Display a list of all data sources within the user data space.",
+        "tags": ["Data source"],
+        "produces": ["application/json; charset=utf-8"],
+        "responses": {
+          "200": {
+            "description": "Return a list of all data sources within the user data space.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/DataSource"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{id}": {
+      "get": {
+        "summary": "Get detail information about a data source.",
+        "tags": ["Data source"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a data source detail.",
+            "schema": {
+              "$ref": "#/definitions/DataSource"
+            }
+          },
+          "404": {
+            "description": "This data source does not exist."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete this data source.",
+        "tags": ["Data source"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This data source was deleted successfully."
+          },
+          "404": {
+            "description": "This data source does not exist."
+          }
+        }
+      },
+      "put": {
+        "summary": "Rename this data source.",
+        "tags": ["Data source"],
+        "consumes": ["text/plain; charset=UTF-8"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "New data source name (maximal number of characters is 255).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This data source was renamed successfully."
+          },
+          "404": {
+            "description": "This data source does not exist."
+          }
+        }
+      }
+    },
+    "/datasource/{id}/instances": {
+      "get": {
+        "summary": "Return instances for a given data source.",
+        "description": "There are two required query parameters: offset and limit. A maximum of 1000 records can be returned within one request. You may specify IDs of fields/columns which you want to display, otherwise all columns will be displayed.",
+        "tags": ["Data source"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "A starting position for the instances listing.",
+            "required": true,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of displayed instances.",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          {
+            "name": "field",
+            "in": "query",
+            "description": "A field IDs list for narrowing of displayed columns.",
+            "collectionFormat": "multi",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Instances have been returned successfully."
+          },
+          "400": {
+            "description": "Invalid query parameters."
+          },
+          "404": {
+            "description": "This data source does not exist."
+          }
+        }
+      }
+    },
+    "/datasource/{dataSourceId}/field": {
+      "get": {
+        "summary": "Display a list of all fields/columns for a specific data source.",
+        "tags": ["Field"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "dataSourceId",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a list of all fields/columns for a specific data source.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Field"
+              }
+            }
+          },
+          "404": {
+            "description": "This data source does not exist."
+          }
+        }
+      }
+    },
+    "/datasource/{dataSourceId}/field/{fieldId}": {
+      "get": {
+        "summary": "Get detail information about a field of a specific data source.",
+        "tags": ["Field"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "dataSourceId",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Field ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return detail information about a field of a specific data source.",
+            "schema": {
+              "$ref": "#/definitions/Field"
+            }
+          },
+          "404": {
+            "description": "This data source or field does not exist."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete this field of a specific data source.",
+        "tags": ["Field"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "dataSourceId",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Field ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This field was deleted successfully."
+          },
+          "404": {
+            "description": "This data source or field does not exist."
+          }
+        }
+      },
+      "put": {
+        "summary": "Rename this field of a specific data source.",
+        "tags": ["Field"],
+        "consumes": ["text/plain; charset=UTF-8"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "dataSourceId",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Field ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "New field name (maximal number of characters is 255).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This field was renamed successfully."
+          },
+          "404": {
+            "description": "This data source or field does not exist."
+          }
+        }
+      }
+    },
+    "/datasource/{dataSourceId}/field/{fieldId}/stats": {
+      "get": {
+        "summary": "Display basic stats for a numeric field.",
+        "description": "It returns min, max and avg.",
+        "tags": ["Value"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "dataSourceId",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Field ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return JSON with stats.",
+            "schema": {
+                "$ref": "#/definitions/Stats"
+            }
+          },
+          "404": {
+            "description": "This data source or field does not exist."
+          }
+        }
+      }
+    },
+    "/datasource/{dataSourceId}/field/{fieldId}/values": {
+      "get": {
+        "summary": "Display a list of all unique values for a specific field and datasource.",
+        "description": "There are two required query parameters: offset and limit. A maximum of 1000 values can be returned within one request.",
+        "tags": ["Value"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "dataSourceId",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Field ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "A starting position for the instances listing.",
+            "required": true,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of displayed instances.",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a list of all values for a specific field and data source by offset and limit.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Value"
+              }
+            }
+          },
+          "404": {
+            "description": "This data source or field does not exist."
+          }
+        }
+      }
+    },
+    "/datasource/{dataSourceId}/field/{fieldId}/aggregated-values": {
+      "get": {
+        "summary": "Create a task for getting a histogram of a numeric field where values are aggregated to intervals by number of bins.",
+        "description": "There is one required query parameter 'bins'. This value means number of bins in an output histogram (maximum is 1000). You can specify min and max borders. This operation is processed asynchronously due to its complexity - it returns 202 Accepted and a location header with URL where all information about the task status are placed (see the background tasks section).",
+        "tags": ["Value"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "dataSourceId",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Field ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "bins",
+            "in": "query",
+            "description": "Number of bins",
+            "required": true,
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 1000
+          },
+          {
+            "name": "min",
+            "in": "query",
+            "description": "Minimum (default is the minimal number within the field)",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "max",
+            "in": "query",
+            "description": "Maximum (default is the maximal number within the field)",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "minInclusive",
+            "in": "query",
+            "description": "Minimum is included (default is true)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "maxInclusive",
+            "in": "query",
+            "description": "Maximum is included (default is true)",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The histogram getting task has been created and accepted.",
+            "schema": {
+                "$ref": "#/definitions/TaskStatus"
+            }
+          },
+          "200": {
+            "description": "Return a histogram within a task result (this code is never returned by this operation but it is provided by the task result query, see the background tasks section).",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Interval"
+              }
+            }
+          },
+          "404": {
+            "description": "This data source or field does not exist, or the field is not numeric."
+          }
+        }
+      }
+    },
+    "/task-status/{taskId}": {
+      "get": {
+        "summary": "Display the status of a specific task.",
+        "description": "It returns 200 if the task is still in progress. The status result can contain some message about the current state of the background process. Once this operation returns 201 then the task has been finished successfully and the response will also contain a location header with a task result URL. If any error occurs during the background process, it returns 400 (or 500 only if there is a fatal error).",
+        "tags": ["Background tasks"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Task ID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The task is still in progress.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            }
+          },
+          "201": {
+            "description": "The task has been completed successfully.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            },
+            "headers": {
+              "Location": {
+                "description": "The task result URL",
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "The task failed with some known exception.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The task failed with some unknown exception (fatal error).",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/task-result/{taskId}": {
+      "get": {
+        "summary": "Return a result of a specific successfully completed task.",
+        "description": "It returns 200 with a result if the task has been completed successfully. Note that the result format might not be same for different tasks; therefore the consumer should know what kind of the task is observed. This operation does not return any task error; it return only 404 of the task does not exist or is still in progress or there is some error during the task processing.",
+        "tags": ["Background tasks"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Task ID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A result of the completed task."
+          },
+          "404": {
+            "description": "Non-existent task or the task processing or the uncompleted task due to some error."
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Error": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "DataSource": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "type",
+        "size"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "limited",
+            "unlimited"
+          ]
+        },
+        "size": {
+          "type": "integer",
+          "description": "Number of instances."
+        }
+      }
+    },
+    "Field": {
+      "type": "object",
+      "required": [
+        "id",
+        "dataSource",
+        "name",
+        "type",
+        "uniqueValuesSize"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "dataSource": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "nominal",
+            "numeric"
+          ]
+        },
+        "uniqueValuesSize": {
+          "type": "integer",
+          "description": "Number of unique values within this field."
+        }
+      }
+    },
+    "Value": {
+      "type": "object",
+      "required": [
+        "id",
+        "frequency"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "frequency": {
+          "type": "integer"
+        },
+        "value": {
+          "type": "string",
+          "description": "Value is string if the field is nominal or number if the field is numeric or null if it is the empty value."
+        }
+      }
+    },
+    "Stats": {
+      "type": "object",
+      "required": [
+        "id",
+        "min",
+        "max",
+        "avg"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "avg": {
+          "type": "number"
+        }
+      }
+    },
+    "Interval": {
+      "type": "object",
+      "required": [
+        "from",
+        "to",
+        "fromInclusive",
+        "toInclusive",
+        "frequency"
+      ],
+      "properties": {
+        "from": {
+          "type": "number"
+        },
+        "to": {
+          "type": "number"
+        },
+        "fromInclusive": {
+          "type": "boolean"
+        },
+        "toInclusive": {
+          "type": "boolean"
+        },
+        "frequency": {
+          "type": "integer"
+        }
+      }
+    },
+    "Upload": {
+      "type": "object",
+      "required": [
+        "name",
+        "mediaType",
+        "dbType"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 255,
+          "description": "Data source name."
+        },
+        "mediaType": {
+          "type": "string",
+          "enum": ["csv"],
+          "description": "Uploaded content type (only 'csv' is now supported)."
+        },
+        "dbType": {
+          "type": "string",
+          "enum": [
+            "limited",
+            "unlimited"
+          ],
+          "description": "Database type ('limited' = fast real-time processing for small and medium datasets, 'unlimited' = batch processing for big datasets in a cluster)."
+        },
+        "separator": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1,
+          "description": "CSV column separator (this is required if the 'csv' media type was chosen)."
+        },
+        "encoding": {
+          "type": "string",
+          "description": "CSV encoding (this is required if the 'csv' media type was chosen)."
+        },
+        "quotesChar": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1,
+          "description": "CSV quotes char for using reserved characters within this block (this is required if the 'csv' media type was chosen)."
+        },
+        "escapeChar": {
+          "type": "string",
+          "maxLength": 1,
+          "minLength": 1,
+          "description": "CSV escape char which is used inside the quoted block for quotes char escaping (this is required if the 'csv' media type was chosen)."
+        },
+        "locale": {
+          "type": "string",
+          "description": "A language tag for the locale setting. This is used for the number parsing (this is required if the 'csv' media type was chosen)."
+        },
+        "compression": {
+          "type": "string",
+          "enum": [
+            "zip",
+            "gzip",
+            "bzip2"
+          ],
+          "description": "A compression of the input CSV file. If it is not compressed do not enter this parameter. Supported compression types are: zip, gzip and bzip2. Do not compress single chunks! The system decompresses the whole uploaded document in stream, not individual chunks."
+        },
+        "nullValues": {
+          "type": "array",
+          "description": "CSV null values which will be represented as the empty value (NULL) in a database (this is required if the 'csv' media type was chosen).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dataTypes": {
+          "type": "array",
+          "description": "CSV columns data types. The data type must be defined for each column. This array size must correspond with number of columns in uploading CSV document. You can use 'nominal' and 'numeric' types, or null if you want to ommit a specific column which you are not going to save (this is required if the 'csv' media type was chosen).",
+          "items": {
+            "type": "string",
+            "enum": [
+              "nominal",
+              "numeric",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "PreviewUpload": {
+      "type": "object",
+      "required": [
+        "mediaType",
+        "maxLines"
+      ],
+      "properties": {
+        "mediaType": {
+          "type": "string",
+          "enum": ["csv"],
+          "description": "Uploaded content type (only 'csv' is now supported)."
+        },
+        "maxLines": {
+          "type": "integer",
+          "minimum": 0,
+          "exclusiveMinimum": true,
+          "description": "Maximum number of uploaded lines"
+        },
+        "compression": {
+          "type": "string",
+          "enum": [
+            "zip",
+            "gzip",
+            "bzip2"
+          ],
+          "description": "A compression of the input CSV file. If it is not compressed do not enter this parameter. Supported compression types are: zip, gzip and bzip2. Do not compress single chunks! The system decompresses the whole uploaded document in stream, not individual chunks."
+        }
+      }
+    },
+    "TaskStatus": {
+      "type": "object",
+      "required": [
+        "taskId",
+        "taskName"
+      ],
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The task ID."
+        },
+        "taskName": {
+          "type": "string",
+          "description": "The task name."
+        },
+        "statusMessage": {
+          "type": "string",
+          "description": "Some message about the state of the task background process."
+        },
+        "statusLocation": {
+          "type": "string",
+          "description": "URL with a location of the task status (this is returned if the task is still in progress)."
+        },
+        "resultLocation": {
+          "type": "string",
+          "description": "URL with a location of the task result (this is returned if the task has been completed successfully)."
+        }
+      }
+    }
+  }
+}

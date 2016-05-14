@@ -1,0 +1,60 @@
+--
+-- Struktura tabulky `attribute`
+--
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}field` (
+`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+`data_source` int(10) unsigned NOT NULL,
+`name` varchar(255) NOT NULL,
+`type` enum('NOMINAL','NUMERIC') NOT NULL,
+`unique_values_size` int(10) unsigned NOT NULL,
+PRIMARY KEY (`id`,`data_source`),
+KEY `data_source` (`data_source`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Struktura tabulky `attribute_numeric_detail`
+--
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}field_numeric_detail` (
+`id` int(10) unsigned NOT NULL,
+`min` double NOT NULL,
+`max` double NOT NULL,
+`avg` double NOT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Struktura tabulky `data_source`
+--
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}data_source` (
+`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+`name` varchar(255) NOT NULL,
+`type` enum('LIMITED','UNLIMITED') NOT NULL,
+`size` int(10) unsigned NOT NULL,
+`active` tinyint(1) NOT NULL DEFAULT '0',
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Omezení pro exportované tabulky
+--
+
+--
+-- Omezení pro tabulku `field`
+--
+ALTER TABLE `{{prefix}}field`
+ADD CONSTRAINT `{{prefix}}field_ibfk_1` FOREIGN KEY (`data_source`) REFERENCES `{{prefix}}data_source` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Omezení pro tabulku `field_numeric_detail`
+--
+ALTER TABLE `{{prefix}}field_numeric_detail`
+ADD CONSTRAINT `{{prefix}}field_numeric_detail_ibfk_1` FOREIGN KEY (`id`) REFERENCES `{{prefix}}field` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;

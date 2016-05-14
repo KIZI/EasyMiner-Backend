@@ -1,0 +1,18 @@
+{{!
+@param Integer        limit
+@param String         consequent             
+@param Boolean        cba                    optional
+}}
+
+processauto <- function() {
+    maxrules <- {{{limit}}}
+    rules <- rCBA::build(train, className="{{{consequent}}}", pruning={{#cba}}TRUE{{/cba}}{{^cba}}FALSE{{/cba}})
+    rules <- rules[7]
+    names(rules) <- ""
+    rules <- do.call(rbind.data.frame, rules)
+    rulessize <- nrow(rules)
+    if (rulessize >= maxrules) {
+        rules <- head(rules[with(rules, order(-confidence, -support)), ], maxrules)
+    }
+    return(rules)
+}

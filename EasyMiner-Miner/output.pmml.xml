@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PMML version="4.0" xmlns="http://www.dmg.org/PMML-4_0" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xmlns:pmml="http://www.dmg.org/PMML-4_0"
+      xsi:schemaLocation="http://www.dmg.org/PMML-4_0 http://sewebar.vse.cz/schemas/PMML4.0+GUHA0.1.xsd"
+>
+
+    <guha:AssociationModel  xmlns="" xsi:schemaLocation="http://keg.vse.cz/ns/GUHA0.1rev1 http://sewebar.vse.cz/schemas/GUHA0.1rev1.xsd"
+                            xmlns:guha="http://keg.vse.cz/ns/GUHA0.1rev1"
+                            modelName="c402d7406a440a39029c9296fe105eba" 
+                            functionName="associationRules" 
+                            algorithmName="Apriori" 
+                            numberOfTransactions="0" 
+                            numberOfCategories="0" 
+                            numberOfRules="2"
+    >
+        
+        <AssociationRules>
+            
+            <BBA id="BBA-1832507504" literal="false">
+                <Text>genre(Mystery_fiction)</Text>
+                <FieldRef>genre</FieldRef>
+                <CatRef>Mystery_fiction</CatRef>
+            </BBA>
+            <BBA id="BBA-237346042" literal="false">
+                <Text>genre(Crime_fiction)</Text>
+                <FieldRef>genre</FieldRef>
+                <CatRef>Crime_fiction</CatRef>
+            </BBA>
+            <BBA id="BBA513043180" literal="false">
+                <Text>rating(0)</Text>
+                <FieldRef>rating</FieldRef>
+                <CatRef>0</CatRef>
+            </BBA>
+            <BBA id="BBA-1206560455" literal="false">
+                <Text>language(English_language)</Text>
+                <FieldRef>language</FieldRef>
+                <CatRef>English_language</CatRef>
+            </BBA>
+            <DBA id="DBA-826456802" connective="Conjunction" literal="true">
+                <Text>( genre(Mystery_fiction) &amp; language(English_language) )</Text>
+                <BARef>BBA-1832507504</BARef>
+                <BARef>BBA-1206560455</BARef>
+                </DBA>
+            <DBA id="DBA-739295725" connective="Conjunction" literal="true">
+                <Text>( genre(Crime_fiction) &amp; language(English_language) )</Text>
+                <BARef>BBA-237346042</BARef>
+                <BARef>BBA-1206560455</BARef>
+                </DBA>
+            <AssociationRule id="AR1205827967"
+                             antecedent="DBA-739295725"
+                             consequent="BBA513043180"
+            >
+                <Text>( genre(Crime_fiction) &amp; language(English_language) ) &gt;:&lt; rating(0)</Text>
+                <IMValue name="FUI" type="Abs">0.6068</IMValue>
+                <IMValue name="SUPP" type="Abs">0.011344</IMValue>
+                <IMValue name="a">821</IMValue>
+                <IMValue name="b">532</IMValue>
+                <IMValue name="c">38361</IMValue>
+                <IMValue name="d">32657</IMValue>
+                <IMValue name="r">1353</IMValue>
+                <IMValue name="n">72371</IMValue>
+                <IMValue name="Conf">0.6068</IMValue>
+                <IMValue name="Supp">0.011344</IMValue>
+                <IMValue name="AvgDf">1.120788</IMValue>
+                <FourFtTable a="821" b="532" c="38361" d="32657"/>
+            </AssociationRule>
+            <AssociationRule id="AR-1175559472"
+                             antecedent="DBA-826456802"
+                             consequent="BBA513043180"
+            >
+                <Text>( genre(Mystery_fiction) &amp; language(English_language) ) &gt;:&lt; rating(0)</Text>
+                <IMValue name="FUI" type="Abs">0.643636</IMValue>
+                <IMValue name="SUPP" type="Abs">0.012229</IMValue>
+                <IMValue name="a">885</IMValue>
+                <IMValue name="b">490</IMValue>
+                <IMValue name="c">38297</IMValue>
+                <IMValue name="d">32699</IMValue>
+                <IMValue name="r">1375</IMValue>
+                <IMValue name="n">72371</IMValue>
+                <IMValue name="Conf">0.643636</IMValue>
+                <IMValue name="Supp">0.012229</IMValue>
+                <IMValue name="AvgDf">1.188827</IMValue>
+                <FourFtTable a="885" b="490" c="38297" d="32699"/>
+            </AssociationRule>
+            </AssociationRules>
+
+</PMML> 

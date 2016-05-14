@@ -1,0 +1,820 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This application provides RESTful service for creation of datasets and attributes from data sources and data fields. The entry data source with its fields can be preprocessed by some attribute builders. A preprocessing task is run by a XML file with the standardized PMML transformation format. All values within a dataset are mapped to a unique numeric index; thanks to this normalization the entry dataset is purer and smaller.",
+    "version": "1.0",
+    "title": "EasyMiner-Preprocessing",
+    "contact": {
+      "name": "prozeman@gmail.com"
+    }
+  },
+  "basePath": "/api/v1",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "apiKeyHeader": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
+    "apiKeyQuery": {
+      "type": "apiKey",
+      "name": "apiKey",
+      "in": "query"
+    }
+  },
+  "security": [
+    {
+      "apiKeyHeader": []
+    },
+    {
+      "apiKeyQuery": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Dataset",
+      "description": "This service provides operations for datasets creation, reading and modifying."
+    },
+    {
+      "name": "Attribute",
+      "description": "This service provides operations for attribute creation, reading and modifying."
+    },
+    {
+      "name": "Value",
+      "description": "This service provides operations for reading values of a specific dataset and attribute."
+    },
+    {
+      "name": "Background tasks",
+      "description": "This service provides operations for reading of a background task status or results."
+    }
+  ],
+  "paths": {
+    "/dataset": {
+      "get": {
+        "summary": "Display a list of all datasets within the user data space.",
+        "tags": ["Dataset"],
+        "produces": ["application/json; charset=utf-8"],
+        "responses": {
+          "200": {
+            "description": "Return a list of all datasets within the user data space.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Dataset"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a task for the dataset creation from a data source.",
+        "description": "This operation is processed asynchronously due to its complexity - it returns 202 Accepted and a location header with URL where all information about the task status are placed (see the background tasks section).",
+        "tags": ["Dataset"],
+        "consumes": ["application/x-www-form-urlencoded"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "dataSource",
+            "in": "formData",
+            "description": "Data source id.",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "name",
+            "in": "formData",
+            "description": "Dataset name.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The dataset creation task has been created and accepted.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            }
+          },
+          "200": {
+            "description": "Return created dataset detail within a task result (this code is never returned by this operation but it is provided by the task result query, see the background tasks section).",
+            "schema": {
+              "$ref": "#/definitions/Dataset"
+            }
+          },
+          "400": {
+            "description": "Bad input data.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "The data source does not exist."
+          }
+        }
+      }
+    },
+    "/dataset/{id}": {
+      "get": {
+        "summary": "Get detail information about a dataset.",
+        "tags": ["Dataset"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a dataset detail.",
+            "schema": {
+              "$ref": "#/definitions/Dataset"
+            }
+          },
+          "404": {
+            "description": "This dataset does not exist."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete this dataset.",
+        "tags": ["Dataset"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This dataset has been deleted successfully."
+          },
+          "404": {
+            "description": "This dataset does not exist."
+          }
+        }
+      },
+      "put": {
+        "summary": "Rename this dataset.",
+        "tags": ["Dataset"],
+        "consumes": ["text/plain; charset=UTF-8"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Datset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "New dataset name (maximal number of characters is 255).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This dataset has been renamed successfully."
+          },
+          "404": {
+            "description": "This dataset does not exist."
+          }
+        }
+      }
+    },
+    "/dataset/{datasetId}/attribute": {
+      "get": {
+        "summary": "Display a list of all attributes/columns for a specific dataset.",
+        "tags": ["Attribute"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a list of all attributes/columns for a specific dataset.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Attribute"
+              }
+            }
+          },
+          "404": {
+            "description": "This dataset does not exist."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a task for the attribute creation from a data source field.",
+        "description": "This operation is processed asynchronously due to its complexity - it returns 202 Accepted and a location header with URL where all information about the task status are placed (see the background tasks section).",
+        "tags": ["Attribute"],
+        "consumes": ["application/xml; charset=utf-8"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "PMML definition",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The attribute creation task has been created and accepted.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            }
+          },
+          "200": {
+            "description": "Return a list of created attributes within a task result (this code is never returned by this operation but it is provided by the task result query, see the background tasks section).",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Attribute"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input data.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "A data field does not exist."
+          }
+        }
+      }
+    },
+    "/dataset/{datasetId}/attribute/{attributeId}": {
+      "get": {
+        "summary": "Get detail information about an attribute of a specific dataset.",
+        "tags": ["Attribute"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "attributeId",
+            "in": "path",
+            "description": "Attribute ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return detail information about an attribute of a specific dataset.",
+            "schema": {
+              "$ref": "#/definitions/Attribute"
+            }
+          },
+          "404": {
+            "description": "This dataset or attribute does not exist."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete this attribute of a specific dataset.",
+        "tags": ["Attribute"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "attributeId",
+            "in": "path",
+            "description": "Attribute ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This attribute has been deleted successfully."
+          },
+          "404": {
+            "description": "This dataset or attribute does not exist."
+          }
+        }
+      },
+      "put": {
+        "summary": "Rename this attribute of a specific dataset.",
+        "tags": ["Attribute"],
+        "consumes": ["text/plain; charset=UTF-8"],
+        "produces": [""],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "attributeId",
+            "in": "path",
+            "description": "Attribute ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "New attribute name (maximal number of characters is 255).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "This attribute has been renamed successfully."
+          },
+          "404": {
+            "description": "This dataset or attribute does not exist."
+          }
+        }
+      }
+    },
+    "/dataset/{datasetId}/attribute/{attributeId}/stats": {
+      "get": {
+        "summary": "Display basic stats for a numeric attribute.",
+        "description": "It returns min, max and avg.",
+        "tags": ["Value"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "attributeId",
+            "in": "path",
+            "description": "Attribute ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return JSON with stats.",
+            "schema": {
+              "$ref": "#/definitions/Stats"
+            }
+          },
+          "404": {
+            "description": "This dataset or attribute does not exist."
+          }
+        }
+      }
+    },
+    "/dataset/{datasetId}/attribute/{attributeId}/values": {
+      "get": {
+        "summary": "Display a list of all unique values for a specific attribute and dataset.",
+        "description": "There are two required query parameters: offset and limit. A maximum of 1000 values can be returned within one request.",
+        "tags": ["Value"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "attributeId",
+            "in": "path",
+            "description": "Attribute ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "A starting position for the instances listing.",
+            "required": true,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of displayed instances.",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a list of all values for a specific attribute and dataset by offset and limit.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Value"
+              }
+            }
+          },
+          "404": {
+            "description": "This dataset or attribute does not exist."
+          }
+        }
+      }
+    },
+    "/dataset/{datasetId}/attribute/{attributeId}/aggregated-values": {
+      "get": {
+        "summary": "Create a task for getting a histogram of a numeric attribute where values are aggregated to intervals by number of bins.",
+        "description": "There is one required query parameter 'bins'. This value means number of bins in an output histogram (maximum is 1000). You can specify min and max borders. This operation is processed asynchronously due to its complexity - it returns 202 Accepted and a location header with URL where all information about the task status are placed (see the background tasks section).",
+        "tags": ["Value"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "attributeId",
+            "in": "path",
+            "description": "Attribute ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "bins",
+            "in": "query",
+            "description": "Number of bins",
+            "required": true,
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 1000
+          },
+          {
+            "name": "min",
+            "in": "query",
+            "description": "Minimum (default is the minimal number within the attribute)",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "max",
+            "in": "query",
+            "description": "Maximum (default is the maximal number within the attribute)",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "minInclusive",
+            "in": "query",
+            "description": "Minimum is included (default is true)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "maxInclusive",
+            "in": "query",
+            "description": "Maximum is included (default is true)",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The histogram getting task has been created and accepted.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            }
+          },
+          "200": {
+            "description": "Return a histogram within a task result (this code is never returned by this operation but it is provided by the task result query, see the background tasks section).",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Interval"
+              }
+            }
+          },
+          "404": {
+            "description": "This dataset or attribute does not exist."
+          }
+        }
+      }
+    },
+    "/task-status/{taskId}": {
+      "get": {
+        "summary": "Display the status of a specific task.",
+        "description": "It returns 200 if the task is still in progress. The status result can contain some message about the current state of the background process. Once this operation returns 201 then the task has been finished successfully and the response will also contain a location header with a task result URL. If any error occurs during the background process, it returns 400 (or 500 only if there is a fatal error).",
+        "tags": ["Background tasks"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Task ID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The task is still in progress.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            }
+          },
+          "201": {
+            "description": "The task has been completed successfully.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            },
+            "headers": {
+              "Location": {
+                "description": "The task result URL",
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "The task failed with some known exception.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "The task failed with some unknown exception (fatal error).",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/task-result/{taskId}": {
+      "get": {
+        "summary": "Return a result of a specific successfully completed task.",
+        "description": "It returns 200 with a result if the task has been completed successfully. Note that the result format might not be same for different tasks; therefore the consumer should know what kind of the task is observed. This operation does not return any task error; it return only 404 of the task does not exist or is still in progress or there is some error during the task processing.",
+        "tags": ["Background tasks"],
+        "produces": ["application/json; charset=utf-8"],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Task ID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A result of the completed task."
+          },
+          "404": {
+            "description": "Non-existent task or the task processing or the uncompleted task due to some error."
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Error": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "Dataset": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "dataSource",
+        "type",
+        "size"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "dataSource": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "limited",
+            "unlimited"
+          ]
+        },
+        "size": {
+          "type": "integer",
+          "description": "Number of instances."
+        }
+      }
+    },
+    "Attribute": {
+      "type": "object",
+      "required": [
+        "id",
+        "dataset",
+        "field",
+        "name",
+        "type",
+        "uniqueValuesSize"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "dataset": {
+          "type": "integer"
+        },
+        "field": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "nominal",
+            "numeric"
+          ]
+        },
+        "uniqueValuesSize": {
+          "type": "integer",
+          "description": "Number of unique values within this field."
+        }
+      }
+    },
+    "Value": {
+      "type": "object",
+      "required": [
+        "id",
+        "frequency"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "frequency": {
+          "type": "integer"
+        },
+        "value": {
+          "type": "string",
+          "description": "Value is string if the attribute is nominal or number if the attribute is numeric or null if it is the empty value."
+        }
+      }
+    },
+    "Stats": {
+      "type": "object",
+      "required": [
+        "id",
+        "min",
+        "max",
+        "avg"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "avg": {
+          "type": "number"
+        }
+      }
+    },
+    "Interval": {
+      "type": "object",
+      "required": [
+        "from",
+        "to",
+        "fromInclusive",
+        "toInclusive",
+        "frequency"
+      ],
+      "properties": {
+        "from": {
+          "type": "number"
+        },
+        "to": {
+          "type": "number"
+        },
+        "fromInclusive": {
+          "type": "boolean"
+        },
+        "toInclusive": {
+          "type": "boolean"
+        },
+        "frequency": {
+          "type": "integer"
+        }
+      }
+    },
+    "TaskStatus": {
+      "type": "object",
+      "required": [
+        "taskId",
+        "taskName"
+      ],
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The task ID."
+        },
+        "taskName": {
+          "type": "string",
+          "description": "The task name."
+        },
+        "statusMessage": {
+          "type": "string",
+          "description": "Some message about the state of the task background process."
+        },
+        "statusLocation": {
+          "type": "string",
+          "description": "URL with a location of the task status (this is returned if the task is still in progress)."
+        },
+        "resultLocation": {
+          "type": "string",
+          "description": "URL with a location of the task result (this is returned if the task has been completed successfully)."
+        }
+      }
+    }
+  }
+}

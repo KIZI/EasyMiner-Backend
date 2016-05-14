@@ -1,0 +1,31 @@
+{{!
+@param String         jdbcDriverAbsolutePath
+@param String         dbServer
+@param String         dbName
+@param String         dbUser
+@param String         dbPassword
+@param String         dbTableName
+@param String         selectQuery
+}}
+#library(RJDBC)
+#library(arules)
+#library(rCBA)
+#library(R.utils)
+
+prepareData <- function() {
+    # load data from mysql
+    drv <- JDBC("com.mysql.jdbc.Driver", list.files("{{jdbcDriverAbsolutePath}}", pattern="jar$",full.names=T))
+    con <- dbConnect(drv, "jdbc:mysql://{{{dbServer}}}:3306/{{{dbName}}}?characterEncoding=utf8", "{{{dbUser}}}", "{{{dbPassword}}}")
+    train <- dbGetQuery(con, "SELECT {{{selectQuery}}} FROM `{{{dbTableName}}}`")
+    dbDisconnect(con)
+    # normalize data
+    train <- sapply(train,as.factor)
+    train <- data.frame(train, check.names=F)
+    return(train)
+}
+
+train <- prepareData()
+txns <- as(train, "transactions")
+
+options(width=10000)
+options(max.print=1000000)

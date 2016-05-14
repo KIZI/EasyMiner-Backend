@@ -1,0 +1,234 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is a RESTful service for finding association rules by using the R-apriori library. Input is a PMML with information about database, antecedent, consequent and interest measures; output is another PMML with found association rules. Data are mined from a MySQL table.",
+    "version": "1.0",
+    "title": "EasyMiner-Apriori-R",
+    "contact": {
+      "name": "prozeman@gmail.com"
+    }
+  },
+  "basePath": "/api/v1",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "apiKeyHeader": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
+    "apiKeyQuery": {
+      "type": "apiKey",
+      "name": "apiKey",
+      "in": "query"
+    }
+  },
+  "security": [
+    {
+      "apiKeyHeader": []
+    },
+    {
+      "apiKeyQuery": []
+    }
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "summary": "Check whether all dependent services are available.",
+        "produces": ["application/xml"],
+        "responses": {
+          "200": {
+            "description": "All dependencies are available."
+          },
+          "503": {
+            "description": "Some dependency is not available. This service will probably not work correctly.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/mine": {
+      "post": {
+        "summary": "Create a mining task by some PMML definition",
+        "description": "",
+        "consumes": [
+          "application/xml; charset=UTF-8"
+        ],
+        "produces": [
+          "application/xml"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "PMML definition",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Task was accepted and is in progress.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            },
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Location: {address-with-result}"
+              }
+            }
+          },
+          "500": {
+            "description": "Bad input data or the task was not created.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/partial-result/{taskId}": {
+      "get": {
+        "summary": "Return a partial result of the mining task.",
+        "produces": [
+          "application/xml"
+        ],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "task ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No partial result at this moment, the mining task is still in progress."
+          },
+          "206": {
+            "description": "A new partial result has been accepted (it returns PMML), the mining task is still in progress."
+          },
+          "303": {
+            "description": "Task has been finished. It returns a Location header where the whole PMML result is placed."
+          },
+          "404": {
+            "description": "Task is not exist or has been picked up.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Some error during mining.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/complete-result/{taskId}": {
+      "get": {
+        "summary": "Return a final result of the mining task.",
+        "produces": [
+          "application/xml"
+        ],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "task ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "It returns a final PMML result."
+          },
+          "404": {
+            "description": "Task is not exist or is in progress or has been picked up.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Some error during mining.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Status": {
+      "required": [
+        "code",
+        "miner"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "miner": {
+          "$ref": "MinerState"
+        }
+      },
+      "xml": {
+        "name": "Status"
+      }
+    },
+    "MinerState": {
+      "required": [
+        "state",
+        "task-id"
+      ],
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "task-id": {
+          "type": "string"
+        },
+        "started": {
+          "type": "string"
+        },
+        "result-url": {
+          "type": "string"
+        }
+      },
+      "xml": {
+        "name": "MinerState"
+      }
+    },
+    "Error": {
+      "required": [
+        "code",
+        "name",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "xml": {
+        "name": "Error"
+      }
+    }
+  }
+}

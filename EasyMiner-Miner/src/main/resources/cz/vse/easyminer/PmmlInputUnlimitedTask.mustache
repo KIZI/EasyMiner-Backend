@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen SCHSchema="http://easyminer.eu/schemas/GUHARestr0_1.sch"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:pmml="http://www.dmg.org/PMML-4_0" version="4.0"
+      xsi:schemaLocation="http://www.dmg.org/PMML-4_0 http://easyminer.eu/schemas/PMML4.0+GUHA0.1.xsd">
+    <Header copyright="Copyright (c) Easyminer">
+        <Application name="EasyMiner" version="2.0 2015" />
+        <Annotation/>
+        <Timestamp>10.09.2015 02:48:26</Timestamp>
+        <Extension name="dataset" value="{{database-name}}.{{table-name}}" />
+        <Extension name="timeout" value="300" />
+        <Extension name="output" value="csv" />
+        <Extension name="database-type" value="hive" />
+    </Header>
+    <guha:AssociationModel xmlns:guha="http://keg.vse.cz/ns/GUHA0.1rev1"
+                           xmlns="" modelName="modelName" functionName="associationRules"
+                           algorithmName="4ft">
+        <TaskSetting xmlns="">
+            <Extension xmlns="" name="LISp-Miner">
+                <HypothesesCountMax xmlns="">{{im-limit}}</HypothesesCountMax>
+            </Extension>
+            <BBASettings xmlns="">
+                {{#bba-settings}}
+                    <BBASetting id="{{id}}">
+                        <Text>{{colname}}</Text>
+                        <Name>{{colname}}</Name>
+                        <FieldRef>{{colname}}</FieldRef>
+                        <Coefficient>
+                            {{#allvalues}}
+                                <Type>Subset</Type>
+                                <MinimalLength>1</MinimalLength>
+                                <MaximalLength>1</MaximalLength>
+                            {{/allvalues}}
+                            {{#fixedvalue}}
+                                <Type>One category</Type>
+                                <Category>{{.}}</Category>
+                            {{/fixedvalue}}
+                        </Coefficient>
+                    </BBASetting>
+                {{/bba-settings}}
+            </BBASettings>
+            <DBASettings xmlns="">
+                {{#dba-settings}}
+                    <DBASetting id="{{id}}" type="{{type}}">
+                        {{#ba-refs}}
+                            <BASettingRef>{{.}}</BASettingRef>
+                        {{/ba-refs}}
+                        <MinimalLength>1</MinimalLength>
+                        {{#literal-sign}}
+                            <LiteralSign>{{.}}</LiteralSign>
+                        {{/literal-sign}}
+                    </DBASetting>
+                {{/dba-settings}}
+            </DBASettings>
+            {{#antecedent-id}}<AntecedentSetting xmlns="">{{.}}</AntecedentSetting>{{/antecedent-id}}
+            {{#consequent-id}}<ConsequentSetting xmlns="">{{.}}</ConsequentSetting>{{/consequent-id}}
+            <InterestMeasureSetting xmlns="">
+                {{#ims}}
+                    <InterestMeasureThreshold id="{{id}}">
+                        <InterestMeasure>{{name}}</InterestMeasure>
+                        {{#value}}
+                            <Threshold>{{.}}</Threshold>
+                        {{/value}}
+                        <ThresholdType></ThresholdType>
+                        <CompareType></CompareType>
+                    </InterestMeasureThreshold>
+                {{/ims}}
+            </InterestMeasureSetting>
+        </TaskSetting>
+    </guha:AssociationModel>
+</PMML>
