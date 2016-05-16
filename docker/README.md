@@ -1,6 +1,17 @@
-# EasyMiner-Docker #
+EasyMiner-Docker
+======================
 
 This is an installation package of the easyminer backend for a docker environment. For the building a docker image, please follow these instructions:
+
+1. Build a docker image:
+
+        docker build -t easyminer-backend --build-arg EM_USER_ENDPOINT=<easyminercenter-url> https://github.com/KIZI/EasyMiner-Backend.git#:docker
+
+      Where `<easyminercenter-url>` is a valid URL to the easyminercenter service. All backend services uses this endpoint, therefore you need to install easyminercenter first.
+2. After the image has been successfully built you can run it:
+
+        docker run -d -p 8890:8890 -p 8891:8891 -p 8892:8892 --name easyminer-backend easyminer-backend
+3. Finally, you can use all three easyminer backend services: data (exposed port 8891), preprocessing (exposed port 8892) and miner (exposed port 8890)
 
 
 ## Additional information ##
