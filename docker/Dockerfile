@@ -61,7 +61,13 @@ RUN mv easyminer-preprocessing/lib/preprocessing_2.11-1.0.jar easyminer-preproce
     chmod 755 easyminer-preprocessing/bin/main && \
     chmod 755 easyminer-miner/run && \
     chmod 755 easyminer-miner/check && \
-    chmod 755 easyminer-miner/bin/main
+    chmod 755 easyminer-miner/bin/main && \
+    tar -xzf easyminer-data/webapp.tar.gz -C easyminer-data && \
+    tar -xzf easyminer-preprocessing/webapp.tar.gz -C easyminer-preprocessing && \
+    tar -xzf easyminer-miner/webapp.tar.gz -C easyminer-miner && \
+    rm easyminer-data/webapp.tar.gz && \
+    rm easyminer-preprocessing/webapp.tar.gz && \
+    rm easyminer-miner/webapp.tar.gz
 
 ENV EM_USER_ENDPOINT $EM_USER_ENDPOINT
 
