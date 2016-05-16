@@ -1,6 +1,6 @@
 # building: docker build -t easyminer-backend --build-arg EM_USER_ENDPOINT=https://easyminer-demo.lmcloud.vse.cz/easyminercenter https://github.com/KIZI/EasyMiner-Backend.git#:docker
-# run background  mode: docker run -d -p 8890:8890 -p 8891:8890 -p 8892:8890 --name easyminer-backend easyminer-backend
-# run interactive mode: docker run -t -i -p 8890:8890 -p 8891:8890 -p 8892:8890 --name easyminer-backend easyminer-backend -bash
+# run background  mode: docker run -d -p 8890:8890 -p 8891:8891 -p 8892:8892 --name easyminer-backend easyminer-backend
+# run interactive mode: docker run -t -i -p 8890:8890 -p 8891:8891 -p 8892:8892 --name easyminer-backend easyminer-backend -bash
 # ports: 8890 - easyminer-miner
 #        8891 - easyminer-data
 #        8892 - easyminer-preprocessing 
