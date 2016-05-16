@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd /root/easyminer-preprocessing
+. ./env
+curl http://${EM_PREPROCESSING_REST_ADDRESS}:${EM_PREPROCESSING_REST_PORT}/${EM_PREPROCESSING_BASEPATH}/stop

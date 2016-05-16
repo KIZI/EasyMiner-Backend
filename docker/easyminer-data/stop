@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd /root/easyminer-data
+. ./env
+curl http://${EM_DATA_REST_ADDRESS}:${EM_DATA_REST_PORT}/${EM_DATA_BASEPATH}/stop

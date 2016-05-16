@@ -3,23 +3,10 @@ import xerial.sbt.Pack._
 
 name := "EasyMiner"
 
-//local
-/*val akkaV = "2.3.9"
-val sprayV = "1.3.3"
-val scalikejdbcV = "2.2.8"
-val slf4jV = "1.7.7"
-val hadoopV = "2.7.1"
-val hiveV = "1.2.1"
-val sparkV = "1.6.0"*/
-
-//cesnet
 val akkaV = "2.3.9"
 val sprayV = "1.3.3"
 val scalikejdbcV = "2.2.8"
 val slf4jV = "1.7.7"
-val hadoopV = "2.6.0"
-//val hiveV = "1.1.0"
-val sparkV = "1.6.0"
 
 val shapeless = "com.chuusai" %% "shapeless" % "2.1.0"
 val sprayCan = "io.spray" %% "spray-can" % sprayV
@@ -40,11 +27,8 @@ val configs = "com.github.kxbmap" %% "configs" % "0.2.2"
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 val scalate = "org.scalatra.scalate" %% "scalate-core" % "1.7.0"
 val apacheCompress = "org.apache.commons" % "commons-compress" % "1.9"
-//val hiveJdbc = "org.apache.hive" % "hive-jdbc" % hiveV exclude("log4j", "log4j") exclude("org.slf4j", "slf4j-log4j12")
-val hdfs = "org.apache.hadoop" % "hadoop-client" % hadoopV exclude("log4j", "log4j") exclude("org.slf4j", "slf4j-log4j12")
-val sparkLauncher = "org.apache.spark" %% "spark-launcher" % sparkV
 
-val basicDependencies = Seq(shapeless, scalaLogging, akkaActor, akkaLogging, sprayCan, sprayRouting, sprayJson, sprayClient, slf4jSimple, log4j, configs, mysqlJdbc, /*hiveJdbc,*/ scalaJdbc, hdfs)
+val basicDependencies = Seq(shapeless, scalaLogging, akkaActor, akkaLogging, sprayCan, sprayRouting, sprayJson, sprayClient, slf4jSimple, log4j, configs, mysqlJdbc, scalaJdbc)
 val testRestDependencies = Seq(scalaTest, sprayTest)
 val rDependencies = Seq(rServe, rEngine)
 
@@ -98,7 +82,7 @@ lazy val preprocessing = project
 lazy val miner = project
   .in(file("EasyMiner-Miner"))
   .settings(basicSettings: _*)
-  .settings(libraryDependencies ++= (basicDependencies ++ testRestDependencies ++ rDependencies ++ Seq(sparkLauncher, scalate)))
+  .settings(libraryDependencies ++= (basicDependencies ++ testRestDependencies ++ rDependencies ++ Seq(scalate)))
   .settings(parallelExecution in Test := false)
   .settings(testOptions in Test += Tests.Argument("-oF"))
   .settings(scalateSettings ++ Seq(

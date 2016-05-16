@@ -73,3 +73,4 @@ cesnet-conf-test/
 EasyMiner-Data/src/main/scala/cz/vse/easyminer/data/impl/db/hive
 EasyMiner-Preprocessing/src/main/scala/cz/vse/easyminer/preprocessing/impl/db/hive/*
 EasyMiner-Miner/src/main/scala/cz/vse/easyminer/miner/impl/spark
+test/

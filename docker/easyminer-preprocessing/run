@@ -1,0 +1,6 @@
+#!/bin/bash  
+# Script for running Rest Easyminer Preprocessing
+
+cd /root/easyminer-preprocessing
+. ./env
+./bin/main > rest.log 2>&1

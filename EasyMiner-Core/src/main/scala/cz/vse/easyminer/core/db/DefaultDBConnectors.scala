@@ -16,20 +16,13 @@ class DefaultDBConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase
     conn
   }
 
-  val hiveConnector = lazily {
-    val conn = new HiveDBConnector(hiveUserDatabase)
-    afterConnection(conn)
-    conn
-  }
-
   def connector[A <: DBConnector[_]](dbType: DBType): A = dbType match {
     case LimitedDBType => mysqlConnector.apply().asInstanceOf[A]
-    case UnlimitedDBType => hiveConnector.apply().asInstanceOf[A]
+    case UnlimitedDBType => ???
     case _ => throw DBConnector.Exceptions.UnknownDBConnector
   }
 
   def close(): Unit = {
-    if (hiveConnector.isEvaluated) hiveConnector.close()
     if (mysqlConnector.isEvaluated) mysqlConnector.close()
   }
 

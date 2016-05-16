@@ -6,11 +6,10 @@ import akka.actor.{ActorContext, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
 import cz.vse.easyminer.core.Validator.ValidationException
-import cz.vse.easyminer.core.db.{HiveDBConnector, MysqlDBConnector, DBConnectors}
+import cz.vse.easyminer.core.db.{DBConnectors, MysqlDBConnector}
 import cz.vse.easyminer.core.util.RestUtils.PathExtension
 import cz.vse.easyminer.core.{UnexpectedActorRequest, UnexpectedActorResponse}
 import cz.vse.easyminer.miner.impl.r.AprioriMiner
-import cz.vse.easyminer.miner.impl.spark.FpGrowthMiner
 import cz.vse.easyminer.miner.impl.{MinerTaskValidatorImpl, PmmlResult, PmmlTaskParser}
 import cz.vse.easyminer.miner.{Miner, MinerResult, MinerTask, RScript}
 import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions._
@@ -36,7 +35,6 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
   implicit private val ec: ExecutionContext = actorContext.dispatcher
   implicit private val timeout = Timeout(5 seconds)
   implicit private lazy val mysqlDBConnector: MysqlDBConnector = dBConnectors
-  implicit private lazy val hiveDBConnector: HiveDBConnector = dBConnectors
 
   lazy val route = path("mine" ~ Slash.?) {
     post {
@@ -62,7 +60,7 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
       case LimitedDatasetType => RScript evalTx { rscript =>
         f(new AprioriMiner(rscript) with MinerTaskValidatorImpl)
       }
-      case UnlimitedDatasetType => f(new FpGrowthMiner() with MinerTaskValidatorImpl)
+      case UnlimitedDatasetType => ???
     }
     logger.trace(s"${minerActor.path.name}: input task is:\n$pmml")
     pmml.find(_.label == "PMML").map(new PmmlTaskParser(_).parse).map(minerTask => useMiner(minerTask) { miner =>
