@@ -13,7 +13,7 @@ and use only the R environment for the association rules mining with the 'arules
 ## Installation
 
 The easiest way for the easyminer backend installation is to use a docker environment.
-In the [docker](docker) directory, which is placed in this repository, is a build script and a complete manual how to build and
+In the [docker](docker) directory, which is placed in this repository, there is a build script and a complete manual how to build and
 run a docker image containing all easyminer backend services including all dependencies.
 
 ## EasyMiner-Data
