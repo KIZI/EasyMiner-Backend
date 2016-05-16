@@ -31,7 +31,7 @@ All operations are described within a [swagger document](EasyMiner-Data/src/main
 This service uses uploaded data sources and creates datasets from them.
 The dataset creation includes a field selection from which dataset attributes are making.
 Datasets are saved in a specfic form which is adapted for the association rules mining.
-This service provides same reading operations as the EasyMiner-Data part.
+This service provides same reading operations as the EasyMiner-Data module.
 All operations are described within a [swagger document](EasyMiner-Preprocessing/src/main/resources/swagger.json).
 
 * Endpoint: `http://<host>/<base-path>/api/v1`
@@ -44,10 +44,6 @@ All datasets saved in the easyminer warehouse may be used for the association ru
 The mining itself is processed in the R environment by 'arules' package.
 This service is only a REST wrapper of this R library,
 that performs the complete mining workflow from a dataset loading, to the mining and a result interpretation.
-This service uses uploaded data sources and creates datasets from them.
-The dataset creation includes a field selection from which dataset attributes are making.
-Datasets are saved in a specfic form which is adapted for the association rules mining.
-This service provides same reading operations as the EasyMiner-Data part.
 All operations of this service are described in a [swagger document](EasyMiner-Miner/src/main/resources/swagger.json).
 
 * Endpoint: `http://<host>/<base-path>/api/v1`
