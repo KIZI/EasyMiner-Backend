@@ -8,8 +8,8 @@ import scala.concurrent.duration.Duration
 import scala.language.{implicitConversions, postfixOps}
 
 /**
- * Created by propan on 8. 8. 2015.
- */
+  * Created by propan on 8. 8. 2015.
+  */
 class MysqlDBConnector(val dbSettings: MysqlUserDatabase) extends DBConnector[DBConnection] {
 
   private val connectionPoolName = s"mysql-${dbSettings.dbServer}-${dbSettings.dbUser}-${dbSettings.dbName}"
@@ -46,9 +46,9 @@ object MysqlDBConnector {
   val connectionPoolSettings = ConnectionPoolSettings(
     initialSize = 0,
     maxSize = Conf().get[Int]("easyminer.db.max-connection-pool-size"),
-    connectionTimeoutMillis = Conf().get[Duration]("easyminer.db.connection-timeout").toMillis,
+    connectionTimeoutMillis = Conf().opt[Duration]("easyminer.db.connection-timeout").map(_.toMillis).getOrElse(-1),
     validationQuery = "select 1 as one",
-    connectionPoolFactoryName = "commons-dbcp"
+    connectionPoolFactoryName = "commons-dbcp2"
   )
 
   implicit def dBConnectorsToMysqlDbConnector(dBConnectors: DBConnectors): MysqlDBConnector = dBConnectors.connector(LimitedDBType)

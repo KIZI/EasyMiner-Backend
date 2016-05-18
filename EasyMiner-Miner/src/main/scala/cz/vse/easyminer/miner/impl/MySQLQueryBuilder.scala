@@ -4,6 +4,7 @@ import cz.vse.easyminer.miner.{AND, AllValues, Attribute, BoolExpression, Datase
 import cz.vse.easyminer.preprocessing.AttributeDetail
 import scalikejdbc._
 
+
 trait MysqlQueryBuilder extends DatasetQueryBuilder {
 
   private class SqlSelectBuilder(implicit attributeToColName: AttributeDetail => SQLSyntax) {
@@ -14,25 +15,25 @@ trait MysqlQueryBuilder extends DatasetQueryBuilder {
     }
 
     val ToSQLSelectMap: PartialFunction[(AttributeDetail, SQLSyntax), (AttributeDetail, SQLSyntax)] = {
-      case (k, SQLSyntax("", _)) => k -> k
-      case (k, v) => k -> nameAndValueToIf(k, v)
+      case (k, SQLSyntax("", _)) => (k, k)
+      case (k, v) => (k, nameAndValueToIf(k, v))
     }
 
-    private def nameAndValueToIf(colName: SQLSyntax, condition: SQLSyntax) = sqls"IF($condition, $colName, NULL) AS $colName"
+    private def nameAndValueToIf(colName: SQLSyntax, condition: SQLSyntax): SQLSyntax = sqls"IF($condition, $colName, NULL) AS $colName"
 
     private def joinSQLMaps(m1: Map[AttributeDetail, SQLSyntax], m2: Map[AttributeDetail, SQLSyntax], f: (SQLSyntax, SQLSyntax) => SQLSyntax) = m1.foldLeft(m2) {
-      case (r, t @ (k, _)) if !r.contains(k) => r + t
+      case (r, t@(k, _)) if !r.contains(k) => r + t
       case (r, (k, v)) =>
         val rv = r(k)
-        r + (k -> (if (rv.value.isEmpty || v.value.isEmpty) SQLSyntax.empty else f(rv, v)))
+        r + ((k, if (rv.value.isEmpty || v.value.isEmpty) SQLSyntax.empty else f(rv, v)))
     }
 
     def toSQLMap(exp: BoolExpression[Attribute]): Map[AttributeDetail, SQLSyntax] = exp match {
       case AND(a, b) => joinSQLMaps(toSQLMap(a), toSQLMap(b), (a, b) => sqls"($a AND $b)")
       case OR(a, b) => joinSQLMaps(toSQLMap(a), toSQLMap(b), (a, b) => sqls"($a OR $b)")
-      case Value(AllValues(a)) => Map(a -> SQLSyntax.empty)
-      case Value(FixedValue(a, v)) => Map(a -> SQLSyntax.eq(a, v.value))
-      case NOT(a) => toSQLMap(a) map { case (k, v) => k -> (if (v.value.isEmpty) v else sqls"NOT($v)") }
+      case Value(AllValues(a)) => Map((a, SQLSyntax.empty))
+      case Value(FixedValue(a, v)) => Map((a, SQLSyntax.eq(a, v.value)))
+      case NOT(a) => toSQLMap(a) map { case (k, v) => (k, if (v.value.isEmpty) v else sqls"NOT($v)") }
       case _ => Map.empty
     }
 

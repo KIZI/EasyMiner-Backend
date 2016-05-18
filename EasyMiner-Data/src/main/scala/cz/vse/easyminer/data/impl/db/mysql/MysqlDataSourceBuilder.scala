@@ -72,9 +72,9 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
               sql"""
               INSERT INTO ${FieldNumericDetailTable.table} (${FieldNumericDetailTable.column.columns})
               SELECT ${field.id} AS ${FieldNumericDetailTable.column.id},
-              MIN($dataCol) AS ${FieldNumericDetailTable.column.min},
-              MAX($dataCol) AS ${FieldNumericDetailTable.column.max},
-              AVG($dataCol) AS ${FieldNumericDetailTable.column.avg}
+              IFNULL(MIN($dataCol), 0) AS ${FieldNumericDetailTable.column.min},
+              IFNULL(MAX($dataCol), 0) AS ${FieldNumericDetailTable.column.max},
+              IFNULL(AVG($dataCol), 0) AS ${FieldNumericDetailTable.column.avg}
               FROM ${dataTable.table}
               """.execute().apply()
               valueTable.column.c("value_numeric")
