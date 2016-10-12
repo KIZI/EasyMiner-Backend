@@ -54,4 +54,7 @@ install password: 12345
 > cd easyminer-docker
 > cp <bitbucket-private-key-file> ./bitbucket-private-key
 > cp <easyminer-kerberos-keytab-file> ./easyminer.keytab
+> docker build -t easyminer-backend .
+> docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e EM_USER_ENDPOINT=http://easyminer-frontend/easyminercenter easyminer-backend
+> docker network connect easyminer easyminer-backend
 ```
