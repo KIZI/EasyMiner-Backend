@@ -3,7 +3,7 @@
 export EM_R_SERVER=127.0.0.1
 export EM_R_JDBC=/root/easyminer-miner/jdbc
 export EM_MINER_REST_ADDRESS=0.0.0.0
-export EM_MINER_REST_PORT=8890
+export EM_MINER_REST_PORT=8893
 export EM_MINER_BASEPATH=easyminer-miner
 export EM_DATA_REST_ADDRESS=0.0.0.0
 export EM_DATA_REST_PORT=8891
