@@ -45,10 +45,9 @@ install password: 12345
 > HTTP_SERVER_ADDR=<docker-server>
 > docker network create easyminer
 > docker pull mysql:5.7
-> docker run --name easyminer-mysql -e MYSQL_ROOT_PASSWORD=root -d mysql:5.7
-> docker network connect easyminer easyminer-mysql
+> docker run --name easyminer-mysql -e MYSQL_ROOT_PASSWORD=root --network easyminer -d mysql:5.7
 > docker build -t easyminer-frontend https://github.com/KIZI/EasyMiner-EasyMinerCenter.git#:docker
-> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME=$HTTP_SERVER_ADDR
+> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME=$HTTP_SERVER_ADDR --network easyminer easyminer-frontend
 > docker network connect easyminer easyminer-frontend
 > git clone -b v2.0 git@bitbucket.org:easyminer/easyminer-docker.git
 > cd easyminer-docker
