@@ -49,8 +49,8 @@ Required environment variables:
 > docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e EM_USER_ENDPOINT=http://easyminer-frontend/easyminercenter --network easyminer easyminer-backend
 ```
 
-Web GUI: http://<docker-server>:8894/easyminercenter
-Frontend re-install page: http://<docker-server>:8894/easyminercenter/install (password: 12345)
+* Web GUI: http://\<docker-server\>:8894/easyminercenter
+* Frontend re-install page: http://\<docker-server\>:8894/easyminercenter/install (password: 12345)
 
 ### Hadoop version ###
 
@@ -75,5 +75,5 @@ Frontend re-install page: http://<docker-server>:8894/easyminercenter/install (p
 > docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e EM_USER_ENDPOINT=http://easyminer-frontend/easyminercenter --network easyminer easyminer-backend
 ```
 
-Web GUI: http://<docker-server>:8894/easyminercenter
-Frontend re-install page: http://<docker-server>:8894/easyminercenter/install (password: 12345)
+* Web GUI: http://\<docker-server\>:8894/easyminercenter
+* Frontend re-install page: http://\<docker-server\>:8894/easyminercenter/install (password: 12345)
