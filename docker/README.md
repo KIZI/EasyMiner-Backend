@@ -42,18 +42,22 @@ Required environment variables:
 install password: 12345
 
 ```
+//user inputs
 > HTTP_SERVER_ADDR=<docker-server>
+> BITBUCKET_PRIVATE_KEY=<bitbucket-private-key-file>
+> EASYMINER_KERBEROS_KEYTAB=<easyminer-kerberos-keytab-file>
+
+//commands
 > docker network create easyminer
 > docker pull mysql:5.7
-> docker run --name easyminer-mysql -e MYSQL_ROOT_PASSWORD=root --network easyminer -d mysql:5.7
 > docker build -t easyminer-frontend https://github.com/KIZI/EasyMiner-EasyMinerCenter.git#:docker
-> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME=$HTTP_SERVER_ADDR --network easyminer easyminer-frontend
-> docker network connect easyminer easyminer-frontend
+> (cp $BITBUCKET_PRIVATE_KEY ~/.ssh/id_rsa; chmod 600 ~/.ssh/id_rsa; touch ~/.ssh/known_hosts; ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts) 
 > git clone -b v2.0 git@bitbucket.org:easyminer/easyminer-docker.git
 > cd easyminer-docker
-> cp <bitbucket-private-key-file> ./bitbucket-private-key
-> cp <easyminer-kerberos-keytab-file> ./easyminer.keytab
+> cp $BITBUCKET_PRIVATE_KEY ./bitbucket-private-key
+> cp $EASYMINER_KERBEROS_KEYTAB ./easyminer.keytab
 > docker build -t easyminer-backend .
-> docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e EM_USER_ENDPOINT=http://easyminer-frontend/easyminercenter easyminer-backend
-> docker network connect easyminer easyminer-backend
+> docker run --name easyminer-mysql -e MYSQL_ROOT_PASSWORD=root --network easyminer -d mysql:5.7
+> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME=$HTTP_SERVER_ADDR --network easyminer easyminer-frontend
+> docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e EM_USER_ENDPOINT=http://easyminer-frontend/easyminercenter --network easyminer easyminer-backend
 ```
