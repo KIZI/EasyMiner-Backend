@@ -30,3 +30,28 @@ Possible docker RUN modes:
 Required environment variables:
 
 * ```EM_USER_ENDPOINT``` - URL to the easyminercenter endpoint
+
+## Backend integration with the frontend ##
+
+### Free version ###
+
+
+
+### Hadoop version ###
+
+install password: 12345
+
+```
+> HTTP_SERVER_ADDR=<docker-server>
+> docker network create easyminer
+> docker pull mysql:5.7
+> docker run --name easyminer-mysql -e MYSQL_ROOT_PASSWORD=root -d mysql:5.7
+> docker network connect easyminer easyminer-mysql
+> docker build -t easyminer-frontend https://github.com/KIZI/EasyMiner-EasyMinerCenter.git#:docker
+> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME=$HTTP_SERVER_ADDR
+> docker network connect easyminer easyminer-frontend
+> git clone -b v2.0 git@bitbucket.org:easyminer/easyminer-docker.git
+> cd easyminer-docker
+> cp <bitbucket-private-key-file> ./bitbucket-private-key
+> cp <easyminer-kerberos-keytab-file> ./easyminer.keytab
+```
