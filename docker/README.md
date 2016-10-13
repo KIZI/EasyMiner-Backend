@@ -33,7 +33,9 @@ Required environment variables:
 
 ## Backend integration with the frontend ##
 
-### Free version ###
+### Simple version ###
+
+Requirements: Docker 1.12+
 
 ```
 //user inputs
@@ -53,6 +55,8 @@ Required environment variables:
 * Frontend re-install page: http://\<docker-server\>:8894/easyminercenter/install (password: 12345)
 
 ### Hadoop version ###
+
+Requirements: Docker 1.12+
 
 ```
 //user inputs
