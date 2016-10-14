@@ -33,7 +33,7 @@ Required environment variables:
 
 ## Backend integration with the frontend ##
 
-### Simple version ###
+### Basic version ###
 
 Requirements: Docker 1.12+
 
