@@ -46,7 +46,7 @@ Requirements: Docker 1.12+
 > docker pull mysql:5.7
 > docker run --name easyminer-mysql -e MYSQL_ROOT_PASSWORD=root --network easyminer -d mysql:5.7
 > docker build -t easyminer-frontend https://github.com/KIZI/EasyMiner-EasyMinerCenter.git#:docker
-> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME=$HTTP_SERVER_ADDR --network easyminer easyminer-frontend
+> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME="$HTTP_SERVER_ADDR:8894" --network easyminer easyminer-frontend
 > docker build -t easyminer-backend https://github.com/KIZI/EasyMiner-Backend.git#:docker
 > docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e EM_USER_ENDPOINT=http://easyminer-frontend/easyminercenter --network easyminer easyminer-backend
 ```
@@ -69,7 +69,7 @@ Requirements: Docker 1.12+
 > docker pull mysql:5.7
 > docker run --name easyminer-mysql -e MYSQL_ROOT_PASSWORD=root --network easyminer -d mysql:5.7
 > docker build -t easyminer-frontend https://github.com/KIZI/EasyMiner-EasyMinerCenter.git#:docker
-> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME=$HTTP_SERVER_ADDR --network easyminer easyminer-frontend
+> docker run -d -p 8894:80 --name easyminer-frontend -e HTTP_SERVER_NAME="$HTTP_SERVER_ADDR:8894" --network easyminer easyminer-frontend
 > (cp $BITBUCKET_PRIVATE_KEY ~/.ssh/id_rsa; chmod 600 ~/.ssh/id_rsa; touch ~/.ssh/known_hosts; ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts) 
 > git clone -b v2.0 git@bitbucket.org:easyminer/easyminer-docker.git
 > cd easyminer-docker
