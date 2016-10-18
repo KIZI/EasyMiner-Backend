@@ -31,7 +31,8 @@ Required environment variables:
 
 * ```EM_USER_ENDPOINT``` - URL to the easyminercenter endpoint
 
-## Backend integration with the frontend ##
+## Installation instructions ##
+This will install, backend,  frontend and database.
 
 ### Basic version ###
 
