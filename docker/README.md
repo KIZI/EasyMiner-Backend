@@ -1,13 +1,12 @@
-EasyMiner-Docker
+Installation instructions
 ======================
 
-This is an installation package of the Easyminer bundle for the docker environment. 
+This is an installation package of the Easyminer bundle for the docker environment. This installation contains backend, frontend and database.  We offer two versions of the software. Completely free version with R backend and an on-request  version with Hadoop/Spark backend. An overview of available REST endpoints is provided in the end of the document.
 
-## Installation instructions ##
+## EasyMiner with R backend ##
 
-This will install, backend, frontend and database. For all versions there is a required environment variable which should be set. This variable HTTP_SERVER_ADDR has to contain an address to a **docker host** that is reachable from both any docker container and your internet browser.
-
-### EasyMiner with R backend ###
+### Complete bundle: frontend, backend, database ###
+Note: The HTTP_SERVER_ADDR has to contain an address to a **docker host** that is reachable from both any docker container and your internet browser.
 
 Requirements: Docker 1.12+
 
@@ -29,12 +28,7 @@ docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e
 * Web GUI: http://\<docker-server\>:8894/easyminercenter
 * Frontend re-install page: http://\<docker-server\>:8894/easyminercenter/install (password: 12345)
 
-### License ###
-EasyMiner with R backend is generally provided under open license. Most EasyMiner-specific code is licensed under the very permissive BSD license. EasyMiner relies on a number of third-party components which may use different license types. 
-
-The software comes with absolutely no warranty.
-
-#### Installing only the backend (mining services) ####
+#### Only backend (mining services) ####
 For building of a docker image, please follow these instructions:
 
 1. Build a docker image:
@@ -47,12 +41,16 @@ For building of a docker image, please follow these instructions:
         docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend easyminer-backend
 3. Finally, you can use all three easyminer backend services: data (exposed port 8891), preprocessing (exposed port 8892) and miner (exposed port 8893)
 
+#### License ####
+EasyMiner with R backend is generally provided under open license. Most EasyMiner-specific code is licensed under the very permissive BSD license. EasyMiner relies on a number of third-party components which may use different license types. 
 
-### EasyMiner with Hadoop/Spark backend ###
+The software comes with absolutely no warranty.
 
-Requirements: Docker 1.12+
-
+## EasyMiner with Hadoop/Spark backend ##
 In order to build this version of EasyMiner you will need bitbucket private key file and the kerberos keytab file. These files are provided upon request (see license notice below).
+
+### Complete bundle: frontend, backend, database ###
+Requirements: Docker 1.12+
 
 Please note that in the script below, you should use absolute paths to the bitbucket private key file and to the kerberos keytab file.
 
