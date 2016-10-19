@@ -32,7 +32,8 @@ Required environment variables:
 * ```EM_USER_ENDPOINT``` - URL to the easyminercenter endpoint
 
 ## Installation instructions ##
-This will install, backend,  frontend and database.
+
+This will install, backend, frontend and database. For all versions there is a required environment variable which should be set. This variable HTTP_SERVER_ADDR has to contain an address to a **docker host** that is reachable from both any docker container and your internet browser.
 
 ### Basic version ###
 
