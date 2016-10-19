@@ -1,7 +1,7 @@
 EasyMiner-Docker
 ======================
 
-This is an installation package of the easyminer backend for a docker environment. For the building a docker image, please follow these instructions:
+This is an installation package of the Easyminer bundle for the docker environment. For building of a docker image, please follow these instructions:
 
 1. Build a docker image:
 
