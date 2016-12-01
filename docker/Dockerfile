@@ -31,7 +31,7 @@ RUN apt-get install -y r-base r-base-dev libcurl4-openssl-dev libssl-dev && \
     Rscript r-install.R
 
 # pull easyminer backend code from github
-RUN git clone --branch v2.4 https://github.com/KIZI/EasyMiner-Backend.git
+RUN git clone https://github.com/KIZI/EasyMiner-Backend.git
 WORKDIR EasyMiner-Backend
 
 # compile easyminer backend to jar files
