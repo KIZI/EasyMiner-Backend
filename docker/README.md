@@ -7,7 +7,7 @@ For building of a docker image, please follow these instructions:
 
 1. Build a docker image:
 
-        docker build -t easyminer-backend --build-arg EM_USER_ENDPOINT=<easyminercenter-url> https://github.com/KIZI/EasyMiner-Backend.git#v2.4:docker
+        docker build -t easyminer-backend https://github.com/KIZI/EasyMiner-Backend.git#v2.4:docker
 
       Or
       
@@ -15,7 +15,7 @@ For building of a docker image, please follow these instructions:
       
 2. After the image has been successfully built you can run it:
 
-        docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e EM_USER_ENDPOINT=<easyminercenter-url> --network easyminer easyminer-backend
+        docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend -e EM_USER_ENDPOINT=<easyminercenter-url> easyminer-backend
         
       Where `<easyminercenter-url>` is a valid URL to the easyminercenter service (for example: http://localhost:8894/easyminercenter). All backend services uses this endpoint, therefore you need to install easyminercenter first.
         
