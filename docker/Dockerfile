@@ -1,9 +1,3 @@
-# building: docker build -t easyminer-backend --build-arg EM_USER_ENDPOINT=https://easyminer-demo.lmcloud.vse.cz/easyminercenter https://github.com/KIZI/EasyMiner-Backend.git#:docker
-# run background  mode: docker run -d -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend easyminer-backend
-# run interactive mode: docker run -t -i -p 8893:8893 -p 8891:8891 -p 8892:8892 --name easyminer-backend easyminer-backend -bash
-# ports: 8893 - easyminer-miner
-#        8891 - easyminer-data
-#        8892 - easyminer-preprocessing 
 FROM debian:jessie
 
 MAINTAINER kizi "prozeman@gmail.com"
@@ -31,7 +25,7 @@ RUN apt-get install -y r-base r-base-dev libcurl4-openssl-dev libssl-dev && \
     Rscript r-install.R
 
 # pull easyminer backend code from github
-RUN git clone https://github.com/KIZI/EasyMiner-Backend.git
+RUN git clone --branch v2.4 https://github.com/KIZI/EasyMiner-Backend.git
 WORKDIR EasyMiner-Backend
 
 # compile easyminer backend to jar files
