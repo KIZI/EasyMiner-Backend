@@ -24,7 +24,7 @@ class MysqlDatasetBuilder private[db](val dataset: Dataset,
     val dataInstanceTable = new DataInstanceTable(dataset.dataSourceDetail.id)
     val valueTable = new ValueTable(datasetDetail.id)
     DBConn autoCommit { implicit session =>
-      sql"CREATE TABLE ${preprocessingInstanceTable.table} (${preprocessingInstanceTable.column.id} int(10) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (${preprocessingInstanceTable.column.id})) ENGINE=InnoDB DEFAULT CHARSET=utf8".execute().apply()
+      sql"CREATE TABLE ${preprocessingInstanceTable.table} (${preprocessingInstanceTable.column.id} int(10) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (${preprocessingInstanceTable.column.id})) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin".execute().apply()
       sql"INSERT ${preprocessingInstanceTable.table} SELECT ${dataInstanceTable.column.id} FROM ${dataInstanceTable.table}".execute().apply()
       taskStatusProcessor.newStatus("The instance table has been populated successfully. Now aggregated data are creating...")
       sql"""CREATE TABLE ${valueTable.table} (
@@ -37,7 +37,7 @@ class MysqlDatasetBuilder private[db](val dataset: Dataset,
         UNIQUE KEY ${valueTable.column.attribute}_${valueTable.column.valueNominal} (${valueTable.column.attribute},${valueTable.column.valueNominal}),
         UNIQUE KEY ${valueTable.column.attribute}_${valueTable.column.valueNumeric} (${valueTable.column.attribute},${valueTable.column.valueNumeric}),
         KEY ${valueTable.column.attribute} (${valueTable.column.attribute})
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8""".execute().apply()
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin""".execute().apply()
       sql"""ALTER TABLE ${valueTable.table}
         ADD CONSTRAINT ${valueTable.table}_ibfk_1
         FOREIGN KEY (${valueTable.column.attribute})

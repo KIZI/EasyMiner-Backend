@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}attribute` (
 `active` tinyint(1) NOT NULL DEFAULT '0',
 PRIMARY KEY (`id`,`dataset`),
 KEY `dataset` (`dataset`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}attribute_numeric_detail` (
 `max` double NOT NULL,
 `avg` double NOT NULL,
 PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- --------------------------------------------------------
 
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}dataset` (
 `size` int(10) unsigned NOT NULL,
 `active` tinyint(1) NOT NULL DEFAULT '0',
 PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}field` (
 `unique_values_size` int(10) unsigned NOT NULL,
 PRIMARY KEY (`id`,`data_source`),
 KEY `data_source` (`data_source`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}field_numeric_detail` (
 `max` double NOT NULL,
 `avg` double NOT NULL,
 PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- --------------------------------------------------------
 
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}data_source` (
 `size` int(10) unsigned NOT NULL,
 `active` tinyint(1) NOT NULL DEFAULT '0',
 PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 

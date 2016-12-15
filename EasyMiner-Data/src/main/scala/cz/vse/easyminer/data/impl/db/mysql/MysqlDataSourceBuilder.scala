@@ -112,7 +112,7 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
         ${valueTable.column.frequency} int(10) unsigned NOT NULL,
         PRIMARY KEY (${valueTable.column.id}, ${valueTable.column.field("field")}),
         KEY ${valueTable.column.field("field")} (${valueTable.column.field("field")})
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1""".execute().apply()
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1""".execute().apply()
         sql"""ALTER TABLE ${valueTable.table}
         ADD CONSTRAINT ${valueTable.table}_ibfk_1
         FOREIGN KEY (${valueTable.column.field("field")})
