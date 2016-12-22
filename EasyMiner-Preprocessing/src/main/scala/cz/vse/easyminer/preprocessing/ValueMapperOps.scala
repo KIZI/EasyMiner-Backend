@@ -1,29 +1,29 @@
 package cz.vse.easyminer.preprocessing
 
 import cz.vse.easyminer.data.Value
-import cz.vse.easyminer.preprocessing.ValueMapperOps.{NormalizedValueMapper, ValueMapper}
+import cz.vse.easyminer.preprocessing.ValueMapperOps.{ItemMapper, ValueMapper}
 
 /**
- * Created by propan on 13. 2. 2016.
- */
+  * Created by propan on 13. 2. 2016.
+  */
 trait ValueMapperOps {
 
   val dataset: DatasetDetail
 
   def valueMapper(values: Map[AttributeDetail, Set[Value]]): ValueMapper
 
-  def normalizedValueMapper(normalizedValues: Map[AttributeDetail, Set[NormalizedValue]]): NormalizedValueMapper
+  def itemMapper(items: Map[AttributeDetail, Set[Int]]): ItemMapper
 
 }
 
 object ValueMapperOps {
 
   trait ValueMapper {
-    def normalizedValue(attributeDetail: AttributeDetail, value: Value): Option[NormalizedValue]
+    def item(attributeDetail: AttributeDetail, value: Value): Option[Int]
   }
 
-  trait NormalizedValueMapper {
-    def value(attributeDetail: AttributeDetail, normalizedValue: NormalizedValue): Option[Value]
+  trait ItemMapper {
+    def value(attributeDetail: AttributeDetail, item: Int): Option[Value]
   }
 
 }

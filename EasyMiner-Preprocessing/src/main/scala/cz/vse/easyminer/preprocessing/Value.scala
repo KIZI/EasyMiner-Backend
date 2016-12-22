@@ -3,8 +3,6 @@ package cz.vse.easyminer.preprocessing
 /**
  * Created by propan on 18. 12. 2015.
  */
-case class NormalizedValue(value: Int)
-
 sealed trait ValueDetail {
   val id: Int
   val attribute: Int
@@ -13,6 +11,6 @@ sealed trait ValueDetail {
 
 case class NominalValueDetail(id: Int, attribute: Int, value: String, frequency: Int) extends ValueDetail
 
-case class NumericValueDetail(id: Int, attribute: Int, value: Double, frequency: Int) extends ValueDetail
+case class NumericValueDetail(id: Int, attribute: Int, original: String, value: Double, frequency: Int) extends ValueDetail
 
 case class NullValueDetail(id: Int, attribute: Int, frequency: Int) extends ValueDetail

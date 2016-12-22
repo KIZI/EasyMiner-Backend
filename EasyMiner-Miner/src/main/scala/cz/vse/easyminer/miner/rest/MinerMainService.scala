@@ -53,6 +53,7 @@ class MinerMainService extends HttpServiceActor with MainService with DefaultRes
     complete {
       context.system.scheduler.scheduleOnce(3 seconds) {
         context.system.shutdown()
+        context.system.awaitTermination()
       }
       "Stopping..."
     }

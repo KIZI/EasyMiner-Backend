@@ -12,16 +12,35 @@
 #library(rCBA)
 #library(R.utils)
 
+#train <- dbGetQuery(con, "SELECT id, CONCAT(attribute, '(', value, ')') AS item FROM dataset")
+#train <- aggregate(item~id, data=train, FUN = function(t) t)
+#train <- train[[2]]
+#txns <- as(train, "transactions")
+
 prepareData <- function() {
     # load data from mysql
     drv <- JDBC("com.mysql.jdbc.Driver", list.files("{{jdbcDriverAbsolutePath}}", pattern="jar$",full.names=T))
     con <- dbConnect(drv, "jdbc:mysql://{{{dbServer}}}:3306/{{{dbName}}}?characterEncoding=utf8", "{{{dbUser}}}", "{{{dbPassword}}}")
-    train <- dbGetQuery(con, "SELECT {{{selectQuery}}} FROM `{{{dbTableName}}}`")
+    train <- dbGetQuery(con, "SELECT id, attribute, value FROM `{{{dbTableName}}}` WHERE {{{whereQuery}}} ORDER BY id, attribute")
     dbDisconnect(con)
     # normalize data
-    train <- sapply(train,as.factor)
-    train <- data.frame(train, check.names=F)
-    return(train)
+    attr <- sort(unique(train[[2]]))
+    train <- aggregate(.~id, data=train, simplify = FALSE, FUN = function(t) t)
+    trainN <- matrix(ncol=length(attr), nrow=length(train[[1]]))
+    for(i in 1:length(train[[1]])) {
+        t <- 1
+        for(j in 1:length(attr)) {
+            if (t <= length(train[[2]][[i]]) && attr[j] == train[[2]][[i]][[t]]) {
+                trainN[i,j] <- as.character(train[[3]][[i]][[t]])
+                t <- t + 1
+            } else {
+                trainN[i,j] <- NA
+            }
+        }
+    }
+    trainN <- data.frame(trainN)
+    colnames(trainN) <- attr
+    return(trainN)
 }
 
 train <- prepareData()

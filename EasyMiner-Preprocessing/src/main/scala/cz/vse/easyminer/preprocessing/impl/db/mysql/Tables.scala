@@ -5,8 +5,8 @@ import cz.vse.easyminer.preprocessing._
 import scalikejdbc._
 
 /**
- * Created by propan on 9. 8. 2015.
- */
+  * Created by propan on 9. 8. 2015.
+  */
 object Tables {
 
   val tablePrefix = Conf().getOrElse("easyminer.preprocessing.table-prefix", "")
@@ -76,28 +76,20 @@ object Tables {
     def apply(m: ResultName[ValueDetail], fieldType: AttributeType)(rs: WrappedResultSet): ValueDetail = {
       val value: Option[ValueDetail] = fieldType match {
         case NominalAttributeType => rs.stringOpt(m.field("value_nominal")).map(value => NominalValueDetail(rs.int(m.id), rs.int(m.attribute), value, rs.int(m.frequency)))
-        case NumericAttributeType => rs.doubleOpt(m.field("value_numeric")).map(value => NumericValueDetail(rs.int(m.id), rs.int(m.attribute), value, rs.int(m.frequency)))
+        case NumericAttributeType => rs.doubleOpt(m.field("value_numeric")).map(value => NumericValueDetail(rs.int(m.id), rs.int(m.attribute), rs.string(m.field("value_nominal")), value, rs.int(m.frequency)))
       }
       value.getOrElse(NullValueDetail(rs.int(m.id), rs.int(m.attribute), rs.int(m.frequency)))
     }
 
   }
 
-  class InstanceTable(datasetId: Int, colNames: Seq[Int] = Nil) extends SQLSyntaxSupport[IndexedInstance] {
-
-    import InstanceTable._
-
-    def columnById(attributeId: Int) = column.c(colNamePrefix + attributeId)
+  class InstanceTable(datasetId: Int) extends SQLSyntaxSupport[NarrowInstance] {
 
     override def tableName = tablePrefix + "dataset_" + datasetId
 
-    override val columns = "id" +: colNames.map(colNamePrefix + _)
+    override val columns = Seq("id", "attribute", "value")
 
-  }
-
-  object InstanceTable {
-
-    val colNamePrefix = "col_"
+    def apply(m: ResultName[NarrowInstance])(rs: WrappedResultSet): NarrowInstance = NarrowInstance(rs.int(m.id), rs.int(m.attribute), rs.int(m.value))
 
   }
 

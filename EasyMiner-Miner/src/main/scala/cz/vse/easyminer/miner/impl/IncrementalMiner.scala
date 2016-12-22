@@ -1,30 +1,24 @@
 package cz.vse.easyminer.miner.impl
 
 import cz.vse.easyminer.miner._
-import cz.vse.easyminer.preprocessing.AttributeDetail
 import org.slf4j.LoggerFactory
+import BoolExpressionImpl._
 
 import scala.annotation.tailrec
 
 /**
- * Created by propan on 27. 2. 2016.
- */
+  * Created by propan on 27. 2. 2016.
+  */
 trait IncrementalMiner {
 
   val minerTask: MinerTask
   val processListener: MinerResult => Unit
-  val attributes: Seq[AttributeDetail]
+  val numberOfAttributes: Int
 
   lazy val minlen = minerTask.interestMeasures.minlen
   lazy val maxlen = {
-    def boolExpressionToAttributeSet(boolExpression: BoolExpression[Attribute]): Option[Set[AttributeDetail]] = boolExpression match {
-      case a ANDOR b => boolExpressionToAttributeSet(a).flatMap(a => boolExpressionToAttributeSet(b).map(_ ++ a))
-      case NOT(a) => None
-      case Value(FixedValue(a, _)) => Some(Set(a))
-      case Value(AllValues(a)) => Some(Set(a))
-      case _ => None
-    }
-    val uppermaxlen = minerTask.antecedent.flatMap(ant => minerTask.consequent.map(ant.AND)).flatMap(boolExpressionToAttributeSet).map(_.size).getOrElse(attributes.size)
+    val maxlens = List(minerTask.antecedent, minerTask.consequent).map(_.map(_.toAttributeDetails.size).getOrElse(0))
+    val uppermaxlen = if (maxlens.contains(0)) numberOfAttributes else maxlens.sum
     math.min(uppermaxlen, minerTask.interestMeasures.maxlen)
   }
   val limit = minerTask.interestMeasures.limit

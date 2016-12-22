@@ -8,8 +8,8 @@ import cz.vse.easyminer.data.impl.db.mysql.Tables._
 import scalikejdbc._
 
 /**
- * Created by propan on 8. 8. 2015.
- */
+  * Created by propan on 8. 8. 2015.
+  */
 class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) extends DataSourceBuilder {
 
   import mysqlDBConnector._
@@ -23,8 +23,10 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
 
     def this(dataSource: DataSourceDetail, fields: Seq[FieldDetail]) = this(
       dataSource,
-      fields,
-      s"INSERT INTO `${Tables.tablePrefix}data_source_${dataSource.id}` (${fields.map(InstanceTable.colNamePrefix + _.id).mkString(", ")}) VALUES (${List.fill(fields.size)("?").mkString(", ")})",
+      fields, {
+        val instanceTable = new InstanceTable(dataSource.id)
+        sqls"INSERT INTO `${instanceTable.table}` (${instanceTable.column.id}, ${instanceTable.column.field("field")}, ${instanceTable.column.valueNominal}, ${instanceTable.column.valueNumeric}) VALUES (?, ?, ?, ?)".value
+      },
       Vector()
     )
 
@@ -46,10 +48,9 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
         dataSource.copy(size = dataSource.size + 1),
         fields,
         preparedStatement,
-        batchParameters :+ values.map {
-          case NominalValue(value) => value
-          case NumericValue(value) => value
-          case NullValue => null
+        batchParameters ++ values.iterator.zip(fields.iterator).collect {
+          case (NominalValue(value), fieldDetail) if fieldDetail.`type` == NominalFieldType => List(dataSource.size + 1, fieldDetail.id, value, null)
+          case (NumericValue(original, value), fieldDetail) if fieldDetail.`type` == NumericFieldType => List(dataSource.size + 1, fieldDetail.id, original, value)
         }
       )
     }
@@ -60,31 +61,39 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
       }
       taskStatusProcessor.newStatus("Aggregated values and stats are now creating...")
       DBConn autoCommit { implicit session =>
-        sql"UPDATE ${DataSourceTable.table} SET ${DataSourceTable.column.size} = ${dataSource.size} WHERE ${DataSourceTable.column.id} = ${dataSource.id}".execute().apply()
-        val dataTable = new InstanceTable(dataSource.id, fields.map(_.id))
+        val instanceTable = new InstanceTable(dataSource.id)
         val valueTable = new ValueTable(dataSource.id)
-        for (field <- fields) {
-          val dataCol = dataTable.columnById(field.id)
-          val uniqueValuesSize = sql"SELECT COUNT(*) AS count FROM (SELECT $dataCol FROM ${dataTable.table} WHERE 1 GROUP BY $dataCol) c".map(_.int("count")).first().apply().getOrElse(0)
-          val valueCol = field.`type` match {
-            case NominalFieldType => valueTable.column.c("value_nominal")
-            case NumericFieldType =>
-              sql"""
-              INSERT INTO ${FieldNumericDetailTable.table} (${FieldNumericDetailTable.column.columns})
-              SELECT ${field.id} AS ${FieldNumericDetailTable.column.id},
-              IFNULL(MIN($dataCol), 0) AS ${FieldNumericDetailTable.column.min},
-              IFNULL(MAX($dataCol), 0) AS ${FieldNumericDetailTable.column.max},
-              IFNULL(AVG($dataCol), 0) AS ${FieldNumericDetailTable.column.avg}
-              FROM ${dataTable.table}
-              """.execute().apply()
-              valueTable.column.c("value_numeric")
-          }
-          sql"UPDATE ${FieldTable.table} SET ${FieldTable.column.uniqueValuesSize} = $uniqueValuesSize WHERE ${FieldTable.column.id} = ${field.id}".execute().apply()
-          sql"""
-          INSERT INTO ${valueTable.table} (${valueTable.column.field("field")}, $valueCol, ${valueTable.column.frequency})
-          SELECT ${field.id}, $dataCol, COUNT(*) FROM ${dataTable.table} GROUP BY $dataCol
-          """.execute().apply()
-        }
+        //update datasource size
+        sql"UPDATE ${DataSourceTable.table} SET ${DataSourceTable.column.size} = ${dataSource.size} WHERE ${DataSourceTable.column.id} = ${dataSource.id}".execute().apply()
+        //insert histogram for any field
+        sql"""
+        INSERT INTO ${valueTable.table} (${valueTable.column.field("field")}, ${valueTable.column.valueNominal}, ${valueTable.column.valueNumeric}, ${valueTable.column.frequency})
+        SELECT ${instanceTable.column.field("field")}, ${instanceTable.column.valueNominal}, ${instanceTable.column.valueNumeric}, COUNT(*)
+        FROM ${instanceTable.table}
+        GROUP BY ${instanceTable.column.field("field")}, ${instanceTable.column.valueNumeric}, ${instanceTable.column.valueNominal}
+        """.execute().apply()
+        //update unique values size for each field
+        val ft = FieldTable.syntax("ft")
+        val vt = valueTable.syntax("vt")
+        val st = SubQuery.syntax("st", vt.resultName)
+        sql"""
+        UPDATE ${FieldTable as ft}
+        JOIN (SELECT ${vt.result.field("field")}, COUNT(*) AS count FROM ${valueTable as vt} GROUP BY ${vt.field("field")}) ${SubQuery as st}
+        ON (${ft.id} = ${st(vt).field("field")})
+        SET ${ft.uniqueValuesSize} = st.count
+        """.execute().apply()
+        //insert statistics for numeric fields
+        val it = instanceTable.syntax("it")
+        sql"""
+        INSERT INTO ${FieldNumericDetailTable.table} (${FieldNumericDetailTable.column.columns})
+        SELECT ${ft.id},
+        IFNULL(MIN(${it.valueNumeric}), 0),
+        IFNULL(MAX(${it.valueNumeric}), 0),
+        IFNULL(AVG(${it.valueNumeric}), 0)
+        FROM ${FieldTable as ft} JOIN ${instanceTable as it} ON (${ft.id} = ${it.field("field")})
+        WHERE ${ft.`type`} = ${FieldTable.numericName}
+        GROUP BY ${ft.id}
+        """.execute().apply()
       }
       dataSource
     }
@@ -95,15 +104,20 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
 
     val connector: MysqlDBConnector = implicitly[MysqlDBConnector]
 
-    private def buildDataSourceTable(fieldsDetail: List[FieldDetail]) = {
-      val instanceTable = new InstanceTable(dataSource.id, fieldsDetail.map(_.id))
+    private def buildDataSourceTable = {
+      val instanceTable = new InstanceTable(dataSource.id)
       val valueTable = new ValueTable(dataSource.id)
-      val sqlCols = fieldsDetail.map {
-        case FieldDetail(id, _, _, NominalFieldType, _) => sqls"${instanceTable.columnById(id)} varchar(255) DEFAULT NULL"
-        case FieldDetail(id, _, _, NumericFieldType, _) => sqls"${instanceTable.columnById(id)} double DEFAULT NULL"
-      }
       DBConn autoCommit { implicit session =>
-        sql"CREATE TABLE ${instanceTable.table} (${instanceTable.column.id} int(10) unsigned NOT NULL AUTO_INCREMENT, PRIMARY KEY (${instanceTable.column.id}), $sqlCols) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1".execute().apply()
+        //instance table
+        sql"""CREATE TABLE ${instanceTable.table} (
+        ${instanceTable.column.id} int(10) unsigned NOT NULL,
+        ${instanceTable.column.field("field")} int(10) unsigned NOT NULL,
+        ${instanceTable.column.valueNominal} varchar(255) DEFAULT NULL,
+        ${instanceTable.column.valueNumeric} double DEFAULT NULL,
+        KEY ${instanceTable.column.field("field")} (${instanceTable.column.field("field")}),
+        PRIMARY KEY (${instanceTable.column.id}, ${instanceTable.column.field("field")})
+        ) ENGINE=MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin""".execute().apply()
+        //value table
         sql"""CREATE TABLE ${valueTable.table} (
         ${valueTable.column.id} int(10) unsigned NOT NULL AUTO_INCREMENT,
         ${valueTable.column.field("field")} int(10) unsigned NOT NULL,
@@ -112,12 +126,7 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
         ${valueTable.column.frequency} int(10) unsigned NOT NULL,
         PRIMARY KEY (${valueTable.column.id}, ${valueTable.column.field("field")}),
         KEY ${valueTable.column.field("field")} (${valueTable.column.field("field")})
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1""".execute().apply()
-        sql"""ALTER TABLE ${valueTable.table}
-        ADD CONSTRAINT ${valueTable.table}_ibfk_1
-        FOREIGN KEY (${valueTable.column.field("field")})
-        REFERENCES ${FieldTable.table} (${FieldTable.column.id})
-        ON DELETE CASCADE ON UPDATE CASCADE""".execute().apply()
+        ) ENGINE=MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1""".execute().apply()
       }
     }
 
@@ -125,7 +134,7 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
 
     def build(f: (ValueBuilder) => DataSourceDetail): DataSourceDetail = {
       val fieldsDetail = buildFields
-      buildDataSourceTable(fieldsDetail)
+      buildDataSourceTable
       taskStatusProcessor.newStatus("The data source is now populating by uploaded instances...")
       f(new MysqlValueBuilder(dataSource, fieldsDetail))
     }

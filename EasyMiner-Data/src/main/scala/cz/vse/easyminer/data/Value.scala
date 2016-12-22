@@ -1,15 +1,21 @@
 package cz.vse.easyminer.data
 
+import java.text.NumberFormat
+
 /**
- * Created by propan on 3. 8. 2015.
- */
+  * Created by propan on 3. 8. 2015.
+  */
 sealed trait Value
 
 case class NominalValue(value: String) extends Value
 
-case class NumericValue(value: Double) extends Value
+case class NumericValue(original: String, value: Double) extends Value
 
 object NullValue extends Value
+
+object NumericValue {
+  def apply(value: String)(implicit numberFormat: NumberFormat): NumericValue = NumericValue(value, numberFormat.parse(value.replace(' ', '\u00a0')).doubleValue())
+}
 
 sealed trait ValueDetail {
   val id: Int
@@ -19,7 +25,7 @@ sealed trait ValueDetail {
 
 case class NominalValueDetail(id: Int, field: Int, value: String, frequency: Int) extends ValueDetail
 
-case class NumericValueDetail(id: Int, field: Int, value: Double, frequency: Int) extends ValueDetail
+case class NumericValueDetail(id: Int, field: Int, original: String, value: Double, frequency: Int) extends ValueDetail
 
 case class NullValueDetail(id: Int, field: Int, frequency: Int) extends ValueDetail
 

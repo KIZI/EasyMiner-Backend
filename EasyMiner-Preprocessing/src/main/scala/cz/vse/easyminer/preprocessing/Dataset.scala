@@ -1,16 +1,34 @@
 package cz.vse.easyminer.preprocessing
 
-import cz.vse.easyminer.core.db._
 import cz.vse.easyminer.data.{DataSourceDetail, DataSourceType, LimitedDataSourceType, UnlimitedDataSourceType}
+import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 
-import scala.language.higherKinds
+import scala.language.implicitConversions
 
 /**
- * Created by propan on 18. 12. 2015.
- */
+  * Created by propan on 18. 12. 2015.
+  */
 case class Dataset(name: String, dataSourceDetail: DataSourceDetail)
 
 case class DatasetDetail(id: Int, name: String, dataSource: Int, `type`: DatasetType, size: Int, active: Boolean)
+
+object DatasetDetail {
+
+  implicit def attributeDetailToDatasetDetail(attributeDetail: AttributeDetail)(implicit datasetDetail: DatasetDetail): DatasetDetail = if (datasetDetail.id == attributeDetail.dataset) {
+    datasetDetail
+  } else {
+    throw new IllegalArgumentException
+  }
+
+  implicit class PimpedDatasetDetail(datasetDetail: DatasetDetail)(implicit datasetTypeToDatasetTypeOps: DatasetType => DatasetTypeOps[DatasetType]) {
+    def toAttributeOps = datasetDetail.`type`.toAttributeOps(datasetDetail)
+
+    def toAttributeBuilder(attributes: Attribute*): AttributeBuilder[Attribute] = datasetDetail.`type`.toAttributeBuilder(datasetDetail, attributes: _*)
+
+    def toValueMapperOps = datasetDetail.`type`.toValueMapperOps(datasetDetail)
+  }
+
+}
 
 sealed trait DatasetType
 
@@ -19,8 +37,6 @@ object LimitedDatasetType extends DatasetType
 object UnlimitedDatasetType extends DatasetType
 
 object DatasetType {
-
-  import scala.language.implicitConversions
 
   implicit def datasetTypeToDatasetTypeOps(datasetType: DatasetType)
                                           (implicit limitedConv: LimitedDatasetType.type => DatasetTypeOps[LimitedDatasetType.type],
@@ -36,18 +52,9 @@ object DatasetType {
 
   trait DatasetTypeOps[+T <: DatasetType] {
 
-    protected[this] val dBConnectors: DBConnectors
-
-    implicit protected[this] def datasetTypeToConnector[A <: DBConnector[_]](datasetType: DatasetType): A = datasetType match {
-      case LimitedDatasetType => dBConnectors.connector(LimitedDBType)
-      case UnlimitedDatasetType => dBConnectors.connector(UnlimitedDBType)
-    }
-
     def toDatasetBuilder(dataset: Dataset): DatasetBuilder
 
-    def toAttributeBuilder(datasetDetail: DatasetDetail, attribute: Attribute): AttributeBuilder
-
-    def toCollectiveAttributeBuilder[A <: Attribute](datasetDetail: DatasetDetail, attributes: A*): CollectiveAttributeBuilder[A]
+    def toAttributeBuilder(datasetDetail: DatasetDetail, attributes: Attribute*): AttributeBuilder[Attribute]
 
     def toDatasetOps: DatasetOps
 

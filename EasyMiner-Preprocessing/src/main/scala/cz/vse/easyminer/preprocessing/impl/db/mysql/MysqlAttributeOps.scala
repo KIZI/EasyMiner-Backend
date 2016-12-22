@@ -2,8 +2,8 @@ package cz.vse.easyminer.preprocessing.impl.db.mysql
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.preprocessing.impl.db.ValidationAttributeOps
-import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.{InstanceTable, AttributeTable}
-import cz.vse.easyminer.preprocessing.{DatasetDetail, AttributeDetail, AttributeOps}
+import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.{AttributeTable, InstanceTable, ValueTable}
+import cz.vse.easyminer.preprocessing.{AttributeDetail, AttributeOps, DatasetDetail}
 import scalikejdbc._
 
 /**
@@ -23,12 +23,11 @@ class MysqlAttributeOps private[db](val dataset: DatasetDetail)(implicit connect
   }
 
   def deleteAttribute(attributeId: Int): Unit = DBConn autoCommit { implicit session =>
+    val instanceTable = new InstanceTable(dataset.id)
+    val valueTable = new ValueTable(dataset.id)
     sql"DELETE FROM ${AttributeTable.table} WHERE ${AttributeTable.column.dataset} = ${dataset.id} AND ${AttributeTable.column.id} = $attributeId".execute().apply()
-    val instanceTable = new InstanceTable(dataset.id, List(attributeId))
-    val column = instanceTable.columnById(attributeId)
-    sql"SHOW TABLES LIKE ${instanceTable.tableName}".map(_ => true).first().apply().foreach { _ =>
-      sql"ALTER TABLE ${instanceTable.table} DROP COLUMN $column".execute().apply()
-    }
+    sql"DELETE FROM ${valueTable.table} WHERE ${valueTable.column.attribute} = $attributeId".execute().apply()
+    sql"DELETE FROM ${instanceTable.table} WHERE ${instanceTable.column.attribute} = $attributeId".execute().apply()
   }
 
   def getAllAttributes: List[AttributeDetail] = DBConn readOnly { implicit session =>

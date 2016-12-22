@@ -6,8 +6,8 @@ import cz.vse.easyminer.data._
 import scalikejdbc._
 
 /**
- * Created by propan on 9. 8. 2015.
- */
+  * Created by propan on 9. 8. 2015.
+  */
 object Tables {
 
   val tablePrefix = Conf().getOrElse("easyminer.data.table-prefix", "")
@@ -37,13 +37,16 @@ object Tables {
 
     override val columns = Seq("id", "data_source", "name", "type", "unique_values_size")
 
+    val nominalName = "NOMINAL"
+    val numericName = "NUMERIC"
+
     def apply(m: ResultName[FieldDetail])(rs: WrappedResultSet) = FieldDetail(
       rs.int(m.id),
       rs.int(m.dataSource),
       rs.string(m.name),
       rs.string(m.`type`) match {
-        case "NOMINAL" => NominalFieldType
-        case "NUMERIC" => NumericFieldType
+        case `nominalName` => NominalFieldType
+        case `numericName` => NumericFieldType
       },
       rs.int(m.uniqueValuesSize)
     )
@@ -74,39 +77,26 @@ object Tables {
     def apply(m: ResultName[ValueDetail], fieldType: FieldType)(rs: WrappedResultSet): ValueDetail = {
       val value: Option[ValueDetail] = fieldType match {
         case NominalFieldType => rs.stringOpt(m.field("value_nominal")).map(value => NominalValueDetail(rs.int(m.id), rs.int(m.field("field")), value, rs.int(m.frequency)))
-        case NumericFieldType => rs.doubleOpt(m.field("value_numeric")).map(value => NumericValueDetail(rs.int(m.id), rs.int(m.field("field")), value, rs.int(m.frequency)))
+        case NumericFieldType => rs.doubleOpt(m.field("value_numeric")).map(value => NumericValueDetail(rs.int(m.id), rs.int(m.field("field")), rs.string(m.field("value_numeric")), value, rs.int(m.frequency)))
       }
       value.getOrElse(NullValueDetail(rs.int(m.id), rs.int(m.field("field")), rs.int(m.frequency)))
     }
 
   }
 
-  class InstanceTable(dataSourceId: Int, colNames: Seq[Int] = Nil) extends SQLSyntaxSupport[Instance] {
-
-    import InstanceTable._
-
-    def columnById(fieldId: Int) = column.c(colNamePrefix + fieldId)
+  class InstanceTable(dataSourceId: Int) extends SQLSyntaxSupport[NarrowInstance] {
 
     override val tableName = tablePrefix + "data_source_" + dataSourceId
 
-    override val columns = "id" +: colNames.map(colNamePrefix + _)
+    override val columns = Seq("id", "field", "value_nominal", "value_numeric")
 
-    def apply(m: ResultName[Instance], fields: Seq[FieldDetail])(rs: WrappedResultSet) = Instance(
-      rs.int(m.id),
-      fields map { field =>
-        val optValue = field match {
-          case FieldDetail(id, _, _, NominalFieldType, _) => rs.stringOpt(m.field(colNamePrefix + id)).map(NominalValue)
-          case FieldDetail(id, _, _, NumericFieldType, _) => rs.doubleOpt(m.field(colNamePrefix + id)).map(NumericValue)
-        }
-        optValue.getOrElse(NullValue)
+    def apply(m: ResultName[NarrowInstance])(rs: WrappedResultSet)(implicit fieldIdToField: Int => FieldDetail): NarrowInstance = {
+      val field: FieldDetail = rs.int(m.field("field"))
+      field.`type` match {
+        case NominalFieldType => NominalNarrowInstance(rs.int(m.id), field.id, NominalValue(rs.string(m.field("value_nominal"))))
+        case NumericFieldType => NumericNarrowInstance(rs.int(m.id), field.id, NumericValue(rs.string(m.field("value_nominal")), rs.double(m.field("value_numeric"))))
       }
-    )
-
-  }
-
-  object InstanceTable {
-
-    val colNamePrefix = "col_"
+    }
 
   }
 

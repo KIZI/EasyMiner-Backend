@@ -1,26 +1,46 @@
 package cz.vse.easyminer.data.impl.db
 
 import cz.vse.easyminer.core.TaskStatusProcessor
-import cz.vse.easyminer.core.db.DBConnectors
+import cz.vse.easyminer.core.db._
 import cz.vse.easyminer.data.DataSourceType.DataSourceTypeOps
 import cz.vse.easyminer.data.impl.db.mysql.MysqlDataSourceTypeOps
-import cz.vse.easyminer.data.{LimitedDataSourceType, UnlimitedDataSourceType}
+import cz.vse.easyminer.data.{DataSourceType, LimitedDataSourceType, UnlimitedDataSourceType}
 
 /**
- * Created by propan on 15. 2. 2016.
- */
+  * Created by propan on 15. 2. 2016.
+  */
 object DataSourceTypeConversions {
 
   import scala.language.implicitConversions
 
   implicit def limitedDataSourceTypeToMysqlDataSourceTypeOps(limitedDataSourceType: LimitedDataSourceType.type)
-                                                      (implicit dBConnectors: DBConnectors,
-                                                       taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
-  : DataSourceTypeOps[LimitedDataSourceType.type] = new MysqlDataSourceTypeOps()
+                                                            (implicit dBConnectors: DBConnectors,
+                                                             taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
+  : DataSourceTypeOps[LimitedDataSourceType.type] = new MysqlDataSourceTypeOps()(dBConnectors.connector(LimitedDBType), taskStatusProcessor)
 
   implicit def unlimitedDataSourceTypeToHiveDataSourceTypeOps(unlimitedDataSourceType: UnlimitedDataSourceType.type)
-                                                       (implicit dBConnectors: DBConnectors,
-                                                        taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
+                                                             (implicit dBConnectors: DBConnectors,
+                                                              taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
   : DataSourceTypeOps[UnlimitedDataSourceType.type] = ???
+
+  object Limited {
+    implicit def dataSourceTypeToMysqlDataSourceTypeOps(limitedDataSourceType: DataSourceType)
+                                                       (implicit mysqlDBConnector: MysqlDBConnector,
+                                                        taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
+    : DataSourceTypeOps[LimitedDataSourceType.type] = limitedDataSourceType match {
+      case LimitedDataSourceType => new MysqlDataSourceTypeOps()
+      case UnlimitedDataSourceType => throw new IllegalArgumentException
+    }
+  }
+
+  object Unlimited {
+    implicit def dataSourceTypeToHiveDataSourceTypeOps(unlimitedDataSourceType: DataSourceType)
+                                                      (implicit mysqlDBConnector: MysqlDBConnector,
+                                                       taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
+    : DataSourceTypeOps[UnlimitedDataSourceType.type] = unlimitedDataSourceType match {
+      case LimitedDataSourceType => throw new IllegalArgumentException
+      case UnlimitedDataSourceType => ???
+    }
+  }
 
 }

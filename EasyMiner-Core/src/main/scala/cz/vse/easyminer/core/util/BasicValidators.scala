@@ -66,3 +66,23 @@ object BasicValidators extends BasicValidators {
   }
 
 }
+
+trait CollectionValidators {
+
+  object NonEmpty extends Validator[Traversable[_]] {
+    def defaultException(obj: Traversable[_]): ValidationException = CollectionValidators.Exceptions.IsEmpty
+
+    def validate(obj: Traversable[_]): Boolean = obj.nonEmpty
+  }
+
+}
+
+object CollectionValidators extends CollectionValidators {
+
+  object Exceptions {
+
+    object IsEmpty extends ValidationException("Collection is empty.")
+
+  }
+
+}

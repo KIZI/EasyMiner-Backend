@@ -13,7 +13,7 @@ trait BoolExpressionText extends BoolExpressionVisualizer[Attribute] {
     case Value(AllValues(attribute)) => s"${attribute.name}(*)"
     case MappedFixedValue(attribute, value) => value match {
       case NominalValue(value) => s"${attribute.name}($value)"
-      case NumericValue(value) => s"${attribute.name}($value)"
+      case NumericValue(value, _) => s"${attribute.name}($value)"
       case NullValue => s"${attribute.name}(null)"
     }
     case AND(a, b) => "( " + exprToString(a) + " & " + exprToString(b) + " )"
@@ -32,13 +32,38 @@ trait BoolExpressionShortText extends BoolExpressionVisualizer[Attribute] {
     case Value(AllValues(attribute)) => s"${attribute.name}(*)"
     case MappedFixedValue(attribute, value) => value match {
       case NominalValue(value) => s"${attribute.name}($value)"
-      case NumericValue(value) => s"${attribute.name}($value)"
+      case NumericValue(value, _) => s"${attribute.name}($value)"
       case NullValue => s"${attribute.name}(null)"
     }
     case AND(a, b) => exprToString(a) + " & " + exprToString(b)
     case OR(a, b) => exprToString(a) + " | " + exprToString(b)
     case NOT(a) => "^" + exprToString(a)
     case _ => ""
+  }
+
+}
+
+object BoolExpressionImpl {
+
+  implicit class PimpedBoolExpression(expr: BoolExpression[Attribute]) {
+
+    def toAttributes = {
+      def nextToAttributes(expr: BoolExpression[Attribute]): Set[Attribute] = {
+        expr match {
+          case expr1 ANDOR expr2 => nextToAttributes(expr1) ++ nextToAttributes(expr2)
+          case NOT(expr) => nextToAttributes(expr)
+          case Value(attribute) => Set(attribute)
+          case _ => Set.empty
+        }
+      }
+      nextToAttributes(expr)
+    }
+
+    def toAttributeDetails = toAttributes collect {
+      case AllValues(attributeDetail) => attributeDetail
+      case FixedValue(attributeDetail, _) => attributeDetail
+    }
+
   }
 
 }

@@ -6,8 +6,8 @@ import cz.vse.easyminer.data._
 import scalikejdbc._
 
 /**
- * Created by propan on 9. 12. 2015.
- */
+  * Created by propan on 9. 12. 2015.
+  */
 trait DbFieldBuilder extends FieldBuilder {
 
   val connector: MysqlDBConnector
@@ -24,8 +24,8 @@ trait DbFieldBuilder extends FieldBuilder {
           dataSource.id,
           field.name,
           field.`type` match {
-            case NominalFieldType => "NOMINAL"
-            case NumericFieldType => "NUMERIC"
+            case NominalFieldType => FieldTable.nominalName
+            case NumericFieldType => FieldTable.numericName
           },
           0
         )): _*

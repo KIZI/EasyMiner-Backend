@@ -4,9 +4,9 @@
 @param Boolean        cba                    optional
 }}
 
-processauto <- function() {
+processauto <- function(maxlen) {
     maxrules <- {{{limit}}}
-    rules <- rCBA::build(train, className="{{{consequent}}}", pruning={{#cba}}TRUE{{/cba}}{{^cba}}FALSE{{/cba}})
+    rules <- rCBA::build(train, sa=list(tabuRuleLength=maxlen), className="{{{consequent}}}", pruning={{#cba}}TRUE{{/cba}}{{^cba}}FALSE{{/cba}})
     rules <- rules[7]
     names(rules) <- ""
     rules <- do.call(rbind.data.frame, rules)

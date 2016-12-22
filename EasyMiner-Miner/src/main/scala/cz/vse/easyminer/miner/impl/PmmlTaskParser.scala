@@ -59,7 +59,7 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
     val valueMapperOps = datasetDetail.`type`.toValueMapperOps(datasetDetail)
     def textToValue(attributeDetail: AttributeDetail): PartialFunction[String, data.Value] = {
       case text if text.nonEmpty && attributeDetail.`type` == NominalAttributeType => NominalValue(text)
-      case AnyToDouble(number) if attributeDetail.`type` == NumericAttributeType => NumericValue(number)
+      case original@AnyToDouble(number) if attributeDetail.`type` == NumericAttributeType => NumericValue(original, number)
     }
     val items =
       for {
@@ -88,7 +88,7 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
       val taskAttribute = textToValue(attributeDetail).andThen[Attribute] { value =>
         FixedValue(
           attributeDetail,
-          valueMapper.normalizedValue(attributeDetail, value).getOrElse(throw new ValueDoesNotExist(attributeId, value))
+          valueMapper.item(attributeDetail, value).getOrElse(throw new ValueDoesNotExist(attributeId, value))
         )
       }.applyOrElse(value, (_: String) => AllValues(attributeDetail))
       nodeId -> taskAttribute

@@ -1,6 +1,6 @@
 package cz.vse.easyminer.preprocessing.impl
 
-import cz.vse.easyminer.core.{TaskStatus, JsonDeserializeAttributeException, JsonDeserializationNotSupported}
+import cz.vse.easyminer.core.{JsonDeserializationNotSupported, JsonDeserializeAttributeException}
 import cz.vse.easyminer.data.{InclusiveIntervalBorder, NullValueInterval, NumericValueInterval, ValueInterval}
 import cz.vse.easyminer.preprocessing._
 import spray.json._
@@ -53,7 +53,7 @@ object JsonFormatters extends DefaultJsonProtocol {
 
       def write(obj: ValueDetail): JsValue = obj match {
         case NominalValueDetail(id, _, value, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsString(value), "frequency" -> JsNumber(frequency))
-        case NumericValueDetail(id, _, value, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsNumber(value), "frequency" -> JsNumber(frequency))
+        case NumericValueDetail(id, _, original, value, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsString(original), "frequency" -> JsNumber(frequency))
         case NullValueDetail(id, _, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsNull, "frequency" -> JsNumber(frequency))
       }
     }
@@ -108,7 +108,7 @@ object JsonFormatters extends DefaultJsonProtocol {
 
     import JsonAttributeType._
 
-    implicit val JsonAttributeDetailFormat: RootJsonFormat[AttributeDetail] = jsonFormat7(AttributeDetail)
+    implicit val JsonAttributeDetailFormat: RootJsonFormat[AttributeDetail] = jsonFormat7(AttributeDetail.apply)
 
   }
 
@@ -116,7 +116,7 @@ object JsonFormatters extends DefaultJsonProtocol {
 
     import JsonDatasetType._
 
-    implicit val JsonDatasetDetailFormat: RootJsonFormat[DatasetDetail] = jsonFormat6(DatasetDetail)
+    implicit val JsonDatasetDetailFormat: RootJsonFormat[DatasetDetail] = jsonFormat6(DatasetDetail.apply)
 
   }
 

@@ -6,9 +6,9 @@ import shapeless.HNil
 import spray.routing._
 
 /**
- * Created by propan on 17. 8. 2015.
- */
-trait MainService extends Actor with HttpService with DefaulHandlers with Directives {
+  * Created by propan on 17. 8. 2015.
+  */
+trait MainService extends Actor with HttpService with DefaulHandlers with Directives with GlobalRoute {
 
   val strBasePath: String
 
@@ -31,6 +31,6 @@ trait MainService extends Actor with HttpService with DefaulHandlers with Direct
     }
   }
 
-  def receive: Receive = actorHandler orElse runRoute(basePath(route))
+  def receive: Receive = actorHandler orElse runRoute(basePath(globalRoute(options(complete("")) ~ route)))
 
 }

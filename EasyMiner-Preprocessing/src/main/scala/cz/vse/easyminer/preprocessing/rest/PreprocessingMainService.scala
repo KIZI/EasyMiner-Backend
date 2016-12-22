@@ -34,6 +34,7 @@ class PreprocessingMainService extends HttpServiceActor with MainService with De
     complete {
       context.system.scheduler.scheduleOnce(3 seconds) {
         context.system.shutdown()
+        context.system.awaitTermination()
       }
       "Stopping..."
     }

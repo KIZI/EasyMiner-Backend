@@ -6,13 +6,14 @@ import java.util.Date
 import akka.actor._
 import cz.vse.easyminer.core.PersistentLock.Exceptions.LockedContext
 import cz.vse.easyminer.core.db.MysqlDBConnector
+import cz.vse.easyminer.core.util.BasicFunction._
 import cz.vse.easyminer.core.util.Conf
 import org.slf4j.LoggerFactory
-
 import scalikejdbc._
 
-import scala.concurrent.duration.Duration
-import scala.util.DynamicVariable
+import scala.concurrent.duration.{Duration, _}
+import scala.language.postfixOps
+import scala.util.{DynamicVariable, Failure, Try}
 
 /**
   * Created by propan on 16. 2. 2016.
@@ -90,29 +91,40 @@ object PersistentLock {
     def props(name: String, lockFactory: LockFactory): Props = Props(new LockRefreshActor(name: String, lockFactory: LockFactory))
   }
 
-  def apply[T](name: String)(f: => T)(implicit lockTable: SQLSyntaxSupport[PersistentLock], mysqlDBConnector: MysqlDBConnector, actorRefFactory: ActorRefFactory): T = {
+  def apply[T](name: String, wait: Boolean = false)(f: => T)(implicit lockTable: SQLSyntaxSupport[PersistentLock], mysqlDBConnector: MysqlDBConnector, actorRefFactory: ActorRefFactory): T = {
     val lockFactory = new LockFactory
     lockFactory.createSchemaIfNotExists()
-    if (lockFactory.lock(name)) {
-      logger.debug(s"Lock '$name': this lock is free. The context has locked it for its exclusive usage.")
-      val lockRefreshActor = actorRefFactory.actorOf(LockRefreshActor.props(name, lockFactory), PersistentLock.getClass.getName + "-" + name)
-      try {
-        currentLock.withValue(name)(f)
-      } finally {
-        actorRefFactory stop lockRefreshActor
-        lockFactory.releaseLock(name)
-        logger.debug(s"Lock '$name': the context has been finished; therefore the lock has been released.")
+    def lockAndFire = Try {
+      if (lockFactory.lock(name)) {
+        logger.debug(s"Lock '$name': this lock is free. The context has locked it for its exclusive usage.")
+        val lockRefreshActor = actorRefFactory.actorOf(LockRefreshActor.props(name, lockFactory), PersistentLock.getClass.getName + "-" + name)
+        try {
+          currentLock.withValue(name)(f)
+        } finally {
+          actorRefFactory stop lockRefreshActor
+          lockFactory.releaseLock(name)
+          logger.debug(s"Lock '$name': the context has been finished; therefore the lock has been released.")
+        }
+      } else if (currentLock.value == name) {
+        logger.debug(s"Lock '$name': an inner context within this lock is being performed.")
+        try {
+          f
+        } finally {
+          logger.debug(s"Lock '$name': the inner context within this lock has been finished.")
+        }
+      } else {
+        logger.debug(s"Lock '$name': another context uses this lock.")
+        throw new LockedContext(name)
       }
-    } else if (currentLock.value == name) {
-      logger.debug(s"Lock '$name': an inner context within this lock is being performed.")
-      try {
-        f
-      } finally {
-        logger.debug(s"Lock '$name': the inner context within this lock has been finished.")
-      }
+    }
+    def successfullyLocked(result: Try[T]) = result match {
+      case Failure(_: LockedContext) => false
+      case _ => true
+    }
+    if (wait) {
+      limitedRepeatUntil[Try[T]](3600, 1 second)(successfullyLocked)(lockAndFire).get
     } else {
-      logger.debug(s"Lock '$name': another context uses this lock.")
-      throw new LockedContext(name)
+      lockAndFire.get
     }
   }
 

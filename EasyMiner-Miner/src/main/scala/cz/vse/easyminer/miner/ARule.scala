@@ -1,7 +1,7 @@
 package cz.vse.easyminer.miner
 
-case class ARule(antecedent: Option[BoolExpression[FixedValue]],
-                 consequent: BoolExpression[FixedValue],
+case class ARule(antecedent: List[FixedValue],
+                 consequent: List[FixedValue],
                  interestMeasures: InterestMeasures,
                  contingencyTable: ContingencyTable)
 

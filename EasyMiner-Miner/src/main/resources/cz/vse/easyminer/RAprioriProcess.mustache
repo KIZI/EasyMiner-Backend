@@ -4,7 +4,7 @@
 @param Boolean        auto
 }}
 {{#auto}}
-    rules <- processauto()
+    rules <- processauto({{{maxlen}}})
 {{/auto}}
 {{^auto}}
     rules <- process({{{minlen}}}, {{{maxlen}}})

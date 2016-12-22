@@ -49,14 +49,14 @@ class RDependencyChecker(implicit mysqlDBConnector: MysqlDBConnector) extends De
         val fieldOps = MysqlFieldOps(dataSourceDetail)
         val datasetDetail = MysqlDatasetBuilder(Dataset("r-dependency-checker-dataset", dataSourceDetail)).build
         for (field <- fieldOps.getAllFields) {
-          MysqlSimpleAttributeBuilder(SimpleAttribute(field.name, field.id), datasetDetail).build
+          MysqlSimpleAttributeBuilder(List(SimpleAttribute(field.name, field.id)), datasetDetail).build
         }
         val attributeOps = MysqlAttributeOps(datasetDetail)
         val attributesMap = attributeOps.getAllAttributes.map(x => x.name -> x).toMap
         val valueMapperOps = MysqlValueMapperOps(datasetDetail).valueMapper(attributesMap.values.map(x => x -> Set[data.Value](NominalValue("1"), NominalValue("0"))).toMap)
         implicit def itemToFixedValue(item: (String, String)): Attribute = {
           val attribute = attributesMap(item._1)
-          FixedValue(attribute, valueMapperOps.normalizedValue(attribute, NominalValue(item._2)).get)
+          FixedValue(attribute, valueMapperOps.item(attribute, NominalValue(item._2)).get)
         }
         RScript evalTx { r =>
           val miner: Miner = new AprioriMiner(r) with MinerTaskValidatorImpl
@@ -68,7 +68,7 @@ class RDependencyChecker(implicit mysqlDBConnector: MysqlDBConnector) extends De
               Some(Value("milk" -> "1"))
             )
           )(_ => {})
-          if (result.rules.size != 3) throw new DependecyCheckerException(this)
+          if (result.rules.size != 4) throw new DependecyCheckerException(this)
         }
       }
     } finally {

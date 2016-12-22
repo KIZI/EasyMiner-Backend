@@ -6,8 +6,8 @@ import cz.vse.easyminer.core.util.{BasicValidators, Conf}
 import cz.vse.easyminer.data._
 
 /**
- * Created by propan on 20. 8. 2015.
- */
+  * Created by propan on 20. 8. 2015.
+  */
 object Validators {
 
   import BasicValidators._
@@ -33,6 +33,9 @@ object Validators {
 
       def validate(obj: Value): Boolean = obj match {
         case NominalValue(value) =>
+          Validator(value)(MaxLength(tableColMaxlen))
+          true
+        case NumericValue(value, _) =>
           Validator(value)(MaxLength(tableColMaxlen))
           true
         case _ => true

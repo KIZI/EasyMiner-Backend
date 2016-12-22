@@ -12,3 +12,7 @@ sealed trait NarrowInstance {
   val field: Int
   val value: Value
 }
+
+case class NumericNarrowInstance(id: Int, field: Int, value: NumericValue) extends NarrowInstance
+
+case class NominalNarrowInstance(id: Int, field: Int, value: NominalValue) extends NarrowInstance

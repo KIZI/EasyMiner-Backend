@@ -1,6 +1,6 @@
 package cz.vse.easyminer.miner
 
-import cz.vse.easyminer.preprocessing.{DatasetDetail, AttributeDetail}
+import cz.vse.easyminer.preprocessing.{DatasetDetail, Item}
 import scalikejdbc.interpolation.SQLSyntax
 
 /**
@@ -10,10 +10,10 @@ trait MinerDatasetOps {
 
   val datasetDetail: DatasetDetail
 
-  def fetchIntersectedValuesBySelectsAndAttribute(attributeDetail: AttributeDetail, selects: SQLSyntax*): List[Int]
+  def fetchIntersectedItemsBySelects(selects: SQLSyntax*): List[Item]
 
-  def fetchComplementedValuesBySelectsAndAttribute(attributeDetail: AttributeDetail, select: SQLSyntax, minusSelect: SQLSyntax): List[Int]
+  def fetchComplementedItemsBySelects(select: SQLSyntax, minusSelect: SQLSyntax): List[Item]
 
-  def fetchValuesBySelectAndAttribute(attributeDetail: AttributeDetail, select: SQLSyntax): List[Int]
+  def fetchItemsBySelect(select: SQLSyntax): List[Item]
 
 }

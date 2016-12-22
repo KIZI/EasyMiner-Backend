@@ -2,13 +2,13 @@ package cz.vse.easyminer.data.impl.db.mysql
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.data._
-import cz.vse.easyminer.data.impl.db.{ValidationDataSourceOps, DbDataSourceOps}
-import cz.vse.easyminer.data.impl.db.mysql.Tables.{ValueTable, DataSourceTable, InstanceTable}
+import cz.vse.easyminer.data.impl.db.mysql.Tables.{DataSourceTable, InstanceTable, ValueTable}
+import cz.vse.easyminer.data.impl.db.{DbDataSourceOps, ValidationDataSourceOps}
 import scalikejdbc._
 
 /**
- * Created by propan on 16. 8. 2015.
- */
+  * Created by propan on 16. 8. 2015.
+  */
 class MysqlDataSourceOps private[db](implicit private[db] val mysqlDBConnector: MysqlDBConnector) extends DbDataSourceOps {
 
   import mysqlDBConnector._
@@ -35,13 +35,13 @@ class MysqlDataSourceOps private[db](implicit private[db] val mysqlDBConnector: 
     sql"SELECT ${d.result.*} FROM ${DataSourceTable as d} WHERE ${d.active} = 1".map(DataSourceTable(d.resultName)).list().apply()
   }
 
-  private[db] def fetchInstances(dataSourceId: Int, fields: Seq[FieldDetail], offset: Int, limit: Int): Instances = {
-    val instanceTable = new InstanceTable(dataSourceId, fields.map(_.id))
+  private[db] def fetchInstances(dataSource: DataSourceDetail, fields: Seq[FieldDetail], offset: Int, limit: Int): Seq[NarrowInstance] = {
+    val instanceTable = new InstanceTable(dataSource.id)
     val d = instanceTable.syntax("d")
-    val instances = DBConn readOnly { implicit session =>
-      sql"SELECT ${d.result.*} FROM ${instanceTable as d} LIMIT $limit OFFSET $offset".map(instanceTable(d.resultName, fields)).list().apply()
+    DBConn readOnly { implicit session =>
+      implicit val fieldMapper = fields.map(field => field.id -> field).toMap
+      sql"SELECT ${d.result.*} FROM ${instanceTable as d} WHERE ${d.field("field")} IN (${fieldMapper.keys}) AND ${d.id} > $offset AND ${d.id} <= ($offset + $limit)".map(instanceTable(d.resultName)).list().apply()
     }
-    Instances(fields, instances)
   }
 
 }

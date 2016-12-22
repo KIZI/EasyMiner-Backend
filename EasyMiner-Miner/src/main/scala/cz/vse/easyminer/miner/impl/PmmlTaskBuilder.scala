@@ -16,7 +16,7 @@ trait PmmlTaskBuilder {
 
   def apply(templateParameters: Map[String, Any]): PmmlTaskBuilder
 
-  protected[this] def datasetToInstanceTable(dataset: DatasetDetail, attributeIds: Seq[Int]): InstanceTable
+  protected[this] def datasetToInstanceTable(dataset: DatasetDetail): InstanceTable
 
   private sealed trait MergedExpression
 
@@ -64,8 +64,8 @@ trait PmmlTaskBuilder {
   }
 
   private def attributeToBbaSetting(bbaSettingsIds: Map[Attribute, Int], instanceTable: InstanceTable): PartialFunction[Attribute, Map[String, Any]] = {
-    case attribute @ AllValues(attributeDetail) => Map("id" -> bbaSettingsIds(attribute), "colname" -> instanceTable.columnById(attributeDetail.id).value, "allvalues" -> true)
-    case attribute @ FixedValue(attributeDetail, normalizedValue) => Map("id" -> bbaSettingsIds(attribute), "colname" -> instanceTable.columnById(attributeDetail.id).value, "fixedvalue" -> normalizedValue.value)
+    case attribute @ AllValues(attributeDetail) => Map("id" -> bbaSettingsIds(attribute), "colname" -> attributeDetail.id, "allvalues" -> true)
+    case attribute @ FixedValue(attributeDetail, normalizedValue) => Map("id" -> bbaSettingsIds(attribute), "colname" -> attributeDetail.id, "fixedvalue" -> normalizedValue)
   }
 
   private def interestMeasureToInterestMeasureThreshold(interestMeasuresIds: Map[InterestMeasure, Int]): PartialFunction[InterestMeasure, Map[String, Any]] = {
@@ -85,10 +85,7 @@ trait PmmlTaskBuilder {
       case Literal(attribute, _) => attribute
     }.iterator.zipWithIndex.map(x => x._1 -> (x._2 + dbaSettingsIds.size + 1)).toMap
     val interestMeasuresIds = minerTask.interestMeasures.getAll.iterator.zipWithIndex.map(x => x._1 -> (x._2 + dbaSettingsIds.size + bbaSettingsIds.size + 1)).toMap
-    val instanceTable = datasetToInstanceTable(minerTask.datasetDetail, bbaSettingsIds.keysIterator.collect {
-      case AllValues(attributeDetail) => attributeDetail.id
-      case FixedValue(attributeDetail, _) => attributeDetail.id
-    }.toSeq)
+    val instanceTable = datasetToInstanceTable(minerTask.datasetDetail)
     apply(
       templateParameters ++ Map(
         List(

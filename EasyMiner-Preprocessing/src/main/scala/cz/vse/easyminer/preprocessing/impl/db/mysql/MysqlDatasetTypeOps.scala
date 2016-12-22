@@ -1,23 +1,18 @@
 package cz.vse.easyminer.preprocessing.impl.db.mysql
 
 import cz.vse.easyminer.core.TaskStatusProcessor
-import cz.vse.easyminer.core.db.{MysqlDBConnector, DBConnectors}
+import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 import cz.vse.easyminer.preprocessing._
 import cz.vse.easyminer.preprocessing.impl.TypeableCases._
+import cz.vse.easyminer.preprocessing.impl.db.MetaAttributeBuilder
 
 /**
   * Created by propan on 15. 2. 2016.
   */
-class MysqlDatasetTypeOps private[db](implicit protected[this] val dBConnectors: DBConnectors, taskStatusProcessor: TaskStatusProcessor) extends DatasetTypeOps[LimitedDatasetType.type] {
-
-  implicit private val mysqlDBConnector: MysqlDBConnector = LimitedDatasetType
+class MysqlDatasetTypeOps private[db](implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) extends DatasetTypeOps[LimitedDatasetType.type] {
 
   def toDatasetBuilder(dataset: Dataset): DatasetBuilder = MysqlDatasetBuilder(dataset)
-
-  def toAttributeBuilder(datasetDetail: DatasetDetail, attribute: Attribute): AttributeBuilder = attribute match {
-    case attribute: SimpleAttribute => MysqlSimpleAttributeBuilder(attribute, datasetDetail)
-  }
 
   def toDatasetOps: DatasetOps = MysqlDatasetOps()
 
@@ -27,9 +22,14 @@ class MysqlDatasetTypeOps private[db](implicit protected[this] val dBConnectors:
 
   def toValueMapperOps(dataset: DatasetDetail): ValueMapperOps = MysqlValueMapperOps(dataset)
 
-  def toCollectiveAttributeBuilder[A <: Attribute](datasetDetail: DatasetDetail, attributes: A*): CollectiveAttributeBuilder[A] = attributes match {
-    case `Seq[SimpleAttribute]`(attributes) => MysqlCollectiveSimpleAttributeBuilder(attributes, datasetDetail).asInstanceOf[CollectiveAttributeBuilder[A]]
+  def toAttributeBuilder(datasetDetail: DatasetDetail, attributes: Attribute*): AttributeBuilder[Attribute] = new MetaAttributeBuilder(datasetDetail, attributes, MysqlAttributeOps(datasetDetail))({
+    case `Seq[SimpleAttribute]`(attributes) => MysqlSimpleAttributeBuilder(attributes, datasetDetail)
+    case `Seq[NominalEnumerationAttribute]`(attributes) => MysqlNominalEnumerationAttributeBuilder(attributes, datasetDetail)
+    case `Seq[NumericIntervalsAttribute]`(attributes) => MysqlNumericIntervalsAttributeBuilder(attributes, datasetDetail)
+    case `Seq[EquidistantIntervalsAttribute]`(attributes) => MysqlEquidistantIntervalsAttributeBuilder(attributes, datasetDetail)
+    case `Seq[EquifrequentIntervalsAttribute]`(attributes) => MysqlEquifrequentIntervalsAttributeBuilder(attributes, datasetDetail)
+    case `Seq[EquisizedIntervalsAttribute]`(attributes) => MysqlEquisizedIntervalsAttributeBuilder(attributes, datasetDetail)
     case _ => throw new IllegalArgumentException
-  }
+  })
 
 }

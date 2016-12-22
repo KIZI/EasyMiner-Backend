@@ -1,6 +1,5 @@
 package cz.vse.easyminer.data
 
-
 /**
  * Created by propan on 26. 7. 2015.
  */

@@ -7,9 +7,11 @@ import cz.vse.easyminer.preprocessing.AttributeDetail
 import org.slf4j.LoggerFactory
 
 /**
- * Created by propan on 27. 2. 2016.
- */
-private[r] class AprioriIncrementalMiner(val minerTask: MinerTask, val attributes: Seq[AttributeDetail])(val processListener: (MinerResult) => Unit)(implicit r: RScript) extends IncrementalMiner {
+  * Created by propan on 27. 2. 2016.
+  */
+private[r] class AprioriIncrementalMiner(val minerTask: MinerTask, attributes: Seq[AttributeDetail])(val processListener: (MinerResult) => Unit)(implicit r: RScript) extends IncrementalMiner {
+
+  val numberOfAttributes: Int = attributes.size
 
   private val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.impl.r.AprioriIncrementalMiner")
   private val rProcessTemplateName = "RAprioriProcess.mustache"

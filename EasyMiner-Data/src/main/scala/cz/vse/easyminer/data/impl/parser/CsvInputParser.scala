@@ -23,7 +23,7 @@ import scala.io.Source
  */
 class CsvInputParser(val dataSourceBuilder: DataSourceBuilder, val settings: Settings) extends InputParser {
 
-  private val numberFormat = NumberFormat.getNumberInstance(settings.locale)
+  implicit private val numberFormat = NumberFormat.getNumberInstance(settings.locale)
 
   sealed trait DataBuilderCsvAdapter {
 
@@ -56,7 +56,7 @@ class CsvInputParser(val dataSourceBuilder: DataSourceBuilder, val settings: Set
         case NominalFieldType => NominalValue(normValue)
         //numeric value - parse it as double and save
         case NumericFieldType => try {
-          NumericValue(numberFormat.parse(normValue.replace(' ', '\u00a0')).doubleValue())
+          NumericValue(normValue)
         } catch {
           case _: ParseException => NullValue//throw new InvalidNumericValueException(normValue, buffer.size + 1)
         }

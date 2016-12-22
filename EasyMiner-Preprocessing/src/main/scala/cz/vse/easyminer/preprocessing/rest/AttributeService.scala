@@ -6,7 +6,7 @@ import cz.vse.easyminer.core.rest.CodeMessageRejection
 import cz.vse.easyminer.core.{TaskStatusProcessor, TaskStatusRestHelper}
 import cz.vse.easyminer.preprocessing.impl.JsonFormatters
 import cz.vse.easyminer.preprocessing.impl.parser.PmmlTaskParser
-import cz.vse.easyminer.preprocessing.{AttributeDetail, AttributeOps, DatasetDetail, SimpleAttribute}
+import cz.vse.easyminer.preprocessing.{AttributeDetail, AttributeOps, DatasetDetail}
 import spray.http.StatusCodes
 import spray.httpx.SprayJsonSupport
 import spray.json.{DefaultJsonProtocol, _}
@@ -15,14 +15,14 @@ import spray.routing.Directives
 import scala.xml.NodeSeq
 
 /**
- * Created by propan on 20. 8. 2015.
- */
+  * Created by propan on 20. 8. 2015.
+  */
 class AttributeService(datasetDetail: DatasetDetail)(implicit dBConnectors: DBConnectors, actorContext: ActorContext)
   extends Directives
-  with SprayJsonSupport
-  with DefaultJsonProtocol
-  with TaskStatusRestHelper
-  with PreprocessingMainService.BaseUriPath {
+    with SprayJsonSupport
+    with DefaultJsonProtocol
+    with TaskStatusRestHelper
+    with PreprocessingMainService.BaseUriPath {
 
   import JsonFormatters.JsonAttributeDetail._
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions._
@@ -43,17 +43,7 @@ class AttributeService(datasetDetail: DatasetDetail)(implicit dBConnectors: DBCo
               reject(CodeMessageRejection(StatusCodes.BadRequest, "No attribute has been parsed."))
             } else {
               val taskStatus = TaskStatusProcessor("Attribute/s creation.") { implicit tsp =>
-                val simpleAttributes = attributes.collect {
-                  case attribute: SimpleAttribute => attribute
-                }
-                val attributeDetails = for (attribute <- attributes if !attribute.isInstanceOf[SimpleAttribute] || simpleAttributes.size <= 1) yield {
-                  datasetDetail.`type`.toAttributeBuilder(datasetDetail, attribute).build
-                }
-                if (simpleAttributes.size > 1) {
-                  attributeDetails ++ datasetDetail.`type`.toCollectiveAttributeBuilder(datasetDetail, simpleAttributes: _*).build
-                } else {
-                  attributeDetails
-                }
+                datasetDetail.`type`.toAttributeBuilder(datasetDetail, attributes: _*).build
               }
               completeAcceptedTaskStatus(taskStatus)
             }

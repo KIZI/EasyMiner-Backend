@@ -3,7 +3,7 @@ package cz.vse.easyminer.data.impl.db.mysql
 import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.data._
 import cz.vse.easyminer.data.impl.db.ValidationFieldOps
-import cz.vse.easyminer.data.impl.db.mysql.Tables.{FieldTable, InstanceTable}
+import cz.vse.easyminer.data.impl.db.mysql.Tables.{FieldTable, InstanceTable, ValueTable}
 import scalikejdbc._
 
 /**
@@ -18,13 +18,11 @@ class MysqlFieldOps private[db](val dataSource: DataSourceDetail)(implicit conne
   }
 
   def deleteField(fieldId: Int): Unit = DBConn autoCommit { implicit session =>
+    val dataTable = new InstanceTable(dataSource.id)
+    val valueTable = new ValueTable(dataSource.id)
     sql"DELETE FROM ${FieldTable.table} WHERE ${FieldTable.column.dataSource} = ${dataSource.id} AND ${FieldTable.column.id} = $fieldId".execute().apply()
-    val instanceTable = new InstanceTable(dataSource.id, List(fieldId))
-    val column = instanceTable.columnById(fieldId)
-    sql"SHOW TABLES LIKE ${instanceTable.tableName}".map(_ => true).first().apply match {
-      case Some(true) => sql"ALTER TABLE ${instanceTable.table} DROP COLUMN $column".execute().apply()
-      case _ =>
-    }
+    sql"DELETE FROM ${valueTable.table} WHERE ${valueTable.column.field("field")} = $fieldId".execute().apply()
+    sql"DELETE FROM ${dataTable.table} WHERE ${dataTable.column.field("field")} = $fieldId".execute().apply()
   }
 
   def getAllFields: List[FieldDetail] = DBConn readOnly { implicit session =>

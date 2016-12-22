@@ -19,7 +19,7 @@ class MysqlValueOps private[db](val dataset: DatasetDetail, val attribute: Attri
     implicit session =>
       val valueTable = new ValueTable(dataset.id)
       val v = valueTable.syntax("v")
-      sql"SELECT ${v.result.*} FROM ${valueTable as v} WHERE ${v.attribute} = $columnId LIMIT $limit OFFSET $offset".map(valueTable(v.resultName, attribute.`type`)).list().apply()
+      sql"SELECT ${v.result.*} FROM ${valueTable as v} WHERE ${v.attribute} = $columnId ORDER BY ${v.id} LIMIT $limit OFFSET $offset".map(valueTable(v.resultName, attribute.`type`)).list().apply()
   }
 
   def getNumericStats: Option[AttributeNumericDetail] = DBConn readOnly {

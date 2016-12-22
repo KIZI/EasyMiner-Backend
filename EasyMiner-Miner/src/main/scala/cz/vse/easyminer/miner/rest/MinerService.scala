@@ -6,7 +6,7 @@ import akka.actor.{ActorContext, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
 import cz.vse.easyminer.core.Validator.ValidationException
-import cz.vse.easyminer.core.db.{DBConnectors, MysqlDBConnector}
+import cz.vse.easyminer.core.db.{MysqlDBConnector, DBConnectors}
 import cz.vse.easyminer.core.util.RestUtils.PathExtension
 import cz.vse.easyminer.core.{UnexpectedActorRequest, UnexpectedActorResponse}
 import cz.vse.easyminer.miner.impl.r.AprioriMiner

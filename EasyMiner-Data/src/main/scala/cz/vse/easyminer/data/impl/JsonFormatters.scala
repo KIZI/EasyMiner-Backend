@@ -79,7 +79,7 @@ object JsonFormatters extends DefaultJsonProtocol {
 
       def write(obj: Value): JsValue = obj match {
         case NominalValue(value) => JsString(value)
-        case NumericValue(value) => JsNumber(value)
+        case NumericValue(original, _) => JsString(original)
         case NullValue => JsNull
       }
     }
@@ -93,7 +93,7 @@ object JsonFormatters extends DefaultJsonProtocol {
 
       def write(obj: ValueDetail): JsValue = obj match {
         case NominalValueDetail(id, _, value, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsString(value), "frequency" -> JsNumber(frequency))
-        case NumericValueDetail(id, _, value, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsNumber(value), "frequency" -> JsNumber(frequency))
+        case NumericValueDetail(id, _, original, value, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsString(original), "frequency" -> JsNumber(frequency))
         case NullValueDetail(id, _, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsNull, "frequency" -> JsNumber(frequency))
       }
     }
@@ -158,7 +158,7 @@ object JsonFormatters extends DefaultJsonProtocol {
 
     import JsonDataSourceType._
 
-    implicit val JsonDataSourceDetailFormat: RootJsonFormat[DataSourceDetail] = jsonFormat5(DataSourceDetail)
+    implicit val JsonDataSourceDetailFormat: RootJsonFormat[DataSourceDetail] = jsonFormat5(DataSourceDetail.apply)
 
   }
 
