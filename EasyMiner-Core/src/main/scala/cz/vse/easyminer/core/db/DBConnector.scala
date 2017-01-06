@@ -23,6 +23,8 @@ object DBConnector {
 
     object UnknownDBConnector extends Exception("Unknown database connector.")
 
+    class NoDbConnection(dbType: DBType) extends Exception("No database connection for type: " + dbType.getClass.getSimpleName)
+
   }
 
 }

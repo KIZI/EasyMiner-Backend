@@ -52,7 +52,7 @@ class UserService private(user: User, val apiKey: String)
     dbConnectors.foreach(_.close())
   }
 
-  def buildDbConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: HiveUserDatabase): DBConnectors = new PreprocessingDBConnectors(mysqlUserDatabase, hiveUserDatabase)
+  def buildDbConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: Option[HiveUserDatabase]): DBConnectors = new PreprocessingDBConnectors(mysqlUserDatabase, hiveUserDatabase)
 
 }
 

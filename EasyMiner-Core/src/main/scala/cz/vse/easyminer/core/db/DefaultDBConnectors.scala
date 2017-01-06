@@ -6,11 +6,11 @@ import cz.vse.easyminer.core.{HiveUserDatabase, MysqlUserDatabase}
 /**
  * Created by propan on 9. 3. 2016.
  */
-class DefaultDBConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: HiveUserDatabase) extends DBConnectors {
+class DefaultDBConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: Option[HiveUserDatabase]) extends DBConnectors {
 
   protected[this] def afterConnection(dBConnector: DBConnector[_]) = {}
 
-  val mysqlConnector = lazily {
+  private val mysqlConnector = lazily {
     val conn = new MysqlDBConnector(mysqlUserDatabase)
     afterConnection(conn)
     conn

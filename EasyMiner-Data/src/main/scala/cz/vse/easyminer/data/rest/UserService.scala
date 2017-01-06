@@ -66,7 +66,7 @@ class UserService(user: User, val apiKey: String)
     }
   }
 
-  def buildDbConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: HiveUserDatabase): DBConnectors = new DataDBConnectors(mysqlUserDatabase, hiveUserDatabase)
+  def buildDbConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: Option[HiveUserDatabase]): DBConnectors = new DataDBConnectors(mysqlUserDatabase, hiveUserDatabase)
 
   override def postStop(): Unit = {
     logger.debug(s"User service ${self.path.toString} is stopping...")
