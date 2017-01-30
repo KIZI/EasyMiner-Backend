@@ -17,9 +17,9 @@ trait DbFieldBuilder extends FieldBuilder {
   import connector.DBConn
 
   def buildFields = {
-    val cols = List(FieldTable.column.dataSource, FieldTable.column.name, FieldTable.column.`type`, FieldTable.column.uniqueValuesSize)
+    val cols = FieldTable.column.columns.filter(_ != FieldTable.column.id)
     DBConn localTx { implicit session =>
-      sql"INSERT INTO ${FieldTable.table} ($cols) VALUES (?, ?, ?, ?)".batch(
+      sql"INSERT INTO ${FieldTable.table} ($cols) VALUES (?, ?, ?, ?, ?, ?, ?)".batch(
         fields.map(field => Seq(
           dataSource.id,
           field.name,
@@ -27,6 +27,9 @@ trait DbFieldBuilder extends FieldBuilder {
             case NominalFieldType => FieldTable.nominalName
             case NumericFieldType => FieldTable.numericName
           },
+          0,
+          0,
+          0,
           0
         )): _*
       ).apply()

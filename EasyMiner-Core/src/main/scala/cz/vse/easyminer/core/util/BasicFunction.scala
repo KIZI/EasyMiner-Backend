@@ -27,6 +27,30 @@ object AutoLift {
   def apply[T, U](x: T)(body: PartialFunction[T, U]) = body.lift(x)
 }
 
+object MapOps {
+
+  implicit class PimpedMap[A, B](map: Map[A, B]) {
+
+    def applyAndUpdate(key: A)(update: B => B) = map.get(key) match {
+      case Some(value) => map.updated(key, update(value))
+      case None => map
+    }
+
+    /**
+      * Get an item from the map by a key. If the key does not exist, then the default is used as the item.
+      * After getting item the item is updated
+      */
+    def applyOrElseAndUpdate(key: A, default: => B)(update: B => B) = map.updated(key, update(map.getOrElse(key, default)))
+
+    /**
+      * Get an item from the map by a key and then update it. If the key does not exist, then the default is added to the map without updating.
+      */
+    def applyAndUpdateOrElse(key: A, default: => B)(update: B => B) = map.updated(key, map.get(key).map(update).getOrElse(default))
+
+  }
+
+}
+
 object BasicFunction {
 
   import scala.concurrent.duration._
@@ -85,7 +109,8 @@ object BasicFunction {
   }
 
   def roundAt(p: Int)(n: Double): Double = {
-    val s = math pow(10, p); (math round n * s) / s
+    val s = math pow(10, p);
+    (math round n * s) / s
   }
 
 }

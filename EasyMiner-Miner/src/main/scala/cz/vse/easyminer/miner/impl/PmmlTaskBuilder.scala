@@ -63,7 +63,7 @@ trait PmmlTaskBuilder {
     Map(("id" -> dbaSettingsIds(mergedExpression)) :: properties: _*)
   }
 
-  private def attributeToBbaSetting(bbaSettingsIds: Map[Attribute, Int], instanceTable: InstanceTable): PartialFunction[Attribute, Map[String, Any]] = {
+  private def attributeToBbaSetting(bbaSettingsIds: Map[Attribute, Int]): PartialFunction[Attribute, Map[String, Any]] = {
     case attribute @ AllValues(attributeDetail) => Map("id" -> bbaSettingsIds(attribute), "colname" -> attributeDetail.id, "allvalues" -> true)
     case attribute @ FixedValue(attributeDetail, normalizedValue) => Map("id" -> bbaSettingsIds(attribute), "colname" -> attributeDetail.id, "fixedvalue" -> normalizedValue)
   }
@@ -92,7 +92,7 @@ trait PmmlTaskBuilder {
           "table-name" -> instanceTable.tableName,
           "im-limit" -> minerTask.interestMeasures.limit,
           "dba-settings" -> dbaSettingsIds.keys.map(mergedExpressionToDbaSetting(dbaSettingsIds, bbaSettingsIds)),
-          "bba-settings" -> bbaSettingsIds.keys.collect(attributeToBbaSetting(bbaSettingsIds, instanceTable)),
+          "bba-settings" -> bbaSettingsIds.keys.collect(attributeToBbaSetting(bbaSettingsIds)),
           "ims" -> interestMeasuresIds.keys.collect(interestMeasureToInterestMeasureThreshold(interestMeasuresIds))
         ) ::: List(antecedent.map(x => "antecedent-id" -> dbaSettingsIds(x)), consequent.map(x => "consequent-id" -> dbaSettingsIds(x))).flatten: _*
       )

@@ -21,7 +21,7 @@ class MysqlNumericIntervalsAttributeBuilder private[db](val dataset: DatasetDeta
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions.Limited._
   import mysqlDBConnector._
 
-  private[db] val attributeOps: AttributeOps = dataset.toAttributeOps
+  private[db] val attributeOps: AttributeOps = dataset.toAttributeOps(dataset)
 
   private[db] val fieldOps: Option[FieldOps] = dataset.toFieldOps
 
@@ -37,20 +37,20 @@ class MysqlNumericIntervalsAttributeBuilder private[db](val dataset: DatasetDeta
     DBConn autoCommit { implicit session =>
       taskStatusProcessor.newStatus(s"Aggregated values are now populating with indexing...")
       val maxValueId = sql"SELECT MAX(${preprocessingValueTable.column.id}) FROM ${preprocessingValueTable.table}".map(_.intOpt(1)).first().apply().flatten.getOrElse(0)
-      val selectStage1 = sqls"SELECT ${getAttributeSelect(dataValueTable.column.field("field"))} AS a, ${getSelectCond(dataValueTable.column.valueNominal, dataValueTable.column.valueNumeric, dataValueTable.column.field("field"))} AS nom, ${dataValueTable.column.frequency} AS f FROM ${dataValueTable.table} WHERE ${dataValueTable.column.field("field")} IN ($fieldIds) ORDER BY ${dataValueTable.column.field("field")}, ${dataValueTable.column.id}"
-      val selectStage2 = sqls"SELECT s1.a, s1.nom, NULL, SUM(s1.f) FROM ($selectStage1) s1 GROUP BY s1.a, s1.nom"
+      val selectStage1 = sqls"SELECT ${getAttributeSelect(dataValueTable.column.field("field"))} AS a, ${getSelectCond(dataValueTable.column.valueNominal, dataValueTable.column.valueNumeric, dataValueTable.column.field("field"))} AS nom, ${dataValueTable.column.frequency} AS f FROM ${dataValueTable.table} WHERE ${dataValueTable.column.field("field")} IN ($fieldIds) AND ${dataValueTable.column.valueNumeric} IS NOT NULL ORDER BY ${dataValueTable.column.field("field")}, ${dataValueTable.column.id}"
+      val selectStage2 = sqls"SELECT s1.a, s1.nom, SUM(s1.f) FROM ($selectStage1) s1 GROUP BY s1.a, s1.nom"
       sql"INSERT INTO ${preprocessingValueTable.table} (${preprocessingValueTable.column.columns}) SELECT @rownum := @rownum + 1 AS rank, t.* FROM ($selectStage2) t, (SELECT @rownum := $maxValueId) r".execute().apply()
       taskStatusProcessor.newStatus(s"Attribute columns are now populating...")
-      val selectStage3 = sqls"SELECT ${dataInstanceTable.column.id}, ${getAttributeSelect(dataInstanceTable.column.field("field"))} AS a, ${getSelectCond(dataInstanceTable.column.valueNominal, dataInstanceTable.column.valueNumeric, dataInstanceTable.column.field("field"))} AS nom FROM ${dataInstanceTable.table} WHERE ${dataInstanceTable.column.field("field")} IN ($fieldIds)"
+      val selectStage3 = sqls"SELECT ${dataInstanceTable.column.id}, ${getAttributeSelect(dataInstanceTable.column.field("field"))} AS a, ${getSelectCond(dataInstanceTable.column.valueNominal, dataInstanceTable.column.valueNumeric, dataInstanceTable.column.field("field"))} AS nom FROM ${dataInstanceTable.table} WHERE ${dataInstanceTable.column.field("field")} IN ($fieldIds) AND ${dataInstanceTable.column.valueNumeric} IS NOT NULL"
       sql"""
       INSERT INTO ${preprocessingInstanceTable.table} (${preprocessingInstanceTable.column.columns})
       SELECT s3.id, ${pv.result.attribute}, ${pv.result.id}
       FROM ($selectStage3) s3
-      INNER JOIN ${preprocessingValueTable as pv} ON (${pv.attribute} = s3.a AND ${pv.valueNominal} = s3.nom)
+      INNER JOIN ${preprocessingValueTable as pv} ON (${pv.attribute} = s3.a AND ${pv.value} = s3.nom)
       """.execute().apply()
       val attributeFreqMap = sql"SELECT ${preprocessingValueTable.column.attribute}, COUNT(${preprocessingValueTable.column.id}) AS freq FROM ${preprocessingValueTable.table} GROUP BY ${preprocessingValueTable.column.attribute}"
         .map(wrs => wrs.int(preprocessingValueTable.column.attribute) -> wrs.int("freq")).list().apply().toMap
-      attributes.map(attributeWithDetail => attributeWithDetail.attributeDetail.copy(uniqueValuesSize = attributeFreqMap(attributeWithDetail.attributeDetail.id), `type` = NominalAttributeType))
+      attributes.map(attributeWithDetail => attributeWithDetail.attributeDetail.copy(uniqueValuesSize = attributeFreqMap(attributeWithDetail.attributeDetail.id)))
     }
   }
 

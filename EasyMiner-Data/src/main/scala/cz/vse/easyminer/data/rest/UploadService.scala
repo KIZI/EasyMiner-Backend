@@ -10,8 +10,7 @@ import cz.vse.easyminer.core._
 import cz.vse.easyminer.core.db.DBConnectors
 import cz.vse.easyminer.core.rest.{CodeMessageRejection, CodeRejection}
 import cz.vse.easyminer.data._
-import cz.vse.easyminer.data.impl.parser.CsvInputParser.Settings
-import cz.vse.easyminer.data.impl.parser.{CsvInputParser, LazyByteBufferInputStream}
+import cz.vse.easyminer.data.impl.parser.{CsvInputParser, LazyByteBufferInputStream, RdfInputParser}
 import cz.vse.easyminer.data.impl.{JsonFormatters, UploadActor}
 import org.slf4j.LoggerFactory
 import spray.http.StatusCodes
@@ -45,34 +44,31 @@ class UploadService(implicit dBConnectors: DBConnectors, actorContext: ActorCont
     implicit val JsonUploadMediaTypeFormat: RootJsonFormat[UploadMediaType] = jsonFormat3(UploadMediaType)
   }
 
-  object JsonUploadCsvSettings extends DefaultJsonProtocol {
+  object JsonUploadSettings extends DefaultJsonProtocol {
 
     import JsonFormatters.JsonCharset._
     import JsonFormatters.JsonCompressionType._
     import JsonFormatters.JsonFieldType._
     import JsonFormatters.JsonLocale._
+    import JsonFormatters.JsonRdfLang._
 
     implicit val JsonUploadCsvSettingsFormat: RootJsonFormat[CsvInputParser.Settings] = jsonFormat8(CsvInputParser.Settings)
+    implicit val JsonUploadRdfSettingsFormat: RootJsonFormat[RdfInputParser.Settings] = jsonFormat2(RdfInputParser.Settings)
+
   }
 
   import JsonFormatters.JsonDataSourceDetail._
-  import JsonUploadCsvSettings._
   import JsonUploadMediaType._
+  import JsonUploadSettings._
   import cz.vse.easyminer.data.impl.db.DataSourceTypeConversions._
-
-  private def startDataReader(inputStream: InputStream, dataSourceName: String, dataSourceType: DataSourceType, csvHandlerSettings: Settings)(implicit taskStatusProcessor: TaskStatusProcessor) = Future {
-    val dataSourceBuilder = dataSourceType.toDataSourceBuilder(dataSourceName)
-    val handler = new CsvInputParser(dataSourceBuilder, csvHandlerSettings)
-    handler.write(inputStream)
-  }
 
   private def taskIdFromUploadId(id: UUID) = UUID.nameUUIDFromBytes((id.toString + "status").getBytes)
 
-  private def startCsvUpload(name: String, dataSourceType: DataSourceType) = entity(as[CsvInputParser.Settings]) { csvSettings =>
+  private def startUpload(dataSourceType: DataSourceType)(startDataReader: InputStream => TaskStatusProcessor => Future[DataSourceDetail]) = {
     val id = UUID.randomUUID
     val inputStreamWriter = new LazyByteBufferInputStream(10 * 1000 * 1000, 30 seconds)
-    val futureResult = TaskStatusProcessor.create(taskIdFromUploadId(id), "Uploading process", false) { implicit tsp =>
-      startDataReader(inputStreamWriter, name, dataSourceType, csvSettings)
+    val futureResult = TaskStatusProcessor.create(taskIdFromUploadId(id), "Uploading process", false) { tsp =>
+      startDataReader(inputStreamWriter)(tsp)
     }
     actorContext.actorOf(
       UploadActor.props(id.toString, inputStreamWriter, futureResult, dataSourceType.toDataSourceOps),
@@ -81,10 +77,31 @@ class UploadService(implicit dBConnectors: DBConnectors, actorContext: ActorCont
     complete(id.toString)
   }
 
+  private def startCsvUpload(name: String, dataSourceType: DataSourceType) = entity(as[CsvInputParser.Settings]) { csvSettings =>
+    startUpload(dataSourceType) { inputStream => implicit tsp =>
+      Future {
+        val dataSourceBuilder = dataSourceType.toDataSourceBuilder(name)
+        val handler = new CsvInputParser(dataSourceBuilder, csvSettings)
+        handler.write(inputStream)
+      }
+    }
+  }
+
+  private def startRdfUpload(name: String, dataSourceType: DataSourceType) = entity(as[RdfInputParser.Settings]) { rdfSettings =>
+    startUpload(dataSourceType) { inputStream => implicit tsp =>
+      Future {
+        val dataSourceBuilder = dataSourceType.toDataSourceBuilder(name)
+        val handler = RdfInputParser(dataSourceBuilder, rdfSettings)
+        handler.write(inputStream)
+      }
+    }
+  }
+
   lazy val route = post {
     path("start") {
       entity(as[UploadMediaType]) {
         case UploadMediaType(name, "csv", dataSourceType) => startCsvUpload(name, dataSourceType)
+        case UploadMediaType(name, "rdf", dataSourceType) => startRdfUpload(name, dataSourceType)
         case _ => reject(CodeRejection(StatusCodes.UnsupportedMediaType))
       }
     } ~ path(JavaUUID) { id =>

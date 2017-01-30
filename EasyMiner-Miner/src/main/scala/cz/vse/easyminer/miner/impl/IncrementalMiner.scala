@@ -34,7 +34,7 @@ trait IncrementalMiner {
         MinerResult(
           minerTask,
           result.headers + MinerResultHeader.ExternalLimit(minerTask.interestMeasures.maxlen, result.rules.size + totalRulesSize),
-          result.rules.view.sortBy(arule => (arule.interestMeasures.confidence, arule.interestMeasures.support))(Ordering.Tuple2[Double, Double].reverse).take(limit - totalRulesSize)
+          result.rules.sortBy(arule => (arule.interestMeasures.confidence, arule.interestMeasures.support))(Ordering.Tuple2[Double, Double].reverse).take(limit - totalRulesSize)
         )
       } else {
         result
@@ -44,10 +44,10 @@ trait IncrementalMiner {
       case MinerResultHeader.Timeout(rulelen) => logger.debug(s"Timeout has been reached during mining process with rule length $rulelen")
       case MinerResultHeader.InternalLimit(rulelen, size) => logger.debug(s"Rules limit has been reached during mining process with rule length $rulelen and size $size, limit is $limit")
       case MinerResultHeader.ExternalLimit(rulelen, size) => logger.debug(s"Rules limit has been reached out of mining process with rule length $rulelen and size $size, limit is $limit")
+      case _ =>
     }
     result
   }
-
 
   def incrementalMine = {
     val ruleLengths: Iterator[Int] = (minlen to maxlen).iterator
@@ -65,7 +65,7 @@ trait IncrementalMiner {
       if (partialResult.rules.nonEmpty) {
         processListener(partialResult)
       }
-      val mergedResult = MinerResult(minerTask, result.headers ++ partialResult.headers, result.rules ++ partialResult.rules)
+      val mergedResult = MinerResult(minerTask, result.headers merge partialResult.headers, result.rules ++ partialResult.rules)
       if (mergedResult.headers.exists(_.isInstanceOf[CriticalMinerResultHeader]))
         mergedResult
       else
@@ -75,6 +75,5 @@ trait IncrementalMiner {
     }
     nextMine()
   }
-
 
 }

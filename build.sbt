@@ -7,6 +7,7 @@ val akkaV = "2.3.9"
 val sprayV = "1.3.3"
 val scalikejdbcV = "2.4.0"
 val slf4jV = "1.7.7"
+val jenaV = "3.1.1"
 
 val shapeless = "com.chuusai" %% "shapeless" % "2.1.0"
 val sprayCan = "io.spray" %% "spray-can" % sprayV
@@ -27,6 +28,7 @@ val configs = "com.github.kxbmap" %% "configs" % "0.2.2"
 val scalaTest = "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 val scalate = "org.scalatra.scalate" %% "scalate-core" % "1.7.0"
 val apacheCompress = "org.apache.commons" % "commons-compress" % "1.9"
+val jena = "org.apache.jena" % "jena-arq" % jenaV
 
 val basicDependencies = Seq(shapeless, scalaLogging, akkaActor, akkaLogging, sprayCan, sprayRouting, sprayJson, sprayClient, slf4jSimple, log4j, configs, mysqlJdbc, scalaJdbc)
 val testRestDependencies = Seq(scalaTest, sprayTest)
@@ -57,7 +59,7 @@ lazy val data = project
   .in(file("EasyMiner-Data"))
   .configs()
   .settings(basicSettings: _*)
-  .settings(libraryDependencies ++= (basicDependencies ++ testRestDependencies ++ Seq(scalate, apacheCompress)))
+  .settings(libraryDependencies ++= (basicDependencies ++ testRestDependencies ++ Seq(scalate, apacheCompress, jena)))
   .settings(parallelExecution in Test := false)
   .settings(scalateSettings ++ Seq(
     ScalateKeys.scalateOverwrite := true,

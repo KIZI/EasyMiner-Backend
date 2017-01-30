@@ -3,9 +3,9 @@ package cz.vse.easyminer.miner.impl
 import cz.vse.easyminer.core.Validator.ValidationException
 import cz.vse.easyminer.core.util.{AnyToDouble, AnyToInt}
 import cz.vse.easyminer.data
-import cz.vse.easyminer.data.{NominalValue, NumericValue}
-import cz.vse.easyminer.miner.{Attribute, _}
+import cz.vse.easyminer.data.NominalValue
 import cz.vse.easyminer.miner.impl.PmmlTaskParser.Exceptions._
+import cz.vse.easyminer.miner.{Attribute, _}
 import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 import cz.vse.easyminer.preprocessing._
 
@@ -57,10 +57,6 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
   private def fetchItemMapper(datasetDetail: DatasetDetail): ItemMapper = {
     val attributeOps = datasetDetail.`type`.toAttributeOps(datasetDetail)
     val valueMapperOps = datasetDetail.`type`.toValueMapperOps(datasetDetail)
-    def textToValue(attributeDetail: AttributeDetail): PartialFunction[String, data.Value] = {
-      case text if text.nonEmpty && attributeDetail.`type` == NominalAttributeType => NominalValue(text)
-      case original@AnyToDouble(number) if attributeDetail.`type` == NumericAttributeType => NumericValue(original, number)
-    }
     val items =
       for {
         item <- pmml \\ itemElemName
@@ -68,7 +64,7 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
       } yield {
         val nodeId = AnyToInt.unapply((item \ "@id").text).getOrElse(throw InvalidItemNodeId)
         val attributeId = AnyToInt.unapply((item \ itemName).text).getOrElse(throw InvalidAttributeId)
-        val value = if ((itemType \ itemTypeNameElemName).text == itemFixedValue) (itemType \ itemFixedValueElemName).text else ""
+        val value = if ((itemType \ itemTypeNameElemName).text == itemFixedValue) (itemType \ itemFixedValueElemName).text.trim else ""
         (nodeId, attributeId, value)
       }
     val attributeMap = {
@@ -80,17 +76,16 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
     val valueMapper = valueMapperOps.valueMapper(
       items.groupBy(_._2).map { case (attributeId, values) =>
         val attributeDetail = attributeMap(attributeId)
-        attributeDetail -> values.toIterator.map(_._3).collect(textToValue(attributeDetail)).toSet
+        attributeDetail -> values.toIterator.map(_._3).filter(_.nonEmpty).map(NominalValue).toSet
       }
     )
     items.toIterator.map { case (nodeId, attributeId, value) =>
       val attributeDetail = attributeMap(attributeId)
-      val taskAttribute = textToValue(attributeDetail).andThen[Attribute] { value =>
-        FixedValue(
-          attributeDetail,
-          valueMapper.item(attributeDetail, value).getOrElse(throw new ValueDoesNotExist(attributeId, value))
-        )
-      }.applyOrElse(value, (_: String) => AllValues(attributeDetail))
+      val taskAttribute = if (value.nonEmpty) {
+        FixedValue(attributeDetail, valueMapper.item(attributeDetail, NominalValue(value)).getOrElse(throw new ValueDoesNotExist(attributeId, NominalValue(value))))
+      } else {
+        AllValues(attributeDetail)
+      }
       nodeId -> taskAttribute
     }.toMap
   }

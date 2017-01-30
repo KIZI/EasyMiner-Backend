@@ -37,7 +37,7 @@ case class EquifrequentIntervalsAttribute(name: String, field: Int, bins: Int) e
 
 case class EquisizedIntervalsAttribute(name: String, field: Int, support: Double) extends Attribute
 
-case class AttributeDetail(id: Int, name: String, field: Int, dataset: Int, `type`: AttributeType, uniqueValuesSize: Int, active: Boolean)
+case class AttributeDetail(id: Int, name: String, field: Int, dataset: Int, uniqueValuesSize: Int, active: Boolean)
 
 object AttributeDetail {
 
@@ -49,11 +49,3 @@ object AttributeDetail {
   }
 
 }
-
-case class AttributeNumericDetail(id: Int, min: Double, max: Double, avg: Double)
-
-sealed trait AttributeType
-
-object NominalAttributeType extends AttributeType
-
-object NumericAttributeType extends AttributeType

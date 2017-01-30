@@ -51,14 +51,13 @@ class CsvInputParser(val dataSourceBuilder: DataSourceBuilder, val settings: Set
       val typedValue = if (settings.nullValues(normValue)) {
         //it is null value
         NullValue
-      } else fieldType match {
-        //nominal value - save it as nominal
-        case NominalFieldType => NominalValue(normValue)
-        //numeric value - parse it as double and save
-        case NumericFieldType => try {
+      } else {
+        try {
+          //numeric value - parse it as double and save
           NumericValue(normValue)
         } catch {
-          case _: ParseException => NullValue//throw new InvalidNumericValueException(normValue, buffer.size + 1)
+          //nominal value - save it as nominal
+          case _: ParseException => NominalValue(normValue)
         }
       }
       this.copy(buffer = buffer :+ typedValue)

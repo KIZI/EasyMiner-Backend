@@ -35,12 +35,13 @@ class MysqlDataSourceOps private[db](implicit private[db] val mysqlDBConnector: 
     sql"SELECT ${d.result.*} FROM ${DataSourceTable as d} WHERE ${d.active} = 1".map(DataSourceTable(d.resultName)).list().apply()
   }
 
-  private[db] def fetchInstances(dataSource: DataSourceDetail, fields: Seq[FieldDetail], offset: Int, limit: Int): Seq[NarrowInstance] = {
+  def getInstances(dataSourceId: Int, fieldIds: Seq[Int], offset: Int, limit: Int): Seq[Instance] = getDataSource(dataSourceId).toList.flatMap { dataSource =>
     val instanceTable = new InstanceTable(dataSource.id)
     val d = instanceTable.syntax("d")
+    val fieldMap = MysqlFieldOps(dataSource).getAllFields.filter(field => fieldIds.isEmpty || fieldIds.contains(field.id)).map(field => field.id -> field).toMap
     DBConn readOnly { implicit session =>
-      implicit val fieldMapper = fields.map(field => field.id -> field).toMap
-      sql"SELECT ${d.result.*} FROM ${instanceTable as d} WHERE ${d.field("field")} IN (${fieldMapper.keys}) AND ${d.id} > $offset AND ${d.id} <= ($offset + $limit)".map(instanceTable(d.resultName)).list().apply()
+      implicit val fieldIdToFieldDetail = fieldMap.apply _
+      sql"SELECT ${d.result.*} FROM ${instanceTable as d} WHERE ${d.field("field")} IN (${fieldMap.keys}) AND ${d.id} > $offset AND ${d.id} <= ($offset + $limit)".map(instanceTable(d.resultName)).list().apply().flatten
     }
   }
 

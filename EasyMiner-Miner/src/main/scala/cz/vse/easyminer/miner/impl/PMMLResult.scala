@@ -1,15 +1,15 @@
 package cz.vse.easyminer.miner.impl
 
 import cz.vse.easyminer.core.util.Template
-import cz.vse.easyminer.data.{NominalValue, NullValue, NumericValue}
+import cz.vse.easyminer.data.NominalValue
 import cz.vse.easyminer.miner._
+import cz.vse.easyminer.miner.conversion.AttributeConversion.PimpedFixedValueSeq
+import cz.vse.easyminer.miner.conversion.BoolExpressionConversion.fixedValuesToBoolExpression
 import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 import cz.vse.easyminer.preprocessing.{AttributeDetail, DatasetType, ValueMapperOps}
 import spray.http.MediaTypes._
 import spray.http.{ContentType, HttpCharsets}
 import spray.httpx.marshalling.Marshaller
-import cz.vse.easyminer.miner.conversion.BoolExpressionConversion.fixedValuesToBoolExpression
-import cz.vse.easyminer.miner.conversion.AttributeConversion.PimpedFixedValueSeq
 
 import scala.language.implicitConversions
 
@@ -17,10 +17,12 @@ class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
 
   self: ARuleVisualizer with BoolExpressionVisualizer[Attribute] =>
 
+  private val startTime = System.currentTimeMillis()
+
   val MappedFixedValue: MappedFixedValue = {
-    implicit def fixedValuesToValueMap(fixedValues: Seq[FixedValue]): Map[AttributeDetail, Set[Int]] = fixedValues.groupBy(_.attributeDetail).mapValues(_.map(_.item).toSet)
+    def fixedValuesToValueMap(fixedValues: Seq[FixedValue]): Map[AttributeDetail, Set[Int]] = fixedValues.groupBy(_.attributeDetail).mapValues(_.map(_.item).toSet)
     valueMapperOps.itemMapper(
-      data.rules.flatMap(x => x.consequent ::: x.antecedent)
+      fixedValuesToValueMap(data.rules.flatMap(x => x.consequent ::: x.antecedent))
     )
   }
 
@@ -50,15 +52,11 @@ class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
   }
 
   private val bbaToPMMLMapper: PartialFunction[BoolExpression[FixedValue], Map[String, Any]] = {
-    case e@MappedFixedValue(attribute, value) => Map(
+    case e@MappedFixedValue(attribute, NominalValue(value)) => Map(
       "id" -> baref(e),
       "text" -> exprToString(e),
       "name" -> attribute.name,
-      "value" -> (value match {
-        case NominalValue(value) => value
-        case NumericValue(value, _) => value.toString
-        case NullValue => "null"
-      })
+      "value" -> value
     )
   }
 
@@ -79,20 +77,22 @@ class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
       .map(collectExpression)
       .reduceOption(_ ++ _)
       .getOrElse(Set.empty)
+    val pmmlMap = Map(
+      "arules" -> data.rules.collect(arulesToPMMLMapper),
+      "dbas" -> exprs.collect(dbaToPMMLMapper),
+      "bbas" -> exprs.collect(bbaToPMMLMapper),
+      "number-of-rules" -> data.rules.size,
+      "has-headers" -> data.headers.nonEmpty
+    )
+    val headers = data.headers.flatMap {
+      case MinerResultHeader.Timeout(rulelen) => List(Map("name" -> "timeout-with-rulelength", "value" -> rulelen))
+      case MinerResultHeader.InternalLimit(rulelen, size) => List(Map("name" -> "internallimit-with-rulelength", "value" -> rulelen), Map("name" -> "internallimit-with-size", "value" -> size))
+      case MinerResultHeader.ExternalLimit(rulelen, size) => List(Map("name" -> "externallimit-with-rulelength", "value" -> rulelen), Map("name" -> "externallimit-with-size", "value" -> size))
+      case MinerResultHeader.MiningTime(preparing, mining, finishing) => List(Map("name" -> "pre-mining-time", "value" -> preparing.toMillis), Map("name" -> "mining-time", "value" -> mining.toMillis), Map("name" -> "post-mining-time", "value" -> (finishing.toMillis + System.currentTimeMillis() - startTime)))
+    }
     Template.apply(
       "PMMLResult.template.mustache",
-      Map(
-        "arules" -> data.rules.collect(arulesToPMMLMapper),
-        "dbas" -> exprs.collect(dbaToPMMLMapper),
-        "bbas" -> exprs.collect(bbaToPMMLMapper),
-        "number-of-rules" -> data.rules.size,
-        "has-headers" -> data.headers.nonEmpty,
-        "headers" -> data.headers.flatMap {
-          case MinerResultHeader.Timeout(rulelen) => List(Map("name" -> "timeout-with-rulelength", "value" -> rulelen))
-          case MinerResultHeader.InternalLimit(rulelen, size) => List(Map("name" -> "internallimit-with-rulelength", "value" -> rulelen), Map("name" -> "internallimit-with-size", "value" -> size))
-          case MinerResultHeader.ExternalLimit(rulelen, size) => List(Map("name" -> "externallimit-with-rulelength", "value" -> rulelen), Map("name" -> "externallimit-with-size", "value" -> size))
-        }
-      )
+      pmmlMap + ("headers" -> headers)
     ).trim
   }
 

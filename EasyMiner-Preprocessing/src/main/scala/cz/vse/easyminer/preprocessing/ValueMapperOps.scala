@@ -1,6 +1,6 @@
 package cz.vse.easyminer.preprocessing
 
-import cz.vse.easyminer.data.Value
+import cz.vse.easyminer.data.NominalValue
 import cz.vse.easyminer.preprocessing.ValueMapperOps.{ItemMapper, ValueMapper}
 
 /**
@@ -10,7 +10,7 @@ trait ValueMapperOps {
 
   val dataset: DatasetDetail
 
-  def valueMapper(values: Map[AttributeDetail, Set[Value]]): ValueMapper
+  def valueMapper(values: Map[AttributeDetail, Set[NominalValue]]): ValueMapper
 
   def itemMapper(items: Map[AttributeDetail, Set[Int]]): ItemMapper
 
@@ -19,11 +19,11 @@ trait ValueMapperOps {
 object ValueMapperOps {
 
   trait ValueMapper {
-    def item(attributeDetail: AttributeDetail, value: Value): Option[Int]
+    def item(attributeDetail: AttributeDetail, value: NominalValue): Option[Int]
   }
 
   trait ItemMapper {
-    def value(attributeDetail: AttributeDetail, item: Int): Option[Value]
+    def value(attributeDetail: AttributeDetail, item: Int): Option[NominalValue]
   }
 
 }

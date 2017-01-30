@@ -1,6 +1,6 @@
 package cz.vse.easyminer.preprocessing.impl.db
 
-import cz.vse.easyminer.data.{NominalValue, NullValue, NumericValue, Value}
+import cz.vse.easyminer.data.NominalValue
 import cz.vse.easyminer.preprocessing.ValueMapperOps.{ItemMapper, ValueMapper}
 import cz.vse.easyminer.preprocessing._
 import scalikejdbc._
@@ -53,12 +53,9 @@ trait DbValueMapperOps extends ValueMapperOps {
     * @param values Map[ AttributeDetail, Seq[Value] ]
     * @return SQLSyntax
     */
-  implicit private def buildNormalizedValuesWhereFetchQuery(values: Values[Value]): SQLSyntax = values.map { case (attributeDetail, valueSeq) =>
-    val preparedValues = valueSeq.collect {
-      case NominalValue(value) => Some(value)
-      case NumericValue(original, _) => Some(original)
-    }
-    sqls"${valueDetailTable.column.attribute} = ${attributeDetail.id} AND (${valueDetailTable.column.valueNominal} IN ($preparedValues) OR ${valueDetailTable.column.valueNominal} IS NULL)"
+  implicit private def buildNormalizedValuesWhereFetchQuery(values: Values[NominalValue]): SQLSyntax = values.map { case (attributeDetail, valueSeq) =>
+    val preparedValues = valueSeq.map(_.value)
+    sqls"${valueDetailTable.column.attribute} = ${attributeDetail.id} AND (${valueDetailTable.column.value} IN ($preparedValues))"
   }.reduce(_ or _)
 
   /**
@@ -75,11 +72,7 @@ trait DbValueMapperOps extends ValueMapperOps {
       val id = wrs.int(valueDetailTable.column.id)
       val attribute = attributeMap(wrs.int(valueDetailTable.column.attribute))
       val frequency = wrs.int(valueDetailTable.column.frequency)
-      val value: Option[ValueDetail] = attribute.`type` match {
-        case NominalAttributeType => wrs.stringOpt(valueDetailTable.column.valueNominal).map(value => NominalValueDetail(id, attribute.id, value, frequency))
-        case NumericAttributeType => wrs.doubleOpt(valueDetailTable.column.valueNumeric).map(value => NumericValueDetail(id, attribute.id, wrs.string(valueDetailTable.column.valueNominal), value, frequency))
-      }
-      value.getOrElse(NullValueDetail(id, attribute.id, frequency))
+      ValueDetail(id, attribute.id, wrs.string(valueDetailTable.column.value), frequency)
     }.list().apply()
   }
 
@@ -91,15 +84,15 @@ trait DbValueMapperOps extends ValueMapperOps {
     * @tparam B mapper value
     */
   private trait MapperPairBuilder[A, B] {
-    def buildMapperItem(attributeDetail: AttributeDetail, value: Value, normalizedValue: Int): (A, B)
+    def buildMapperItem(attributeDetail: AttributeDetail, value: NominalValue, normalizedValue: Int): (A, B)
   }
 
-  implicit private object ValueMapperPairBuilder extends MapperPairBuilder[MapperKey[Value], Int] {
-    def buildMapperItem(attributeDetail: AttributeDetail, value: Value, normalizedValue: Int): (MapperKey[Value], Int) = (attributeDetail, value) -> normalizedValue
+  implicit private object ValueMapperPairBuilder extends MapperPairBuilder[MapperKey[NominalValue], Int] {
+    def buildMapperItem(attributeDetail: AttributeDetail, value: NominalValue, normalizedValue: Int): (MapperKey[NominalValue], Int) = (attributeDetail, value) -> normalizedValue
   }
 
-  implicit private object NormalizedValueMapperPairBuilder extends MapperPairBuilder[MapperKey[Int], Value] {
-    def buildMapperItem(attributeDetail: AttributeDetail, value: Value, normalizedValue: Int): (MapperKey[Int], Value) = (attributeDetail, normalizedValue) -> value
+  implicit private object NormalizedValueMapperPairBuilder extends MapperPairBuilder[MapperKey[Int], NominalValue] {
+    def buildMapperItem(attributeDetail: AttributeDetail, value: NominalValue, normalizedValue: Int): (MapperKey[Int], NominalValue) = (attributeDetail, normalizedValue) -> value
   }
 
   /**
@@ -114,11 +107,7 @@ trait DbValueMapperOps extends ValueMapperOps {
     */
   private def valueDetailToMapperPair[A, B](valueDetail: ValueDetail)(implicit attributeMap: Map[Int, AttributeDetail], mapperPairBuilder: MapperPairBuilder[A, B]): (A, B) = {
     val attributeDetail = attributeMap(valueDetail.attribute)
-    val value = valueDetail match {
-      case v: NominalValueDetail => NominalValue(v.value)
-      case v: NumericValueDetail => NumericValue(v.original, v.value)
-      case _: NullValueDetail => NullValue
-    }
+    val value = NominalValue(valueDetail.value)
     val normalizedValue = valueDetail.id
     mapperPairBuilder.buildMapperItem(attributeDetail, value, normalizedValue)
   }
@@ -128,8 +117,8 @@ trait DbValueMapperOps extends ValueMapperOps {
     *
     * @param mapper loaded mapper
     */
-  class LoadedValueMapper(mapper: Map[MapperKey[Value], Int]) extends ValueMapper {
-    def item(attributeDetail: AttributeDetail, value: Value): Option[Int] = mapper.get(attributeDetail -> value)
+  class LoadedValueMapper(mapper: Map[MapperKey[NominalValue], Int]) extends ValueMapper {
+    def item(attributeDetail: AttributeDetail, value: NominalValue): Option[Int] = mapper.get(attributeDetail -> value)
   }
 
   /**
@@ -137,8 +126,8 @@ trait DbValueMapperOps extends ValueMapperOps {
     *
     * @param mapper loaded mapper
     */
-  class LoadedNormalizedValueMapper(mapper: Map[MapperKey[Int], Value]) extends ItemMapper {
-    def value(attributeDetail: AttributeDetail, normalizedValue: Int): Option[Value] = mapper.get(attributeDetail -> normalizedValue)
+  class LoadedNormalizedValueMapper(mapper: Map[MapperKey[Int], NominalValue]) extends ItemMapper {
+    def value(attributeDetail: AttributeDetail, normalizedValue: Int): Option[NominalValue] = mapper.get(attributeDetail -> normalizedValue)
   }
 
   /**
@@ -161,7 +150,7 @@ trait DbValueMapperOps extends ValueMapperOps {
     bucketedValues(values).map[SQLSyntax](x => x).flatMap(fetchValueDetails).map(valueDetailToMapperPair[MapperKey[A], B]).toMap
   }
 
-  def valueMapper(values: Values[Value]): ValueMapper = new LoadedValueMapper(buildMapper(values))
+  def valueMapper(values: Values[NominalValue]): ValueMapper = new LoadedValueMapper(buildMapper(values))
 
   def itemMapper(normalizedValues: Values[Int]): ItemMapper = new LoadedNormalizedValueMapper(buildMapper(normalizedValues))
 

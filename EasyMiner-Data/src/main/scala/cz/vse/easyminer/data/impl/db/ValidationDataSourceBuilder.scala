@@ -6,8 +6,8 @@ import cz.vse.easyminer.data.impl.Validators.{DataSourceValidators, FieldValidat
 import cz.vse.easyminer.data.impl.db.ValidationDataSourceBuilder.Exceptions
 
 /**
- * Created by propan on 18. 8. 2015.
- */
+  * Created by propan on 18. 8. 2015.
+  */
 class ValidationDataSourceBuilder(dataSourceBuilder: DataSourceBuilder) extends DataSourceBuilder with FieldValidators with DataSourceValidators with ValueValidators {
 
   val name: String = dataSourceBuilder.name
@@ -41,15 +41,19 @@ class ValidationDataSourceBuilder(dataSourceBuilder: DataSourceBuilder) extends 
 
     val fields: Seq[FieldDetail] = valueBuilder.fields
 
-    def addInstance(values: Seq[Value]): ValueBuilder = {
-      values.foreach(value => Validator(value))
-      if (values.isEmpty) {
+    def addTransaction(itemset: Set[(FieldDetail, Value)]): ValueBuilder = {
+      itemset.foreach(x => Validator(x._2))
+      if (itemset.isEmpty) {
         throw Exceptions.NoDataException
       }
+      new ValidationValueBuilder(valueBuilder.addTransaction(itemset))
+    }
+
+    override def addInstance(values: Seq[Value]): ValueBuilder = {
       if (values.size != fields.size) {
         throw new Exceptions.NumberOfValuesException(values.size, fields.size)
       }
-      new ValidationValueBuilder(valueBuilder.addInstance(values))
+      super.addInstance(values)
     }
 
     def build: DataSourceDetail = valueBuilder.build

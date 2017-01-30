@@ -2,23 +2,31 @@ package cz.vse.easyminer.miner.impl
 
 import java.util.Date
 
-import cz.vse.easyminer.core.util.{Template, Conf}
+import cz.vse.easyminer.core.util.{Conf, Template}
 import cz.vse.easyminer.miner.{BorrowedConnection, RConnectionPool}
 import org.slf4j.LoggerFactory
+
 import scala.concurrent._
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = true) extends RConnectionPool {
 
+  import ExecutionContext.Implicits.global
+
   val maxIdle = 10
   val minIdle = 2
-  val connectionTimeout = 120
+  val connectionTimeout = 15 minutes
   val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.impl.RConnectionPool")
 
   private lazy val rInitScript = Template("RInit.mustache").trim.replaceAll("\r\n", "\n")
 
+  //priority queue
+  //older connections have higher priority
   private val pool = new collection.mutable.PriorityQueue[BorrowedConnection]()(new Ordering[BorrowedConnection] {
     def compare(a: BorrowedConnection, b: BorrowedConnection) = b.created compare a.created
   })
+
   private var activeConnections = 0
 
   private def createConnection = {
@@ -39,46 +47,83 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
 
   def numIdle = pool.size
 
-  def borrow = pool.synchronized {
-    import ExecutionContext.Implicits.global
-    activeConnections = activeConnections + 1
-    val conn = try {
-      pool.dequeue()
-    } catch {
-      case _: NoSuchElementException => createConnection
+  def borrow = {
+    //borrow connection from pool
+    //returns none if the pool is empty
+    val connOpt = pool.synchronized {
+      activeConnections = activeConnections + 1
+      try {
+        Some(pool.dequeue())
+      } catch {
+        case _: NoSuchElementException => None
+      }
     }
+    //get connection
+    //if connection is none then create new connection
+    //this is potentially expensive operation and it should not block any other pooling methods!
+    val conn = connOpt.getOrElse(createConnection)
+    //call postborrow method asynchronously
     Future {
-      refresh()
+      postBorrow()
     }
+    //return connection
     logger.debug("R connection has been borrowed. Connection creation time: " + new Date(conn.created))
     conn
   }
 
   def release(bc: BorrowedConnection) = {
-    import ExecutionContext.Implicits.global
     Future {
-      bc.eval("rm(list=ls(all=TRUE))")
-      bc.parseAndEval(rInitScript)
-      pool.synchronized {
+      //check whether connection pool is not full
+      val poolIsNotFull = pool.synchronized {
         activeConnections = activeConnections - 1
-        if (pool.size < maxIdle) {
-          pool.enqueue(bc)
-        } else {
-          bc.close
+        pool.size < maxIdle
+      }
+      //close connection
+      bc.close()
+      if (poolIsNotFull) {
+        //if connection pool is not full then create new connection which replaces old closed connection.
+        //this is expensive operation and it should not block any other pooling methods!
+        val conn = createConnection
+        pool.synchronized {
+          //if pool is not full then add the new connection to the pool otherwise close connection
+          if (pool.size < maxIdle) {
+            pool.enqueue(conn)
+          } else {
+            conn.close()
+          }
         }
       }
     }
     logger.debug("R connection has been released.")
   }
 
+  private def postBorrow() = this.synchronized {
+    //postborrow method is synchronized method to prevent creation of a lot of connections
+    //create connections to fill minIdle space in the pool
+    //this is potentially expensive operation and it should not block any other pooling methods!
+    val conns = (0 until (minIdle - pool.size)).map(_ => createConnection)
+    pool.synchronized {
+      //add created connections to the pool or close it if the min idle threshold has been reached
+      for (conn <- conns) {
+        if (pool.size < minIdle) pool.enqueue(conn) else conn.close()
+      }
+      //if the pool is still too small then add connections synchronously
+      //this is blocking and expensive operation but less likely!
+      while (pool.size < minIdle) {
+        pool.enqueue(createConnection)
+      }
+    }
+  }
+
   def refresh() = pool.synchronized {
-    while (pool.headOption.exists(_.created < System.currentTimeMillis - connectionTimeout * 1000)) {
+    //close old connections
+    //the connection pool may be empty if there is no connection borrowing within connectionTimeout
+    while (pool.headOption.exists(_.created < System.currentTimeMillis - connectionTimeout.toMillis)) {
       pool.dequeue().close
     }
-    while ( /*pool.size < maxIdle && activeConnections > pool.size || */ pool.size < minIdle) {
-      pool.enqueue(createConnection)
+    if (numActive + numIdle > 0) {
+      logger.debug(s"R connection pool has been refreshed. Current state is: active = $numActive, idle = $numIdle")
     }
-    logger.debug(s"R connection pool has been refreshed. Current state is: active = $numActive, idle = $numIdle")
   }
 
   def close() = pool.synchronized {

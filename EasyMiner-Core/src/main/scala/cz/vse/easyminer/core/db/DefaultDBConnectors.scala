@@ -4,8 +4,8 @@ import cz.vse.easyminer.core.util.Lazy._
 import cz.vse.easyminer.core.{HiveUserDatabase, MysqlUserDatabase}
 
 /**
- * Created by propan on 9. 3. 2016.
- */
+  * Created by propan on 9. 3. 2016.
+  */
 class DefaultDBConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: Option[HiveUserDatabase]) extends DBConnectors {
 
   protected[this] def afterConnection(dBConnector: DBConnector[_]) = {}

@@ -37,10 +37,6 @@ object PersistentLock {
 
     import mysqlDBConnector._
 
-    private def fetchLock(name: String)(implicit session: DBSession) = sql"SELECT ${lockTable.column.*} FROM ${lockTable.table} WHERE ${lockTable.column.name} = $name".map { wrs =>
-      PersistentLock(wrs.string(lockTable.column.name), wrs.date(lockTable.column.refreshTime))
-    }.first().apply()
-
     def createSchemaIfNotExists() = DBConn autoCommit { implicit session =>
       sql"""CREATE TABLE IF NOT EXISTS ${lockTable.table} (
       ${lockTable.column.name} varchar(255) NOT NULL,
@@ -60,15 +56,9 @@ object PersistentLock {
     def lock(name: String): Boolean = try {
       DBConn autoCommit { implicit session =>
         sql"DELETE FROM ${lockTable.table} WHERE DATE_ADD(${lockTable.column.refreshTime}, INTERVAL ${maxIdleTime.toMicros} MICROSECOND) < NOW()".execute().apply()
+        sql"INSERT INTO ${lockTable.table} (${lockTable.column.name}, ${lockTable.column.refreshTime}) VALUES ($name, NOW())".execute().apply()
       }
-      DBConn localTx { implicit session =>
-        if (fetchLock(name).isEmpty) {
-          sql"INSERT INTO ${lockTable.table} (${lockTable.column.name}, ${lockTable.column.refreshTime}) VALUES ($name, NOW())".execute().apply()
-          true
-        } else {
-          false
-        }
-      }
+      true
     } catch {
       case _: SQLIntegrityConstraintViolationException => false
     }

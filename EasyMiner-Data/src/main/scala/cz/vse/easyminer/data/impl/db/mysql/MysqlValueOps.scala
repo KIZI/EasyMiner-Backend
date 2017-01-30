@@ -7,8 +7,8 @@ import cz.vse.easyminer.data.impl.db.{DbValueHistogramOps, ValidationValueOps}
 import scalikejdbc._
 
 /**
- * Created by propan on 1. 9. 2015.
- */
+  * Created by propan on 1. 9. 2015.
+  */
 class MysqlValueOps private[db](val dataSource: DataSourceDetail, val field: FieldDetail)(implicit connector: MysqlDBConnector) extends ValueOps with DbValueHistogramOps {
 
   import connector._
@@ -28,17 +28,22 @@ class MysqlValueOps private[db](val dataSource: DataSourceDetail, val field: Fie
     sql.apply()
   }
 
-  def getNumericStats: Option[FieldNumericDetail] = DBConn readOnly {
-    implicit session =>
-      val n = FieldNumericDetailTable.syntax("n")
-      sql"SELECT ${n.result.*} FROM ${FieldNumericDetailTable as n} WHERE ${n.id} = $columnId".map(FieldNumericDetailTable(n.resultName)).first().apply()
+  def getNumericStats: Option[FieldNumericDetail] = if (field.`type` == NumericFieldType) {
+    DBConn readOnly {
+      implicit session =>
+        val n = FieldNumericDetailTable.syntax("n")
+        sql"SELECT ${n.result.*} FROM ${FieldNumericDetailTable as n} WHERE ${n.id} = $columnId".map(FieldNumericDetailTable(n.resultName)).first().apply()
+    }
+  } else {
+    None
   }
 
   def getValues(offset: Int, limit: Int): Seq[ValueDetail] = DBConn readOnly {
     implicit session =>
       val valueTable = new ValueTable(dataSource.id)
       val v = valueTable.syntax("v")
-      sql"SELECT ${v.result.*} FROM ${valueTable as v} WHERE ${v.field("field")} = $columnId LIMIT $limit OFFSET $offset".map(valueTable(v.resultName, field.`type`)).list().apply()
+      val condition = (sqls"${v.field("field")} = $columnId" :: (if (field.`type` == NumericFieldType) List(sqls"${v.valueNumeric} IS NOT NULL") else Nil)).reduce(_ and _)
+      sql"SELECT ${v.result.*} FROM ${valueTable as v} WHERE $condition LIMIT $limit OFFSET $offset".map(valueTable(v.resultName, field.`type`)).list().apply()
   }
 
 }

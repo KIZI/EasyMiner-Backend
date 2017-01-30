@@ -1,10 +1,15 @@
 package cz.vse.easyminer.miner.impl.r
 
 import cz.vse.easyminer.core.util.{AnyToInt, Template}
+import cz.vse.easyminer.miner.MinerResultHeader.MiningTime
 import cz.vse.easyminer.miner._
 import cz.vse.easyminer.miner.impl.IncrementalMiner
 import cz.vse.easyminer.preprocessing.AttributeDetail
 import org.slf4j.LoggerFactory
+
+import scala.concurrent.duration._
+import scala.concurrent.duration.Duration
+import scala.language.postfixOps
 
 /**
   * Created by propan on 27. 2. 2016.
@@ -30,6 +35,7 @@ private[r] class AprioriIncrementalMiner(val minerTask: MinerTask, attributes: S
   }
 
   protected[this] def mine(minlen: Int, maxlen: Int): MinerResult = {
+    val startTime = System.currentTimeMillis()
     val im = Map(
       "minlen" -> minlen,
       "maxlen" -> maxlen,
@@ -41,6 +47,7 @@ private[r] class AprioriIncrementalMiner(val minerTask: MinerTask, attributes: S
     )
     logger.trace("This Rscript will be passed to the Rserve:\n" + rscript)
     val result = r.eval(rscript)
+    val timeMining = (System.currentTimeMillis() - startTime) millis
     val headers = if (result.nonEmpty) {
       result.view.tail.takeWhile(outputHeaderMapper.isDefinedAt).map(outputHeaderMapper).toSet
     } else {
@@ -48,7 +55,8 @@ private[r] class AprioriIncrementalMiner(val minerTask: MinerTask, attributes: S
     }
     val rules = result.iterator.collect(outputAruleMapper).toList
     logger.debug(s"Number of found association rules $im: ${rules.size}")
-    MinerResult(minerTask, headers, rules)
+    val timeFinishing = ((System.currentTimeMillis() - startTime) millis) - timeMining
+    MinerResult(minerTask, headers merge MiningTime(Duration.Zero, timeMining, timeFinishing), rules)
   }
 
 }

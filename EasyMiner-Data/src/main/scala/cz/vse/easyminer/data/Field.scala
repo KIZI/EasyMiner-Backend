@@ -5,7 +5,11 @@ package cz.vse.easyminer.data
   */
 case class Field(name: String, `type`: FieldType)
 
-case class FieldDetail(id: Int, dataSource: Int, name: String, `type`: FieldType, uniqueValuesSize: Int)
+case class FieldDetail(id: Int, dataSource: Int, name: String, `type`: FieldType, uniqueValuesSizeNominal: Int, uniqueValuesSizeNumeric: Int, supportNominal: Int, supportNumeric: Int) {
+  def uniqueValuesSize = if (`type` == NominalFieldType) uniqueValuesSizeNominal else uniqueValuesSizeNumeric
+
+  def support = if (`type` == NominalFieldType) supportNominal else supportNumeric
+}
 
 case class FieldNumericDetail(id: Int, min: Double, max: Double, avg: Double)
 

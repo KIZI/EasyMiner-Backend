@@ -5,11 +5,12 @@ import java.util.Locale
 
 import cz.vse.easyminer.core.{JsonDeserializationNotSupported, JsonDeserializeAttributeException, JsonSerializationNotSupported}
 import cz.vse.easyminer.data._
+import org.apache.jena.riot.Lang
 import spray.json._
 
 /**
- * Created by propan on 18. 8. 2015.
- */
+  * Created by propan on 18. 8. 2015.
+  */
 object JsonFormatters extends DefaultJsonProtocol {
 
   object JsonDataSourceType {
@@ -51,6 +52,21 @@ object JsonFormatters extends DefaultJsonProtocol {
       }
 
       def write(obj: Locale): JsValue = throw JsonSerializationNotSupported
+    }
+
+  }
+
+  object JsonRdfLang {
+
+    implicit object JsonRdfLangFormat extends RootJsonFormat[Lang] {
+      def write(obj: Lang): JsValue = throw JsonSerializationNotSupported
+
+      def read(json: JsValue): Lang = json match {
+        case JsString(x) if x.toLowerCase() == Lang.NT.getName.toLowerCase => Lang.NT
+        case JsString(x) if x.toLowerCase() == Lang.NQ.getName.toLowerCase => Lang.NQ
+        case JsString(x) if x.toLowerCase() == Lang.TTL.getName.toLowerCase => Lang.TTL
+        case _ => throw new JsonDeserializeAttributeException("rdf-lang", "It should be a valid rdf format (N-Triples, N-Quads, Turtle).")
+      }
     }
 
   }
@@ -150,7 +166,14 @@ object JsonFormatters extends DefaultJsonProtocol {
 
     import JsonFieldType._
 
-    implicit val JsonFieldDetailFormat: RootJsonFormat[FieldDetail] = jsonFormat5(FieldDetail)
+    implicit object JsonFieldDetailFormat extends RootJsonFormat[FieldDetail] {
+      def read(json: JsValue): FieldDetail = throw JsonDeserializationNotSupported
+
+      def write(obj: FieldDetail): JsValue = {
+        val fieldDetailMap = jsonFormat8(FieldDetail).write(obj).asJsObject.fields
+        JsObject(fieldDetailMap.filterNot(x => x._1.endsWith("Nominal") || x._1.endsWith("Numeric")) +("uniqueValuesSize" -> JsNumber(obj.uniqueValuesSize), "support" -> JsNumber(obj.support)))
+      }
+    }
 
   }
 
@@ -159,6 +182,22 @@ object JsonFormatters extends DefaultJsonProtocol {
     import JsonDataSourceType._
 
     implicit val JsonDataSourceDetailFormat: RootJsonFormat[DataSourceDetail] = jsonFormat5(DataSourceDetail.apply)
+
+  }
+
+  object JsonAggregatedInstanceItem {
+
+    import JsonValue._
+
+    implicit val JsonAggregatedInstanceItemFormat: RootJsonFormat[AggregatedInstanceItem] = jsonFormat2(AggregatedInstanceItem)
+
+  }
+
+  object JsonAggregatedInstance {
+
+    import JsonAggregatedInstanceItem._
+
+    implicit val JsonAggregatedInstanceFormat: RootJsonFormat[AggregatedInstance] = jsonFormat2(AggregatedInstance)
 
   }
 

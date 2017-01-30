@@ -2,6 +2,7 @@ package cz.vse.easyminer.miner.impl.r
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.core.util.{SqlUtils, Template}
+import cz.vse.easyminer.miner.MinerResultHeader.MiningTime
 import cz.vse.easyminer.miner.impl.BoolExpressionImpl._
 import cz.vse.easyminer.miner.impl.{ItemText, MysqlMinerDatasetOps, MysqlQueryBuilder}
 import cz.vse.easyminer.miner.{Attribute, _}
@@ -11,7 +12,8 @@ import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.InstanceTable
 import org.slf4j.LoggerFactory
 import scalikejdbc.interpolation.SQLSyntax
 
-import scala.language.implicitConversions
+import scala.concurrent.duration._
+import scala.language.{implicitConversions, postfixOps}
 
 /**
   * Created by propan on 20. 11. 2015.
@@ -181,16 +183,19 @@ trait AprioriMinerProcess extends MinerProcess {
   }
 
   def process(mt: MinerTask)(processListener: (MinerResult) => Unit): MinerResult = {
+    val startTime = System.currentTimeMillis()
     init(mt)
     val attributes = MysqlAttributeOps(mt.datasetDetail).getAllAttributes
     val incrementalMiner = new AprioriIncrementalMiner(mt, attributes)(processListener)
-    if (mt.interestMeasures.has(Auto)) {
+    val timePreparing = (System.currentTimeMillis() - startTime) millis
+    val result = if (mt.interestMeasures.has(Auto)) {
       incrementalMiner.partialMine(1, if (mt.interestMeasures.hasType[MaxRuleLength]) incrementalMiner.maxlen else attributes.size, 0)
     } else if (mt.interestMeasures.has(CBA)) {
       incrementalMiner.partialMine(incrementalMiner.minlen, incrementalMiner.maxlen, 0)
     } else {
       incrementalMiner.incrementalMine
     }
+    result.copy(headers = result.headers merge MiningTime(timePreparing, Duration.Zero, Duration.Zero))
   }
 
 }

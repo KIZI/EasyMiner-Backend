@@ -79,10 +79,10 @@ trait DbValueHistogramOps extends ValueHistogramOps {
           result
         }
       }
-      val result = fillBins((min.value to max.value by intervalSize).toList, data.view.collect { case Bin(Some(x), y) => x -> y })
-      data.collectFirst {
+      fillBins((min.value to max.value by intervalSize).toList, data.view.collect { case Bin(Some(x), y) => x -> y })
+      /*data.collectFirst {
         case Bin(None, freq) => NullValueInterval(freq) +: result
-      }.getOrElse(result)
+      }.getOrElse(result)*/
     case NoneColumnStats => Nil
   }
 

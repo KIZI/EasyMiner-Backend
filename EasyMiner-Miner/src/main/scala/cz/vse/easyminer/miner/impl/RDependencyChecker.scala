@@ -4,13 +4,12 @@ import cz.vse.easyminer.core.DependencyChecker.{DependecyCheckerException, Runne
 import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.core.{DependencyChecker, TaskStatusProcessor}
 import cz.vse.easyminer.data
-import cz.vse.easyminer.data.impl.db.mysql.{Tables => DataTables, MysqlDataSourceOps, MysqlDataSourceBuilder, MysqlFieldOps}
+import cz.vse.easyminer.data.impl.db.mysql.{MysqlDataSourceBuilder, MysqlDataSourceOps, MysqlFieldOps}
 import cz.vse.easyminer.data.{Field, NominalFieldType, NominalValue}
 import cz.vse.easyminer.miner._
 import cz.vse.easyminer.miner.impl.r.AprioriMiner
-import cz.vse.easyminer.preprocessing.impl.db.mysql.{Tables => PreprocessingTables, _}
+import cz.vse.easyminer.preprocessing.impl.db.mysql.{MysqlAttributeOps, MysqlDatasetBuilder, MysqlDatasetOps, MysqlSchemaOps, MysqlSimpleAttributeBuilder, MysqlValueMapperOps}
 import cz.vse.easyminer.preprocessing.{Dataset, SimpleAttribute}
-import scalikejdbc._
 
 import scala.language.implicitConversions
 
@@ -53,7 +52,7 @@ class RDependencyChecker(implicit mysqlDBConnector: MysqlDBConnector) extends De
         }
         val attributeOps = MysqlAttributeOps(datasetDetail)
         val attributesMap = attributeOps.getAllAttributes.map(x => x.name -> x).toMap
-        val valueMapperOps = MysqlValueMapperOps(datasetDetail).valueMapper(attributesMap.values.map(x => x -> Set[data.Value](NominalValue("1"), NominalValue("0"))).toMap)
+        val valueMapperOps = MysqlValueMapperOps(datasetDetail).valueMapper(attributesMap.values.map(x => x -> Set[data.NominalValue](NominalValue("1"), NominalValue("0"))).toMap)
         implicit def itemToFixedValue(item: (String, String)): Attribute = {
           val attribute = attributesMap(item._1)
           FixedValue(attribute, valueMapperOps.item(attribute, NominalValue(item._2)).get)
@@ -72,30 +71,10 @@ class RDependencyChecker(implicit mysqlDBConnector: MysqlDBConnector) extends De
         }
       }
     } finally {
-      mysqlDBConnector.DBConn autoCommit { implicit session =>
-        for (dataset <- MysqlDatasetOps().getAllDatasets) {
-          val prepValueTable = new PreprocessingTables.ValueTable(dataset.id)
-          val prepInstanceTable = new PreprocessingTables.InstanceTable(dataset.id)
-          val dataValueTable = new DataTables.ValueTable(dataset.dataSource)
-          val dataInstanceTable = new DataTables.InstanceTable(dataset.dataSource)
-          sql"DROP TABLE IF EXISTS ${prepValueTable.table}".execute().apply()
-          sql"DROP TABLE IF EXISTS ${prepInstanceTable.table}".execute().apply()
-          sql"DROP TABLE IF EXISTS ${dataValueTable.table}".execute().apply()
-          sql"DROP TABLE IF EXISTS ${dataInstanceTable.table}".execute().apply()
-        }
-        for (datasource <- MysqlDataSourceOps().getAllDataSources) {
-          val dataValueTable = new DataTables.ValueTable(datasource.id)
-          val dataInstanceTable = new DataTables.InstanceTable(datasource.id)
-          sql"DROP TABLE IF EXISTS ${dataValueTable.table}".execute().apply()
-          sql"DROP TABLE IF EXISTS ${dataInstanceTable.table}".execute().apply()
-        }
-        sql"DROP TABLE IF EXISTS ${PreprocessingTables.AttributeNumericDetailTable.table}".execute().apply()
-        sql"DROP TABLE IF EXISTS ${PreprocessingTables.AttributeTable.table}".execute().apply()
-        sql"DROP TABLE IF EXISTS ${PreprocessingTables.DatasetTable.table}".execute().apply()
-        sql"DROP TABLE IF EXISTS ${DataTables.FieldNumericDetailTable.table}".execute().apply()
-        sql"DROP TABLE IF EXISTS ${DataTables.FieldTable.table}".execute().apply()
-        sql"DROP TABLE IF EXISTS ${DataTables.DataSourceTable.table}".execute().apply()
-      }
+      val datasetOps = MysqlDatasetOps()
+      val dataSourceOps = MysqlDataSourceOps()
+      datasetOps.getAllDatasets.map(_.id).foreach(datasetOps.deleteDataset)
+      dataSourceOps.getAllDataSources.map(_.id).foreach(dataSourceOps.deleteDataSource)
     }
   }
 

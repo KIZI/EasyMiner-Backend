@@ -15,8 +15,7 @@ import spray.routing.Directives
 class DataSourceService(implicit dBConnectors: DBConnectors, actorContext: ActorContext) extends Directives with SprayJsonSupport with DefaultJsonProtocol {
 
   import JsonFormatters.JsonDataSourceDetail._
-  import JsonFormatters.JsonFieldDetail._
-  import JsonFormatters.JsonValue._
+  import JsonFormatters.JsonAggregatedInstance._
   import cz.vse.easyminer.data.impl.db.DataSourceTypeConversions._
 
   val dataSourceOps: DataSourceOps = LimitedDataSourceType.toDataSourceOps
@@ -51,10 +50,7 @@ class DataSourceService(implicit dBConnectors: DBConnectors, actorContext: Actor
               val fieldIds = pseq.collect {
                 case ("field", AnyToInt(id)) => id
               }
-              dataSourceOps.getInstances(dataSource.id, fieldIds, offset, limit) match {
-                case Some(Instances(fields, instances)) => complete(JsObject("fields" -> fields.toJson, "instances" -> instances.view.map(_.values).toIterable.toJson))
-                case _ => reject
-              }
+              complete(dataSourceOps.getAggregatedInstances(dataSource.id, fieldIds, offset, limit))
             }
           }
         } ~ routeField(dataSource)

@@ -18,7 +18,7 @@ class ValidationDataSourceOps(ops: DataSourceOps) extends DataSourceOps with Dat
   def deleteDataSource(dataSourceId: Int): Unit = ops.deleteDataSource(dataSourceId)
 
 
-  def getInstances(dataSourceId: Int, fieldIds: Seq[Int], offset: Int, limit: Int): Option[Instances] = {
+  def getInstances(dataSourceId: Int, fieldIds: Seq[Int], offset: Int, limit: Int): Seq[Instance] = {
     Validator(offset)(GreaterOrEqual(0))
     Validator(limit)(GreaterOrEqual(1))
     Validator(limit)(LowerOrEqual(1000))

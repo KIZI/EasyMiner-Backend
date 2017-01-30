@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}field` (
 `data_source` int(10) unsigned NOT NULL,
 `name` varchar(255) NOT NULL,
 `type` enum('NOMINAL','NUMERIC') NOT NULL,
-`unique_values_size` int(10) unsigned NOT NULL,
+`unique_values_size_nominal` int(10) unsigned NOT NULL,
+`unique_values_size_numeric` int(10) unsigned NOT NULL,
+`support_nominal` int(10) unsigned NOT NULL,
+`support_numeric` int(10) unsigned NOT NULL,
 PRIMARY KEY (`id`,`data_source`),
 KEY `data_source` (`data_source`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;

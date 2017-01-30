@@ -8,8 +8,8 @@ import spray.json._
 import scala.util.{Failure, Success, Try}
 
 /**
- * Created by propan on 18. 8. 2015.
- */
+  * Created by propan on 18. 8. 2015.
+  */
 object JsonFormatters extends DefaultJsonProtocol {
 
   object JsonDatasetType {
@@ -29,34 +29,9 @@ object JsonFormatters extends DefaultJsonProtocol {
 
   }
 
-  object JsonAttributeType {
-
-    implicit object JsonAttributeTypeFormat extends RootJsonFormat[AttributeType] {
-      def read(json: JsValue): AttributeType = json match {
-        case JsString("nominal") => NominalAttributeType
-        case JsString("numeric") => NumericAttributeType
-        case _ => throw new JsonDeserializeAttributeException("attributeType", "It should be 'nominal' or 'numeric'.")
-      }
-
-      def write(obj: AttributeType): JsValue = obj match {
-        case NominalAttributeType => JsString("nominal")
-        case NumericAttributeType => JsString("numeric")
-      }
-    }
-
-  }
-
   object JsonValueDetail {
 
-    implicit object JsonValueDetailFormat extends RootJsonFormat[ValueDetail] {
-      def read(json: JsValue): ValueDetail = throw JsonDeserializationNotSupported
-
-      def write(obj: ValueDetail): JsValue = obj match {
-        case NominalValueDetail(id, _, value, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsString(value), "frequency" -> JsNumber(frequency))
-        case NumericValueDetail(id, _, original, value, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsString(original), "frequency" -> JsNumber(frequency))
-        case NullValueDetail(id, _, frequency) => JsObject("id" -> JsNumber(id), "value" -> JsNull, "frequency" -> JsNumber(frequency))
-      }
-    }
+    implicit val JsonValueDetailFormat: RootJsonFormat[ValueDetail] = jsonFormat4(ValueDetail)
 
   }
 
@@ -98,17 +73,9 @@ object JsonFormatters extends DefaultJsonProtocol {
 
   }
 
-  object JsonAttributeNumericDetail {
-
-    implicit val JsonAttributeNumericDetailFormat: RootJsonFormat[AttributeNumericDetail] = jsonFormat4(AttributeNumericDetail)
-
-  }
-
   object JsonAttributeDetail {
 
-    import JsonAttributeType._
-
-    implicit val JsonAttributeDetailFormat: RootJsonFormat[AttributeDetail] = jsonFormat7(AttributeDetail.apply)
+    implicit val JsonAttributeDetailFormat: RootJsonFormat[AttributeDetail] = jsonFormat6(AttributeDetail.apply)
 
   }
 

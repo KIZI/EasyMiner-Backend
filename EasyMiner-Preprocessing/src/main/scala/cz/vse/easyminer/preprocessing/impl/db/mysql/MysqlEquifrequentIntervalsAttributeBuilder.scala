@@ -23,7 +23,7 @@ class MysqlEquifrequentIntervalsAttributeBuilder private[db](val dataset: Datase
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions.Limited._
   import mysqlDBConnector._
 
-  private[db] val attributeOps: AttributeOps = dataset.toAttributeOps
+  private[db] val attributeOps: AttributeOps = dataset.toAttributeOps(dataset)
 
   private[db] val fieldOps: Option[FieldOps] = dataset.toFieldOps
 
@@ -33,7 +33,7 @@ class MysqlEquifrequentIntervalsAttributeBuilder private[db](val dataset: Datase
 
   private def initIntervals(attributes: Seq[AttributeWithDetail], fieldIds: Seq[Int])(implicit session: DBSession) = {
     val dv = dataValueTable.syntax
-    val sqlValues = sql"SELECT ${dv.result.*} FROM ${dataValueTable as dv} WHERE ${dv.field("field")} IN ($fieldIds) ORDER BY ${dv.field("field")}, ${dv.valueNumeric}"
+    val sqlValues = sql"SELECT ${dv.result.*} FROM ${dataValueTable as dv} WHERE ${dv.field("field")} IN ($fieldIds) AND ${dataValueTable.column.valueNumeric} IS NOT NULL ORDER BY ${dv.field("field")}, ${dv.valueNumeric}"
     sqlValues.foldLeft(List.empty[(AttributeIntervals, Int)]) { (attributeIntervals, wrs) =>
       val valueNumeric = dataValueTable(dv.resultName, NumericFieldType)(wrs).asInstanceOf[data.NumericValueDetail]
       val attributeIntervalsList = if (attributeIntervals.isEmpty || attributeIntervals.head._1.attributeWithDetail.attributeDetail.field != valueNumeric.field) {
@@ -62,7 +62,7 @@ class MysqlEquifrequentIntervalsAttributeBuilder private[db](val dataset: Datase
     smoothAttributeIntervals(attributeIntervals.intervals, new Traversable[data.NumericValueDetail] {
       def foreach[U](f: (NumericValueDetail) => U): Unit = {
         val dv = dataValueTable.syntax
-        val sqlValues = sql"SELECT ${dv.result.*} FROM ${dataValueTable as dv} WHERE ${dv.field("field")} = ${attributeIntervals.attributeWithDetail.attributeDetail.field} ORDER BY ${dv.valueNumeric} DESC"
+        val sqlValues = sql"SELECT ${dv.result.*} FROM ${dataValueTable as dv} WHERE ${dv.field("field")} = ${attributeIntervals.attributeWithDetail.attributeDetail.field} AND ${dv.valueNumeric} IS NOT NULL ORDER BY ${dv.valueNumeric} DESC"
         sqlValues.foreach(wrs => f(dataValueTable(dv.resultName, NumericFieldType)(wrs).asInstanceOf[data.NumericValueDetail]))
       }
     }) { (movedValue, prevInterval, currentInterval) =>
@@ -111,14 +111,14 @@ class MysqlEquifrequentIntervalsAttributeBuilder private[db](val dataset: Datase
     def getSelectCond(valueNumericCol: SQLSyntax, fieldCol: SQLSyntax) = intervals.iterator.zipWithIndex.foldLeft(sqls"NULL") { case (select, ((interval, attributeDetail), id)) =>
       sqls"IF($fieldCol = ${attributeDetail.field} AND $valueNumericCol ${getNumericComparator(interval.interval.from, true)} ${interval.interval.from.value} AND $valueNumericCol ${getNumericComparator(interval.interval.to, false)} ${interval.interval.to.value}, ${id + maxValueId + 1}, $select)"
     }
-    SQL(sqls"INSERT INTO ${preprocessingValueTable.table} (${preprocessingValueTable.column.columns}) VALUES (?, ?, ?, NULL, ?)".value).batch(intervals.iterator.zipWithIndex.map {
+    SQL(sqls"INSERT INTO ${preprocessingValueTable.table} (${preprocessingValueTable.column.columns}) VALUES (?, ?, ?, ?)".value).batch(intervals.iterator.zipWithIndex.map {
       case ((interval, attributeDetail), id) => List(id + maxValueId + 1, attributeDetail.id, interval.interval.toIntervalString, interval.frequency)
     }.toList: _*).apply()
     sql"""
       INSERT INTO ${preprocessingInstanceTable.table} (${preprocessingInstanceTable.column.columns})
-      SELECT ${dataInstanceTable.column.id}, ${getAttributeSelect(dataInstanceTable.column.field("field"))}, ${getSelectCond(dataInstanceTable.column.valueNumeric, dataInstanceTable.column.field("field"))} FROM ${dataInstanceTable.table} WHERE ${dataInstanceTable.column.field("field")} IN ($fieldIds)
+      SELECT ${dataInstanceTable.column.id}, ${getAttributeSelect(dataInstanceTable.column.field("field"))}, ${getSelectCond(dataInstanceTable.column.valueNumeric, dataInstanceTable.column.field("field"))} FROM ${dataInstanceTable.table} WHERE ${dataInstanceTable.column.field("field")} IN ($fieldIds) AND ${dataInstanceTable.column.valueNumeric} IS NOT NULL
     """.execute().apply()
-    attributesIntervals.map(attributeIntervals => attributeIntervals.attributeWithDetail.attributeDetail.copy(uniqueValuesSize = attributeIntervals.intervals.length, `type` = NominalAttributeType))
+    attributesIntervals.map(attributeIntervals => attributeIntervals.attributeWithDetail.attributeDetail.copy(uniqueValuesSize = attributeIntervals.intervals.length))
   }
 
   override def attributeIsValid(attribute: EquifrequentIntervalsAttribute, fieldDetail: FieldDetail): Boolean = fieldDetail.`type` == NumericFieldType

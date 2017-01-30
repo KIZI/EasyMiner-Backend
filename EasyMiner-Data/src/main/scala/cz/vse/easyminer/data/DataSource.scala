@@ -1,6 +1,7 @@
 package cz.vse.easyminer.data
 
 import cz.vse.easyminer.data.DataSourceType.DataSourceTypeOps
+import scala.language.implicitConversions
 
 /**
   * Created by propan on 26. 7. 2015.
@@ -11,9 +12,9 @@ case class DataSourceDetail(id: Int, name: String, `type`: DataSourceType, size:
 
 object DataSourceDetail {
 
-  implicit class PimpedDataSourceDetail(dataSourceDetail: DataSourceDetail)(implicit dataSourceTypeToDataSourceTypeOps: DataSourceType => DataSourceTypeOps[DataSourceType]) {
-    def toFieldOps = dataSourceDetail.`type`.toFieldOps(dataSourceDetail)
-  }
+  implicit def dataSourceDetailToDataSourceTypeOps(dataSourceDetail: DataSourceDetail)
+                                                  (implicit dataSourceTypeToDataSourceTypeOps: DataSourceType => DataSourceTypeOps[DataSourceType])
+  : DataSourceTypeOps[DataSourceType] = dataSourceDetail.`type`
 
 }
 
@@ -24,8 +25,6 @@ object LimitedDataSourceType extends DataSourceType
 object UnlimitedDataSourceType extends DataSourceType
 
 object DataSourceType {
-
-  import scala.language.implicitConversions
 
   implicit def dataSourceTypeToDataSourceTypeOps(dataSourceType: DataSourceType)
                                                 (implicit limitedConv: LimitedDataSourceType.type => DataSourceTypeOps[LimitedDataSourceType.type],

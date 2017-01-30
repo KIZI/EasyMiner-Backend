@@ -20,13 +20,9 @@ object DatasetDetail {
     throw new IllegalArgumentException
   }
 
-  implicit class PimpedDatasetDetail(datasetDetail: DatasetDetail)(implicit datasetTypeToDatasetTypeOps: DatasetType => DatasetTypeOps[DatasetType]) {
-    def toAttributeOps = datasetDetail.`type`.toAttributeOps(datasetDetail)
-
-    def toAttributeBuilder(attributes: Attribute*): AttributeBuilder[Attribute] = datasetDetail.`type`.toAttributeBuilder(datasetDetail, attributes: _*)
-
-    def toValueMapperOps = datasetDetail.`type`.toValueMapperOps(datasetDetail)
-  }
+  implicit def datasetDetailToDatasetTypeOps(datasetDetail: DatasetDetail)
+                                            (implicit datasetTypeToDatasetTypeOps: DatasetType => DatasetTypeOps[DatasetType])
+  : DatasetTypeOps[DatasetType] = datasetDetail.`type`
 
 }
 

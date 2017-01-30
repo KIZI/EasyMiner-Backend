@@ -41,7 +41,7 @@ process <- function(minlen, maxlen) {
                 } else {
                     rules <- union(rules, prules)
                 }
-            } else if (i > 3 && i <= ncol(train)) {
+            } else if (i > 3 && i <= maxtxns) {
                 prules <- mine(i, i)
                 if (length(rules) == 0) {
                     rules <- prules
@@ -68,7 +68,7 @@ process <- function(minlen, maxlen) {
     }
     {{#cba}}
     if(nrow(rules) > 0) {
-        rules <- pruning(train, rules, method="m2cba")
+        rules <- pruning(txns, rules, method="m2cba")
         #rules = transform(rules, confidence = as.numeric(confidence), support = as.numeric(support))
     }
     {{/cba}}

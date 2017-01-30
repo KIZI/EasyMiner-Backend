@@ -14,7 +14,7 @@ case class FixedValue(attributeDetail: AttributeDetail, item: Int) extends Attri
 
 class MappedFixedValue(normalizedValueMapper: ItemMapper) {
 
-  def unapply(expr: BoolExpression[Attribute]): Option[(AttributeDetail, data.Value)] = expr match {
+  def unapply(expr: BoolExpression[Attribute]): Option[(AttributeDetail, data.NominalValue)] = expr match {
     case Value(FixedValue(attributeDetail, item)) => normalizedValueMapper.value(attributeDetail, item).map(attributeDetail -> _)
     case _ => None
   }

@@ -21,7 +21,7 @@ class MysqlEquidistantIntervalsAttributeBuilder private[db](val dataset: Dataset
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions.Limited._
   import mysqlDBConnector._
 
-  private[db] val attributeOps: AttributeOps = dataset.toAttributeOps
+  private[db] val attributeOps: AttributeOps = dataset.toAttributeOps(dataset)
 
   private[db] val fieldOps: Option[FieldOps] = dataset.toFieldOps
 
@@ -63,7 +63,7 @@ class MysqlEquidistantIntervalsAttributeBuilder private[db](val dataset: Dataset
     sql"""
       SELECT ${dataValueTable.column.field("field")} AS f, ${dataValueTable.column.valueNumeric} AS v, ${dataValueTable.column.frequency} AS freq
       FROM ${dataValueTable.table}
-      WHERE ${dataValueTable.column.field("field")} IN ($fieldIds)
+      WHERE ${dataValueTable.column.field("field")} IN ($fieldIds) AND ${dataValueTable.column.valueNumeric} IS NOT NULL
       """.foreach { wrs =>
       val (f, v, freq) = (wrs.int("f"), wrs.double("v"), wrs.int("freq"))
       val (a, i) = intervals(f)
@@ -84,14 +84,14 @@ class MysqlEquidistantIntervalsAttributeBuilder private[db](val dataset: Dataset
     def getSelectCond(valueNumericCol: SQLSyntax, fieldCol: SQLSyntax) = bins.foldLeft(sqls"NULL") { case (select, bin) =>
       sqls"IF($fieldCol = ${bin.attributeWithDetail.attributeDetail.field} AND $valueNumericCol ${getNumericComparator(bin.interval.from, true)} ${bin.interval.from.value} AND $valueNumericCol ${getNumericComparator(bin.interval.to, false)} ${bin.interval.to.value}, ${bin.valueId}, $select)"
     }
-    SQL(sqls"INSERT INTO ${preprocessingValueTable.table} (${preprocessingValueTable.column.columns}) VALUES (?, ?, ?, NULL, ?)".value).batch(bins.map(bin =>
+    SQL(sqls"INSERT INTO ${preprocessingValueTable.table} (${preprocessingValueTable.column.columns}) VALUES (?, ?, ?, ?)".value).batch(bins.map(bin =>
       List(bin.valueId, bin.attributeWithDetail.attributeDetail.id, bin.interval.toIntervalString, bin.frequency)
     ): _*).apply()
     sql"""
       INSERT INTO ${preprocessingInstanceTable.table} (${preprocessingInstanceTable.column.columns})
-      SELECT ${dataInstanceTable.column.id}, ${getAttributeSelect(dataInstanceTable.column.field("field"))}, ${getSelectCond(dataInstanceTable.column.valueNumeric, dataInstanceTable.column.field("field"))} FROM ${dataInstanceTable.table} WHERE ${dataInstanceTable.column.field("field")} IN ($fieldIds)
+      SELECT ${dataInstanceTable.column.id}, ${getAttributeSelect(dataInstanceTable.column.field("field"))}, ${getSelectCond(dataInstanceTable.column.valueNumeric, dataInstanceTable.column.field("field"))} FROM ${dataInstanceTable.table} WHERE ${dataInstanceTable.column.field("field")} IN ($fieldIds) AND ${dataInstanceTable.column.valueNumeric} IS NOT NULL
     """.execute().apply()
-    bins.groupBy(_.attributeWithDetail.attributeDetail).map { case (attribute, bins) => attribute.copy(uniqueValuesSize = bins.length, `type` = NominalAttributeType) }.toList
+    bins.groupBy(_.attributeWithDetail.attributeDetail).map { case (attribute, bins) => attribute.copy(uniqueValuesSize = bins.length) }.toList
   }
 
   override def attributeIsValid(attribute: EquidistantIntervalsAttribute, fieldDetail: FieldDetail): Boolean = fieldDetail.`type` == NumericFieldType

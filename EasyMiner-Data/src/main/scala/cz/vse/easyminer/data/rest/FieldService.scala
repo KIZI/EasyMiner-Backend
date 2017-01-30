@@ -9,8 +9,8 @@ import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.Directives
 
 /**
- * Created by propan on 20. 8. 2015.
- */
+  * Created by propan on 20. 8. 2015.
+  */
 class FieldService(dataSourceDetail: DataSourceDetail)(implicit dBConnectors: DBConnectors, actorContext: ActorContext) extends Directives with SprayJsonSupport with DefaultJsonProtocol {
 
   import JsonFormatters.JsonFieldDetail._
@@ -40,6 +40,10 @@ class FieldService(dataSourceDetail: DataSourceDetail)(implicit dBConnectors: DB
                 ""
               }
             }
+          }
+        } ~ path("change-type") {
+          put {
+            complete(if (fieldOps.changeFieldType(field.id)) "1" else "0")
           }
         } ~ routeValue(field)
         case None => reject

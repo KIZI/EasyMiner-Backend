@@ -1,8 +1,8 @@
 package cz.vse.easyminer.data
 
 /**
- * Created by propan on 26. 7. 2015.
- */
+  * Created by propan on 26. 7. 2015.
+  */
 sealed trait DataBuilder
 
 trait DataSourceBuilder extends DataBuilder {
@@ -29,7 +29,9 @@ trait ValueBuilder extends DataBuilder {
 
   val fields: Seq[FieldDetail]
 
-  def addInstance(values: Seq[Value]): ValueBuilder
+  def addInstance(values: Seq[Value]): ValueBuilder = addTransaction(fields.iterator.zip(values.iterator).toSet)
+
+  def addTransaction(itemset: Set[(FieldDetail, Value)]): ValueBuilder
 
   def build: DataSourceDetail
 

@@ -16,7 +16,7 @@ import scala.language.postfixOps
  */
 object Main extends App {
 
-  actorSystem.scheduler.schedule(0 seconds, 30 seconds) {
+  actorSystem.scheduler.schedule(0 seconds, 1 minute) {
     RConnectionPoolImpl.default.refresh()
   }(actorSystem.dispatcher)
 

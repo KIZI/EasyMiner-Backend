@@ -5,8 +5,8 @@ import cz.vse.easyminer.data._
 import cz.vse.easyminer.data.impl.Validators.FieldValidators
 
 /**
- * Created by propan on 23. 8. 2015.
- */
+  * Created by propan on 23. 8. 2015.
+  */
 class ValidationFieldOps(ops: FieldOps) extends FieldOps with FieldValidators {
 
   val dataSource: DataSourceDetail = ops.dataSource
@@ -21,5 +21,7 @@ class ValidationFieldOps(ops: FieldOps) extends FieldOps with FieldValidators {
   def deleteField(fieldId: Int): Unit = ops.deleteField(fieldId)
 
   def getAllFields: List[FieldDetail] = ops.getAllFields
+
+  def changeFieldType(fieldId: Int): Boolean = ops.changeFieldType(fieldId)
 
 }

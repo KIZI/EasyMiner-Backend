@@ -26,8 +26,8 @@ class MysqlAttributeOps private[db](val dataset: DatasetDetail)(implicit connect
     val instanceTable = new InstanceTable(dataset.id)
     val valueTable = new ValueTable(dataset.id)
     sql"DELETE FROM ${AttributeTable.table} WHERE ${AttributeTable.column.dataset} = ${dataset.id} AND ${AttributeTable.column.id} = $attributeId".execute().apply()
-    sql"DELETE FROM ${valueTable.table} WHERE ${valueTable.column.attribute} = $attributeId".execute().apply()
-    sql"DELETE FROM ${instanceTable.table} WHERE ${instanceTable.column.attribute} = $attributeId".execute().apply()
+    sql"SHOW TABLES LIKE ${valueTable.tableName}".map(_ => true).first().apply.foreach(_ => sql"DELETE FROM ${valueTable.table} WHERE ${valueTable.column.attribute} = $attributeId".execute().apply())
+    sql"SHOW TABLES LIKE ${instanceTable.tableName}".map(_ => true).first().apply.foreach(_ => sql"DELETE FROM ${instanceTable.table} WHERE ${instanceTable.column.attribute} = $attributeId".execute().apply())
   }
 
   def getAllAttributes: List[AttributeDetail] = DBConn readOnly { implicit session =>

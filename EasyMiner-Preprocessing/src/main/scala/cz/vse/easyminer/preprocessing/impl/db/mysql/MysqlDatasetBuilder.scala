@@ -3,7 +3,7 @@ package cz.vse.easyminer.preprocessing.impl.db.mysql
 import cz.vse.easyminer.core.TaskStatusProcessor
 import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.preprocessing._
-import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.{AttributeTable, ValueTable, InstanceTable => PreprocessingInstanceTable}
+import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.{ValueTable, InstanceTable => PreprocessingInstanceTable}
 import cz.vse.easyminer.preprocessing.impl.db.{DbDatasetBuilder, ValidationDatasetBuilder}
 import scalikejdbc._
 
@@ -24,23 +24,22 @@ class MysqlDatasetBuilder private[db](val dataset: Dataset,
     DBConn autoCommit { implicit session =>
       //create instance table
       sql"""CREATE TABLE ${preprocessingInstanceTable.table} (
+        pid int(10) unsigned NOT NULL AUTO_INCREMENT,
         ${preprocessingInstanceTable.column.id} int(10) unsigned NOT NULL,
         ${preprocessingInstanceTable.column.attribute} int(10) unsigned NOT NULL,
         ${preprocessingInstanceTable.column.value} int(10) unsigned NOT NULL,
-        PRIMARY KEY (${preprocessingInstanceTable.column.attribute}, ${preprocessingInstanceTable.column.id}),
-        KEY ${preprocessingInstanceTable.column.attribute} (${preprocessingInstanceTable.column.attribute})
+        KEY ${preprocessingInstanceTable.column.attribute} (${preprocessingInstanceTable.column.attribute}),
+        PRIMARY KEY (pid)
         ) ENGINE=MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin""".execute().apply()
       //create value table
       taskStatusProcessor.newStatus("The instance table has been populated successfully. Now aggregated data are creating...")
       sql"""CREATE TABLE ${valueTable.table} (
         ${valueTable.column.id} int(10) unsigned NOT NULL,
         ${valueTable.column.attribute} int(10) unsigned NOT NULL,
-        ${valueTable.column.valueNominal} varchar(255) DEFAULT NULL,
-        ${valueTable.column.valueNumeric} double DEFAULT NULL,
+        ${valueTable.column.value} varchar(255) NOT NULL,
         ${valueTable.column.frequency} int(10) unsigned NOT NULL,
         PRIMARY KEY (${valueTable.column.attribute}, ${valueTable.column.id}),
-        UNIQUE KEY ${valueTable.column.attribute}_${valueTable.column.valueNominal} (${valueTable.column.attribute},${valueTable.column.valueNominal}),
-        UNIQUE KEY ${valueTable.column.attribute}_${valueTable.column.valueNumeric} (${valueTable.column.attribute},${valueTable.column.valueNumeric}),
+        UNIQUE KEY ${valueTable.column.attribute}_${valueTable.column.value} (${valueTable.column.attribute},${valueTable.column.value}),
         KEY ${valueTable.column.attribute} (${valueTable.column.attribute})
         ) ENGINE=MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin""".execute().apply()
     }

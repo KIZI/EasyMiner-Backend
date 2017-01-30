@@ -4,6 +4,7 @@ package mysql
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.core.{PersistentLock, TaskStatusProcessor}
+import cz.vse.easyminer.data.{NominalFieldType, NumericFieldType}
 import cz.vse.easyminer.preprocessing._
 import cz.vse.easyminer.preprocessing.impl.PersistentLocks
 import scalikejdbc._
@@ -20,25 +21,39 @@ class MysqlSimpleAttributeBuilder private[db](val dataset: DatasetDetail,
   import mysqlDBConnector._
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions.Limited._
 
-  private[db] lazy val attributeOps = dataset.toAttributeOps
+  private[db] lazy val attributeOps = dataset.toAttributeOps(dataset)
 
   private[db] lazy val fieldOps = dataset.toFieldOps
 
+  //TODO - value table has nominal and numeric values - for attribute we need to copy only nominal or numeric
+  //better solution - use only nominal for attribute!
   private[db] def buildAttributes(attributes: Seq[AttributeWithDetail]): Seq[AttributeDetail] = {
-    val fieldIds = attributes.map(_.attributeDetail.field)
+    //filter of instances (joined preprocessing value table and data instance table)
+    //preprocessing attribute == current attribute AND data instance field id = current field
     val dataWhere = attributes.map(attributeWithDetail => sqls"${pv.attribute} = ${attributeWithDetail.attributeDetail.id} AND ${di.field("field")} = ${attributeWithDetail.attributeDetail.field}").reduce(_ or _)
+    //if data field id == current attribute field then return attribute id then next attribute comparison
     val attributeSelect = attributes.foldLeft(sqls"NULL")((select, attributeWithDetail) => sqls"IF(${dataValueTable.column.field("field")} = ${attributeWithDetail.attributeDetail.field}, ${attributeWithDetail.attributeDetail.id}, $select)")
     DBConn autoCommit { implicit session =>
       taskStatusProcessor.newStatus(s"Aggregated values are now populating with indexing...")
+      //get max id
       val maxValueId = sql"SELECT MAX(${preprocessingValueTable.column.id}) FROM ${preprocessingValueTable.table}".map(_.intOpt(1)).first().apply().flatten.getOrElse(0)
-      val select = sqls"SELECT $attributeSelect, ${dataValueTable.column.valueNominal}, ${dataValueTable.column.valueNumeric}, ${dataValueTable.column.frequency} FROM ${dataValueTable.table} WHERE ${dataValueTable.column.field("field")} IN ($fieldIds) ORDER BY ${dataValueTable.column.field("field")}, ${dataValueTable.column.id}"
+      //insert to preprocessing value table - copy values, only nominal or only numeric
+      val valueNominalOrNumericWhere = attributes.iterator.map { attributeWithDetail =>
+        val fieldEquality = sqls"${dataValueTable.column.field("field")} = ${attributeWithDetail.fieldDetail.id}"
+        attributeWithDetail.fieldDetail.`type` match {
+          case NominalFieldType => fieldEquality
+          case NumericFieldType => fieldEquality and sqls"${dataValueTable.column.valueNumeric} IS NOT NULL"
+        }
+      }.reduce(_ or _)
+      val select = sqls"SELECT $attributeSelect, ${dataValueTable.column.valueNominal}, ${dataValueTable.column.frequency} FROM ${dataValueTable.table} WHERE $valueNominalOrNumericWhere ORDER BY ${dataValueTable.column.field("field")}, ${dataValueTable.column.id}"
       sql"INSERT INTO ${preprocessingValueTable.table} (${preprocessingValueTable.column.columns}) SELECT @rownum := @rownum + 1 AS rank, t.* FROM ($select) t, (SELECT @rownum := $maxValueId) r".execute().apply()
       taskStatusProcessor.newStatus(s"Attribute columns are now populating...")
+      //insert to preprocessing instance table
       sql"""
       INSERT INTO ${preprocessingInstanceTable.table} (${preprocessingInstanceTable.column.id}, ${preprocessingInstanceTable.column.attribute}, ${preprocessingInstanceTable.column.value})
       SELECT ${di.result.id}, ${pv.result.attribute}, ${pv.result.id}
       FROM ${dataInstanceTable as di}
-      INNER JOIN ${preprocessingValueTable as pv} ON (COALESCE(${di.valueNumeric}, ${di.valueNominal}) = COALESCE(${pv.valueNumeric}, ${pv.valueNominal}))
+      INNER JOIN ${preprocessingValueTable as pv} ON (${di.valueNominal} = ${pv.value})
       WHERE $dataWhere
       """.execute().apply()
     }

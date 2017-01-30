@@ -9,7 +9,7 @@ import cz.vse.easyminer.data._
 import cz.vse.easyminer.data.impl.db.mysql.Tables.{FieldNumericDetailTable, InstanceTable => MysqlDataInstanceTable, ValueTable => MysqlDataValueTable}
 import cz.vse.easyminer.preprocessing.NumericIntervalsAttribute.Interval
 import cz.vse.easyminer.preprocessing._
-import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.{AttributeNumericDetailTable, AttributeTable, InstanceTable => MysqlPreprocessingInstanceTable, ValueTable => MysqlPreprocessingValueTable}
+import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.{AttributeTable, InstanceTable => MysqlPreprocessingInstanceTable, ValueTable => MysqlPreprocessingValueTable}
 import scalikejdbc._
 
 import scala.language.implicitConversions
@@ -43,41 +43,15 @@ trait DbAttributeBuilder[T <: Attribute] extends AttributeBuilder[T] {
     case _: ExclusiveIntervalBorder if !greaterThan => sqls"<"
   }
 
-  implicit private class FieldTypeConverter(fieldType: FieldType) {
-
-    def toAttributeType = fieldType match {
-      case NominalFieldType => NominalAttributeType
-      case NumericFieldType => NumericAttributeType
-    }
-
-    def toSqlString = fieldType match {
-      case NominalFieldType => "NOMINAL"
-      case NumericFieldType => "NUMERIC"
-    }
-
-  }
-
-  implicit private class AttributeTypeConverter(attributeType: AttributeType) extends FieldTypeConverter(attributeType)
-
   import mysqlDBConnector._
-
-  implicit private def attributeTypeToFieldType(attributeType: AttributeType): FieldType = attributeType match {
-    case NominalAttributeType => NominalFieldType
-    case NumericAttributeType => NumericFieldType
-  }
 
   private def buildMetaAttribute(fieldDetail: FieldDetail, attribute: Attribute): AttributeDetail = DBConn localTx { implicit session =>
     val attributeId =
       sql"""INSERT INTO ${AttributeTable.table}
-            (${AttributeTable.column.name}, ${AttributeTable.column.field("field")}, ${AttributeTable.column.dataset}, ${AttributeTable.column.`type`}, ${AttributeTable.column.uniqueValuesSize})
+            (${AttributeTable.column.name}, ${AttributeTable.column.field("field")}, ${AttributeTable.column.dataset}, ${AttributeTable.column.uniqueValuesSize})
             VALUES
-            (${attribute.name}, ${fieldDetail.id}, ${dataset.id}, ${fieldDetail.`type`.toSqlString}, 0)""".updateAndReturnGeneratedKey().apply().toInt
-    val statsColumns = FieldNumericDetailTable.column.columns.filter(_ != FieldNumericDetailTable.column.id)
-    sql"""INSERT INTO ${AttributeNumericDetailTable.table}
-          (${AttributeNumericDetailTable.column.columns})
-          SELECT $attributeId, $statsColumns FROM ${FieldNumericDetailTable.table}
-          WHERE ${FieldNumericDetailTable.column.id} = ${fieldDetail.id}""".execute().apply()
-    AttributeDetail(attributeId, attribute.name, fieldDetail.id, dataset.id, fieldDetail.`type`.toAttributeType, fieldDetail.uniqueValuesSize, false)
+            (${attribute.name}, ${fieldDetail.id}, ${dataset.id}, 0)""".updateAndReturnGeneratedKey().apply().toInt
+    AttributeDetail(attributeId, attribute.name, fieldDetail.id, dataset.id, fieldDetail.uniqueValuesSize, false)
   }
 
   final def build: Seq[AttributeDetail] = {
@@ -109,7 +83,7 @@ trait DbAttributeBuilder[T <: Attribute] extends AttributeBuilder[T] {
 
   def activeAttribute(attributeDetail: AttributeDetail) = {
     DBConn autoCommit { implicit session =>
-      sql"UPDATE ${AttributeTable.table} SET ${AttributeTable.column.uniqueValuesSize} = ${attributeDetail.uniqueValuesSize}, ${AttributeTable.column.active} = 1, ${AttributeTable.column.`type`} = ${attributeDetail.`type`.toSqlString} WHERE ${AttributeTable.column.id} = ${attributeDetail.id}".execute().apply()
+      sql"UPDATE ${AttributeTable.table} SET ${AttributeTable.column.uniqueValuesSize} = ${attributeDetail.uniqueValuesSize}, ${AttributeTable.column.active} = 1 WHERE ${AttributeTable.column.id} = ${attributeDetail.id}".execute().apply()
     }
     attributeDetail.copy(active = true)
   }
@@ -140,7 +114,12 @@ trait IntervalOps {
         val currentInterval = intervals(pointer)
         val prevInterval = intervals(pointer - 1)
         if (currentInterval.frequency > prevInterval.frequency && valueNumeric.value == currentInterval.interval.from.value && lastValue.nonEmpty) {
+          //right side is greater than left side - move to left!
+          //and current record equals right interval "from" border
+          //and previous "from" border value of right interval is not empty
           if (canItMoveLeft(valueNumeric, prevInterval, currentInterval)) {
+            //we can move values to left interval
+            //left(a, b), right(c, d) -> left(a, c), right(e, d) where e is lastValue
             intervals.update(pointer - 1, AttributeInterval(prevInterval.interval.copy(to = currentInterval.interval.from), prevInterval.frequency + valueNumeric.frequency))
             intervals.update(pointer, AttributeInterval(currentInterval.interval.copy(from = InclusiveIntervalBorder(lastValue.get.value)), currentInterval.frequency - valueNumeric.frequency))
             (None, pointer - 1, true)
@@ -148,8 +127,14 @@ trait IntervalOps {
             (None, pointer - 1, isChanged)
           }
         } else if (currentInterval.frequency < prevInterval.frequency && lastValue.exists(_.value == prevInterval.interval.to.value)) {
+          //left side is greater than right side - move to right!
+          //and previous record equals left interval "to" border
+          //if current record is left interval "from" border then forget all values from left and right interval within next iteration
+          //because the left interval will have size 1 - no moves possible
           val nextLastValue = if (prevInterval.interval.from.value == valueNumeric.value) None else Some(valueNumeric)
           if (canItMoveRight(lastValue.get, prevInterval, currentInterval)) {
+            //we can move values to right interval
+            //left(a, b), right(c, d) -> left(a, e), right(b, d) where e is current value (record)
             intervals.update(pointer - 1, AttributeInterval(prevInterval.interval.copy(to = InclusiveIntervalBorder(valueNumeric.value)), prevInterval.frequency - lastValue.get.frequency))
             intervals.update(pointer, AttributeInterval(currentInterval.interval.copy(from = prevInterval.interval.to), currentInterval.frequency + lastValue.get.frequency))
             (nextLastValue, pointer - 1, true)
