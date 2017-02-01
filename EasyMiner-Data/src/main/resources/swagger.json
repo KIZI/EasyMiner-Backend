@@ -59,9 +59,15 @@
       "post": {
         "summary": "Start upload process.",
         "description": "This operation initializes an upload process. It consumes JSON document with required settings and returns ID for the streaming upload.",
-        "tags": ["Upload"],
-        "consumes": ["application/json; charset=utf-8"],
-        "produces": ["text/plain"],
+        "tags": [
+          "Upload"
+        ],
+        "consumes": [
+          "application/json; charset=utf-8"
+        ],
+        "produces": [
+          "text/plain"
+        ],
         "parameters": [
           {
             "name": "body",
@@ -100,9 +106,15 @@
       "post": {
         "summary": "Upload data chunk to the server in HTTP stream.",
         "description": "This operation uploads input data chunk. You need to split input dataset to small chunks (maximal chunk size is 1MB); the chunks should being sent sequentially by this operation. There are three common response status codes: 200, 202 and 429. If some chunk was uploaded and 202 was returned you should send the next chunk; if 429 your uploading process is too fast, so wait a moment and send the same chunk again. After all chunks have been uploaded you should send an empty chunk (with the empty content). Then the system will return 202 if the saving process is still in progress or 200 if the whole uploading process has finished successfully (it will return information about the uploaded datasource as a JSON doc) If the uploading task does not receive any request in 30 seconds or there is some exception, the whole uploading task will be rolled back.",
-        "tags": ["Upload"],
-        "consumes": ["text/plain"],
-        "produces": [""],
+        "tags": [
+          "Upload"
+        ],
+        "consumes": [
+          "text/plain"
+        ],
+        "produces": [
+          ""
+        ],
         "parameters": [
           {
             "name": "id",
@@ -151,9 +163,15 @@
       "post": {
         "summary": "Start preview upload process.",
         "description": "This operation initializes a preview upload process. It consumes JSON document with required settings and returns ID for the streaming upload. The preview upload ends as soon as it reaches a specific number of lines; after this the system will return first X lines of the uploading file, so the file need not be uploaded all.",
-        "tags": ["Upload"],
-        "consumes": ["application/json; charset=utf-8"],
-        "produces": ["text/plain"],
+        "tags": [
+          "Upload"
+        ],
+        "consumes": [
+          "application/json; charset=utf-8"
+        ],
+        "produces": [
+          "text/plain"
+        ],
         "parameters": [
           {
             "name": "body",
@@ -192,9 +210,15 @@
       "post": {
         "summary": "Upload data chunk to the server in HTTP stream.",
         "description": "This operation uploads input data chunk. You need to split input dataset to small chunks (maximal chunk size for the preview upload is 100kB); the chunks should being sent sequentially by this operation. If some chunk was uploaded and 202 was returned you should send the next chunk. You should be uploading chunks until the 200 response code. If the system returns 200 first X lines of the uploaded file are occurring in the response content body. You should send (repeatedly until 200) an empty chunk (with the empty content) if the process has not reached the maxLines threshold and the file has been uploaded all.",
-        "tags": ["Upload"],
-        "consumes": ["text/plain"],
-        "produces": [""],
+        "tags": [
+          "Upload"
+        ],
+        "consumes": [
+          "text/plain"
+        ],
+        "produces": [
+          ""
+        ],
         "parameters": [
           {
             "name": "id",
@@ -236,8 +260,12 @@
     "/datasource": {
       "get": {
         "summary": "Display a list of all data sources within the user data space.",
-        "tags": ["Data source"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Data source"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "responses": {
           "200": {
             "description": "Return a list of all data sources within the user data space.",
@@ -254,8 +282,12 @@
     "/datasource/{id}": {
       "get": {
         "summary": "Get detail information about a data source.",
-        "tags": ["Data source"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Data source"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -279,8 +311,12 @@
       },
       "delete": {
         "summary": "Delete this data source.",
-        "tags": ["Data source"],
-        "produces": [""],
+        "tags": [
+          "Data source"
+        ],
+        "produces": [
+          ""
+        ],
         "parameters": [
           {
             "name": "id",
@@ -301,9 +337,15 @@
       },
       "put": {
         "summary": "Rename this data source.",
-        "tags": ["Data source"],
-        "consumes": ["text/plain; charset=UTF-8"],
-        "produces": [""],
+        "tags": [
+          "Data source"
+        ],
+        "consumes": [
+          "text/plain; charset=UTF-8"
+        ],
+        "produces": [
+          ""
+        ],
         "parameters": [
           {
             "name": "id",
@@ -336,8 +378,12 @@
       "get": {
         "summary": "Return instances for a given data source.",
         "description": "There are two required query parameters: offset and limit. A maximum of 1000 records can be returned within one request. You may specify IDs of fields/columns which you want to display, otherwise all columns will be displayed.",
-        "tags": ["Data source"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Data source"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -390,8 +436,12 @@
     "/datasource/{dataSourceId}/field": {
       "get": {
         "summary": "Display a list of all fields/columns for a specific data source.",
-        "tags": ["Field"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Field"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "dataSourceId",
@@ -420,8 +470,12 @@
     "/datasource/{dataSourceId}/field/{fieldId}": {
       "get": {
         "summary": "Get detail information about a field of a specific data source.",
-        "tags": ["Field"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Field"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "dataSourceId",
@@ -452,8 +506,12 @@
       },
       "delete": {
         "summary": "Delete this field of a specific data source.",
-        "tags": ["Field"],
-        "produces": [""],
+        "tags": [
+          "Field"
+        ],
+        "produces": [
+          ""
+        ],
         "parameters": [
           {
             "name": "dataSourceId",
@@ -481,9 +539,15 @@
       },
       "put": {
         "summary": "Rename this field of a specific data source.",
-        "tags": ["Field"],
-        "consumes": ["text/plain; charset=UTF-8"],
-        "produces": [""],
+        "tags": [
+          "Field"
+        ],
+        "consumes": [
+          "text/plain; charset=UTF-8"
+        ],
+        "produces": [
+          ""
+        ],
         "parameters": [
           {
             "name": "dataSourceId",
@@ -519,12 +583,54 @@
         }
       }
     },
+    "/datasource/{dataSourceId}/field/{fieldId}/change-type": {
+      "put": {
+        "summary": "Change type of this field.",
+        "tags": [
+          "Field"
+        ],
+        "produces": [
+          ""
+        ],
+        "parameters": [
+          {
+            "name": "dataSourceId",
+            "in": "path",
+            "description": "Data source ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Field ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The field type was changed to numeric or nominal type."
+          },
+          "400": {
+            "description": "The field type cannot be changed (perhaps the field does not have any numeric value)."
+          },
+          "404": {
+            "description": "This data source or field does not exist."
+          }
+        }
+      }
+    },
     "/datasource/{dataSourceId}/field/{fieldId}/stats": {
       "get": {
         "summary": "Display basic stats for a numeric field.",
         "description": "It returns min, max and avg.",
-        "tags": ["Value"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Value"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "dataSourceId",
@@ -545,7 +651,7 @@
           "200": {
             "description": "Return JSON with stats.",
             "schema": {
-                "$ref": "#/definitions/Stats"
+              "$ref": "#/definitions/Stats"
             }
           },
           "404": {
@@ -558,8 +664,12 @@
       "get": {
         "summary": "Display a list of all unique values for a specific field and datasource.",
         "description": "There are two required query parameters: offset and limit. A maximum of 1000 values can be returned within one request.",
-        "tags": ["Value"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Value"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "dataSourceId",
@@ -613,8 +723,12 @@
       "get": {
         "summary": "Create a task for getting a histogram of a numeric field where values are aggregated to intervals by number of bins.",
         "description": "There is one required query parameter 'bins'. This value means number of bins in an output histogram (maximum is 1000). You can specify min and max borders. This operation is processed asynchronously due to its complexity - it returns 202 Accepted and a location header with URL where all information about the task status are placed (see the background tasks section).",
-        "tags": ["Value"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Value"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "dataSourceId",
@@ -672,7 +786,7 @@
           "202": {
             "description": "The histogram getting task has been created and accepted.",
             "schema": {
-                "$ref": "#/definitions/TaskStatus"
+              "$ref": "#/definitions/TaskStatus"
             }
           },
           "200": {
@@ -694,8 +808,12 @@
       "get": {
         "summary": "Display the status of a specific task.",
         "description": "It returns 200 if the task is still in progress. The status result can contain some message about the current state of the background process. Once this operation returns 201 then the task has been finished successfully and the response will also contain a location header with a task result URL. If any error occurs during the background process, it returns 400 (or 500 only if there is a fatal error).",
-        "tags": ["Background tasks"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Background tasks"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "taskId",
@@ -744,8 +862,12 @@
       "get": {
         "summary": "Return a result of a specific successfully completed task.",
         "description": "It returns 200 with a result if the task has been completed successfully. Note that the result format might not be same for different tasks; therefore the consumer should know what kind of the task is observed. This operation does not return any task error; it return only 404 of the task does not exist or is still in progress or there is some error during the task processing.",
-        "tags": ["Background tasks"],
-        "produces": ["application/json; charset=utf-8"],
+        "tags": [
+          "Background tasks"
+        ],
+        "produces": [
+          "application/json; charset=utf-8"
+        ],
         "parameters": [
           {
             "name": "taskId",
@@ -823,7 +945,8 @@
         "dataSource",
         "name",
         "type",
-        "uniqueValuesSize"
+        "uniqueValuesSize",
+        "support"
       ],
       "properties": {
         "id": {
@@ -846,6 +969,10 @@
         "uniqueValuesSize": {
           "type": "integer",
           "description": "Number of unique values within this field."
+        },
+        "support": {
+          "type": "integer",
+          "description": "Number of non empty instances for this field."
         }
       }
     },
@@ -933,8 +1060,11 @@
         },
         "mediaType": {
           "type": "string",
-          "enum": ["csv"],
-          "description": "Uploaded content type (only 'csv' is now supported)."
+          "enum": [
+            "csv",
+            "rdf"
+          ],
+          "description": "Uploaded content type ('csv' and 'rdf' are supported)."
         },
         "dbType": {
           "type": "string",
@@ -977,7 +1107,7 @@
             "gzip",
             "bzip2"
           ],
-          "description": "A compression of the input CSV file. If it is not compressed do not enter this parameter. Supported compression types are: zip, gzip and bzip2. Do not compress single chunks! The system decompresses the whole uploaded document in stream, not individual chunks."
+          "description": "A compression of the input of CSV or RDF file. If it is not compressed do not enter this parameter. Supported compression types are: zip, gzip and bzip2. Do not compress single chunks! The system decompresses the whole uploaded document in stream, not individual chunks."
         },
         "nullValues": {
           "type": "array",
@@ -997,21 +1127,24 @@
               "null"
             ]
           }
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "nt",
+            "nq",
+            "ttl"
+          ],
+          "description": "RDF format - nt, nq or ttl (this is required if the 'rdf' media type was chosen)"
         }
       }
     },
     "PreviewUpload": {
       "type": "object",
       "required": [
-        "mediaType",
         "maxLines"
       ],
       "properties": {
-        "mediaType": {
-          "type": "string",
-          "enum": ["csv"],
-          "description": "Uploaded content type (only 'csv' is now supported)."
-        },
         "maxLines": {
           "type": "integer",
           "minimum": 0,
@@ -1025,7 +1158,7 @@
             "gzip",
             "bzip2"
           ],
-          "description": "A compression of the input CSV file. If it is not compressed do not enter this parameter. Supported compression types are: zip, gzip and bzip2. Do not compress single chunks! The system decompresses the whole uploaded document in stream, not individual chunks."
+          "description": "A compression of the input file. If it is not compressed do not enter this parameter. Supported compression types are: zip, gzip and bzip2. Do not compress single chunks! The system decompresses the whole uploaded document in stream, not individual chunks."
         }
       }
     },

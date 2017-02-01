@@ -23,8 +23,8 @@ import akka.pattern.ask
 import scala.util.{Failure, Success}
 
 /**
- * Created by propan on 5. 9. 2015.
- */
+  * Created by propan on 5. 9. 2015.
+  */
 class PreviewUploadService(implicit actorContext: ActorContext) extends Directives with SprayJsonSupport {
 
   val maxChunkSize = 150000
@@ -33,13 +33,13 @@ class PreviewUploadService(implicit actorContext: ActorContext) extends Directiv
   implicit val defaultDuration: FiniteDuration = 5 seconds
   implicit val defaultTimeout = Timeout(defaultDuration)
 
-  case class UploadMediaType(mediaType: String, maxLines: Int, compression: Option[CompressionType])
+  case class UploadMediaType(maxLines: Int, compression: Option[CompressionType])
 
   object JsonUploadMediaType extends DefaultJsonProtocol {
 
     import JsonFormatters.JsonCompressionType._
 
-    implicit val JsonUploadMediaTypeFormat: RootJsonFormat[UploadMediaType] = jsonFormat3(UploadMediaType)
+    implicit val JsonUploadMediaTypeFormat: RootJsonFormat[UploadMediaType] = jsonFormat2(UploadMediaType)
   }
 
   import JsonUploadMediaType._
@@ -50,7 +50,7 @@ class PreviewUploadService(implicit actorContext: ActorContext) extends Directiv
     post {
       path("start") {
         entity(as[UploadMediaType]) {
-          case UploadMediaType("csv", maxLines, compression) =>
+          case UploadMediaType(maxLines, compression) =>
             val id = UUID.randomUUID.toString
             val inputStreamWriter = new LazyByteBufferInputStream(10 * 1000 * 1000, 30 seconds)
             val futureResult = Future {

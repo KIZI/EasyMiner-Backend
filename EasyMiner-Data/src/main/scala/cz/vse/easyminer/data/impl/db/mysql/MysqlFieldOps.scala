@@ -42,6 +42,7 @@ class MysqlFieldOps private[db](val dataSource: DataSourceDetail)(implicit conne
         val newType = if (fieldDetail.`type` == NumericFieldType) FieldTable.nominalName else FieldTable.numericName
         sql"UPDATE ${FieldTable.table} SET ${FieldTable.column.`type`} = $newType WHERE ${FieldTable.column.dataSource} = ${dataSource.id} AND ${FieldTable.column.id} = $fieldId".execute().apply()
       }
+      true
     }
 
 }

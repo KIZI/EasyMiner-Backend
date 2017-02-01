@@ -16,11 +16,11 @@ import scala.annotation.tailrec
 import scala.io.Source
 
 /**
- * Created by propan on 27. 7. 2015.
- *
- * This class parses CSV input stream and sends parsed chunks to a data source builder.
- * Data are reading in stream, so this solution does not consume too much memory and is able to parse very large (infinite) CSV files.
- */
+  * Created by propan on 27. 7. 2015.
+  *
+  * This class parses CSV input stream and sends parsed chunks to a data source builder.
+  * Data are reading in stream, so this solution does not consume too much memory and is able to parse very large (infinite) CSV files.
+  */
 class CsvInputParser(val dataSourceBuilder: DataSourceBuilder, val settings: Settings) extends InputParser {
 
   implicit private val numberFormat = NumberFormat.getNumberInstance(settings.locale)
@@ -67,7 +67,7 @@ class CsvInputParser(val dataSourceBuilder: DataSourceBuilder, val settings: Set
 
   type FieldTypeList = List[Option[FieldType]]
 
-  def processRow(lines: Iterator[String], builder: DataBuilderCsvAdapter): DataBuilderCsvAdapter = {
+  private def processRow(lines: Iterator[String], builder: DataBuilderCsvAdapter): DataBuilderCsvAdapter = {
     @tailrec
     def processMultiLine(history: String = "")(implicit fieldTypes: FieldTypeList, builder: DataBuilderCsvAdapter): DataBuilderCsvAdapter = if (lines.hasNext) {
       //trimmed line
@@ -124,12 +124,12 @@ class CsvInputParser(val dataSourceBuilder: DataSourceBuilder, val settings: Set
   }
 
   /**
-   * Write CSV input stream chunks to a data source builder
-   * Input stream is reading line by line. So only one (current) line is saved to the memory and then being parsed.
-   *
-   * @param is CSV input stream. This method also consumes a compressed stream by gzip, bzip2 or zip, but for decompression it should be specified in the settings.
-   * @return It returns DataSourceDetail class if the input stream has been read and processed by the data source builder successfully.
-   */
+    * Write CSV input stream chunks to a data source builder
+    * Input stream is reading line by line. So only one (current) line is saved to the memory and then being parsed.
+    *
+    * @param is CSV input stream. This method also consumes a compressed stream by gzip, bzip2 or zip, but for decompression it should be specified in the settings.
+    * @return It returns DataSourceDetail class if the input stream has been read and processed by the data source builder successfully.
+    */
   def write(is: InputStream) = try {
     //decompress input stream if compressed
     val decompressedIs = settings.compression.map(CompressionType.decompressInputStream(is)).getOrElse(is)

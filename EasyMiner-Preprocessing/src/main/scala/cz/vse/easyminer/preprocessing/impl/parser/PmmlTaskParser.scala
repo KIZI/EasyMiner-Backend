@@ -1,7 +1,7 @@
 package cz.vse.easyminer.preprocessing.impl.parser
 
-import cz.vse.easyminer.core.util.{AnyToDouble, AnyToInt}
 import cz.vse.easyminer.core.util.XmlUtils.TrimmedXml
+import cz.vse.easyminer.core.util.{AnyToDouble, AnyToInt}
 import cz.vse.easyminer.data.{ExclusiveIntervalBorder, InclusiveIntervalBorder}
 import cz.vse.easyminer.preprocessing._
 
@@ -33,6 +33,48 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
     }
   }
 
+  private val equidistantIntervalsAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
+    def isDefinedAt(x: DerivedField): Boolean = {
+      val discretize = x.node \ "Discretize"
+      val extensions = (discretize \ "Extension").map(x => (x \@ "name") -> (x \@ "value")).toMap
+      AnyToInt.unapply(discretize \@ "field").nonEmpty && extensions.get("algorithm").contains("equidistant-intervals") && extensions.get("bins").exists(AnyToInt.unapply(_).nonEmpty)
+    }
+
+    def apply(v1: DerivedField): Attribute = {
+      val discretize = v1.node \ "Discretize"
+      val bins = (discretize \ "Extension").find(x => (x \@ "name") == "bins").flatMap(x => AnyToInt.unapply(x \@ "value")).get
+      EquidistantIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, bins)
+    }
+  }
+
+  private val equifrequentIntervalsAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
+    def isDefinedAt(x: DerivedField): Boolean = {
+      val discretize = x.node \ "Discretize"
+      val extensions = (discretize \ "Extension").map(x => (x \@ "name") -> (x \@ "value")).toMap
+      AnyToInt.unapply(discretize \@ "field").nonEmpty && extensions.get("algorithm").contains("equifrequent-intervals") && extensions.get("bins").exists(AnyToInt.unapply(_).nonEmpty)
+    }
+
+    def apply(v1: DerivedField): Attribute = {
+      val discretize = v1.node \ "Discretize"
+      val bins = (discretize \ "Extension").find(x => (x \@ "name") == "bins").flatMap(x => AnyToInt.unapply(x \@ "value")).get
+      EquifrequentIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, bins)
+    }
+  }
+
+  private val equisizedIntervalsAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
+    def isDefinedAt(x: DerivedField): Boolean = {
+      val discretize = x.node \ "Discretize"
+      val extensions = (discretize \ "Extension").map(x => (x \@ "name") -> (x \@ "value")).toMap
+      AnyToInt.unapply(discretize \@ "field").nonEmpty && extensions.get("algorithm").contains("equisized-intervals") && extensions.get("support").exists(AnyToDouble.unapply(_).nonEmpty)
+    }
+
+    def apply(v1: DerivedField): Attribute = {
+      val discretize = v1.node \ "Discretize"
+      val support = (discretize \ "Extension").find(x => (x \@ "name") == "support").flatMap(x => AnyToDouble.unapply(x \@ "value")).get
+      EquisizedIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, support)
+    }
+  }
+
   private val numericIntervalsAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
     def isDefinedAt(x: DerivedField): Boolean = (x.node \ "Discretize" \ "DiscretizeBin").nonEmpty
 
@@ -59,6 +101,12 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
 
   lazy val attributes: Seq[Attribute] = (pmml.node \ "DerivedField").map { derivedFieldNode =>
     DerivedField(derivedFieldNode \@ "name", derivedFieldNode)
-  }.collect(simpleAttributeBuilderExtractor orElse nominalEnumerationAttributeBuilderExtractor orElse numericIntervalsAttributeBuilderExtractor)
+  }.collect(nominalEnumerationAttributeBuilderExtractor
+    orElse numericIntervalsAttributeBuilderExtractor
+    orElse equidistantIntervalsAttributeBuilderExtractor
+    orElse equifrequentIntervalsAttributeBuilderExtractor
+    orElse equisizedIntervalsAttributeBuilderExtractor
+    orElse simpleAttributeBuilderExtractor
+  )
 
 }

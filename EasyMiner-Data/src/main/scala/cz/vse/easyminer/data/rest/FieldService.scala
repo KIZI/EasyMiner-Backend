@@ -2,8 +2,10 @@ package cz.vse.easyminer.data.rest
 
 import akka.actor.ActorContext
 import cz.vse.easyminer.core.db.DBConnectors
+import cz.vse.easyminer.core.rest.CodeMessageRejection
 import cz.vse.easyminer.data.impl.JsonFormatters
 import cz.vse.easyminer.data.{DataSourceDetail, FieldDetail, FieldOps}
+import spray.http.StatusCodes
 import spray.httpx.SprayJsonSupport
 import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.Directives
@@ -43,7 +45,13 @@ class FieldService(dataSourceDetail: DataSourceDetail)(implicit dBConnectors: DB
           }
         } ~ path("change-type") {
           put {
-            complete(if (fieldOps.changeFieldType(field.id)) "1" else "0")
+            dynamic {
+              if (fieldOps.changeFieldType(field.id)) {
+                complete("")
+              } else {
+                reject(CodeMessageRejection(StatusCodes.BadRequest, "The field type cannot be changed."))
+              }
+            }
           }
         } ~ routeValue(field)
         case None => reject

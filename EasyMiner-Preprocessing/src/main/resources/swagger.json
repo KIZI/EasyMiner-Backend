@@ -379,41 +379,6 @@
         }
       }
     },
-    "/dataset/{datasetId}/attribute/{attributeId}/stats": {
-      "get": {
-        "summary": "Display basic stats for a numeric attribute.",
-        "description": "It returns min, max and avg.",
-        "tags": ["Value"],
-        "produces": ["application/json; charset=utf-8"],
-        "parameters": [
-          {
-            "name": "datasetId",
-            "in": "path",
-            "description": "Dataset ID",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "attributeId",
-            "in": "path",
-            "description": "Attribute ID",
-            "required": true,
-            "type": "integer"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Return JSON with stats.",
-            "schema": {
-              "$ref": "#/definitions/Stats"
-            }
-          },
-          "404": {
-            "description": "This dataset or attribute does not exist."
-          }
-        }
-      }
-    },
     "/dataset/{datasetId}/attribute/{attributeId}/values": {
       "get": {
         "summary": "Display a list of all unique values for a specific attribute and dataset.",
@@ -460,87 +425,6 @@
               "type": "array",
               "items": {
                 "$ref": "#/definitions/Value"
-              }
-            }
-          },
-          "404": {
-            "description": "This dataset or attribute does not exist."
-          }
-        }
-      }
-    },
-    "/dataset/{datasetId}/attribute/{attributeId}/aggregated-values": {
-      "get": {
-        "summary": "Create a task for getting a histogram of a numeric attribute where values are aggregated to intervals by number of bins.",
-        "description": "There is one required query parameter 'bins'. This value means number of bins in an output histogram (maximum is 1000). You can specify min and max borders. This operation is processed asynchronously due to its complexity - it returns 202 Accepted and a location header with URL where all information about the task status are placed (see the background tasks section).",
-        "tags": ["Value"],
-        "produces": ["application/json; charset=utf-8"],
-        "parameters": [
-          {
-            "name": "datasetId",
-            "in": "path",
-            "description": "Dataset ID",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "attributeId",
-            "in": "path",
-            "description": "Attribute ID",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "bins",
-            "in": "query",
-            "description": "Number of bins",
-            "required": true,
-            "type": "integer",
-            "minimum": 2,
-            "maximum": 1000
-          },
-          {
-            "name": "min",
-            "in": "query",
-            "description": "Minimum (default is the minimal number within the attribute)",
-            "required": false,
-            "type": "number"
-          },
-          {
-            "name": "max",
-            "in": "query",
-            "description": "Maximum (default is the maximal number within the attribute)",
-            "required": false,
-            "type": "number"
-          },
-          {
-            "name": "minInclusive",
-            "in": "query",
-            "description": "Minimum is included (default is true)",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "maxInclusive",
-            "in": "query",
-            "description": "Maximum is included (default is true)",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "The histogram getting task has been created and accepted.",
-            "schema": {
-              "$ref": "#/definitions/TaskStatus"
-            }
-          },
-          "200": {
-            "description": "Return a histogram within a task result (this code is never returned by this operation but it is provided by the task result query, see the background tasks section).",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Interval"
               }
             }
           },
@@ -687,7 +571,6 @@
         "dataset",
         "field",
         "name",
-        "type",
         "uniqueValuesSize"
       ],
       "properties": {
@@ -704,16 +587,9 @@
           "type": "string",
           "maxLength": 255
         },
-        "type": {
-          "type": "string",
-          "enum": [
-            "nominal",
-            "numeric"
-          ]
-        },
         "uniqueValuesSize": {
           "type": "integer",
-          "description": "Number of unique values within this field."
+          "description": "Number of unique values within this attribute."
         }
       }
     },
@@ -733,56 +609,6 @@
         "value": {
           "type": "string",
           "description": "Value is string if the attribute is nominal or number if the attribute is numeric or null if it is the empty value."
-        }
-      }
-    },
-    "Stats": {
-      "type": "object",
-      "required": [
-        "id",
-        "min",
-        "max",
-        "avg"
-      ],
-      "properties": {
-        "id": {
-          "type": "integer"
-        },
-        "min": {
-          "type": "number"
-        },
-        "max": {
-          "type": "number"
-        },
-        "avg": {
-          "type": "number"
-        }
-      }
-    },
-    "Interval": {
-      "type": "object",
-      "required": [
-        "from",
-        "to",
-        "fromInclusive",
-        "toInclusive",
-        "frequency"
-      ],
-      "properties": {
-        "from": {
-          "type": "number"
-        },
-        "to": {
-          "type": "number"
-        },
-        "fromInclusive": {
-          "type": "boolean"
-        },
-        "toInclusive": {
-          "type": "boolean"
-        },
-        "frequency": {
-          "type": "integer"
         }
       }
     },

@@ -30,7 +30,11 @@ class MysqlNumericIntervalsAttributeBuilder private[db](val dataset: DatasetDeta
     def getAttributeSelect(fieldCol: SQLSyntax) = attributes.foldLeft(sqls"NULL")((select, attributeWithDetail) => sqls"IF($fieldCol = ${attributeWithDetail.attributeDetail.field}, ${attributeWithDetail.attributeDetail.id}, $select)")
     def getSelectCond(valueNominalCol: SQLSyntax, valueNumericCol: SQLSyntax, fieldCol: SQLSyntax) = attributes.foldLeft(sqls"$valueNominalCol") { (select, attributeWithDetail) =>
       attributeWithDetail.attribute.bins.foldLeft(select) { (select, bin) =>
-        val sqlEnum = bin.intervals.map(x => sqls"$valueNumericCol ${getNumericComparator(x.from, true)} ${x.from.value} AND $valueNumericCol ${getNumericComparator(x.to, false)} ${x.to.value}").reduce(_ or _)
+        val sqlEnum = bin.intervals.map { x =>
+          val from = if (x.from.value == Double.NegativeInfinity) None else Some(sqls"$valueNumericCol ${getNumericComparator(x.from, true)} ${x.from.value}")
+          val to = if (x.to.value == Double.PositiveInfinity) None else Some(sqls"$valueNumericCol ${getNumericComparator(x.to, false)} ${x.to.value}")
+          List(from, to).flatten.reduceOption(_ and _).getOrElse(sqls"true")
+        }.reduce(_ or _)
         sqls"IF($fieldCol = ${attributeWithDetail.attributeDetail.field} AND ($sqlEnum), ${bin.name}, $select)"
       }
     }
