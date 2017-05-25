@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.preprocessing.rest
 
 import akka.actor.Props
@@ -12,7 +18,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
- * Created by propan on 15. 8. 2015.
+ * Created by Vaclav Zeman on 15. 8. 2015.
  */
 class PreprocessingMainService extends HttpServiceActor with MainService with DefaultResponseHandlers with JsonErrorMessage with FixedContentTypeResolver {
 

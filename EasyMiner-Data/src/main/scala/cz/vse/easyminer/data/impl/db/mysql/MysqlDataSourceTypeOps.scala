@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.db.mysql
 
 import cz.vse.easyminer.core.TaskStatusProcessor
@@ -6,7 +12,7 @@ import cz.vse.easyminer.data.DataSourceType.DataSourceTypeOps
 import cz.vse.easyminer.data._
 
 /**
- * Created by propan on 16. 2. 2016.
+ * Created by Vaclav Zeman on 16. 2. 2016.
  */
 class MysqlDataSourceTypeOps private[db](implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) extends DataSourceTypeOps[LimitedDataSourceType.type] {
 

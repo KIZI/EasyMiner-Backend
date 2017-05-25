@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.preprocessing.impl.db
 
 import cz.vse.easyminer.core.Validator
@@ -8,7 +14,7 @@ import cz.vse.easyminer.preprocessing._
 import scala.util.Try
 
 /**
-  * Created by propan on 29. 11. 2016.
+  * Created by Vaclav Zeman on 29. 11. 2016.
   */
 class MetaAttributeBuilder(val dataset: DatasetDetail, val attributes: Seq[Attribute], attributeOps: AttributeOps)(attributesToBuilder: Seq[Attribute] => AttributeBuilder[Attribute]) extends AttributeBuilder[Attribute] {
 

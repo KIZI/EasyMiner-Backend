@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.miner.impl.r
 
 import cz.vse.easyminer.core.util.AnyToDouble
@@ -6,7 +12,7 @@ import cz.vse.easyminer.miner.impl.ItemText
 import cz.vse.easyminer.preprocessing.AttributeDetail
 
 /**
-  * Created by propan on 16. 11. 2015.
+  * Created by Vaclav Zeman on 16. 11. 2015.
   */
 
 object AruleExtractor {

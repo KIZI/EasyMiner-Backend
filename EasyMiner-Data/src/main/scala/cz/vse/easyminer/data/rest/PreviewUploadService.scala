@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.rest
 
 import java.util.UUID
@@ -23,7 +29,7 @@ import akka.pattern.ask
 import scala.util.{Failure, Success}
 
 /**
-  * Created by propan on 5. 9. 2015.
+  * Created by Vaclav Zeman on 5. 9. 2015.
   */
 class PreviewUploadService(implicit actorContext: ActorContext) extends Directives with SprayJsonSupport {
 

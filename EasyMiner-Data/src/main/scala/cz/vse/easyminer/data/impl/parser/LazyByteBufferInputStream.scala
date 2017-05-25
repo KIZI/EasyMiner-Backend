@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.parser
 
 import java.io.InputStream
@@ -10,7 +16,7 @@ import scala.annotation.tailrec
 import scala.concurrent.duration.Duration
 
 /**
- * Created by propan on 3. 8. 2015.
+ * Created by Vaclav Zeman on 3. 8. 2015.
  * This class serves as a byte array writer and an input stream reader simultaneously.
  * Input contructor parameters are limit and timeout.
  *

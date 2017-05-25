@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.rest
 
 import spray.http.HttpHeaders.{`Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin`}
@@ -6,7 +12,7 @@ import spray.routing
 import spray.routing.Directives
 
 /**
-  * Created by propan on 28. 5. 2016.
+  * Created by Vaclav Zeman on 28. 5. 2016.
   */
 trait GlobalRoute extends Directives {
 

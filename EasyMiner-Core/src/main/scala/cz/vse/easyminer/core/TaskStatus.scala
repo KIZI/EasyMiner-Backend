@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core
 
 import java.util.UUID
@@ -17,7 +23,7 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 /**
- * Created by propan on 9. 2. 2016.
+ * Created by Vaclav Zeman on 9. 2. 2016.
  */
 sealed trait TaskStatus {
   val id: UUID

@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.db
 
 import cz.vse.easyminer.core.{StatusCodeException, Validator}
@@ -6,7 +12,7 @@ import cz.vse.easyminer.data.impl.Validators.{DataSourceValidators, FieldValidat
 import cz.vse.easyminer.data.impl.db.ValidationDataSourceBuilder.Exceptions
 
 /**
-  * Created by propan on 18. 8. 2015.
+  * Created by Vaclav Zeman on 18. 8. 2015.
   */
 class ValidationDataSourceBuilder(dataSourceBuilder: DataSourceBuilder) extends DataSourceBuilder with FieldValidators with DataSourceValidators with ValueValidators {
 

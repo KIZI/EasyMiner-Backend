@@ -1,10 +1,16 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data
 
 import cz.vse.easyminer.data.DataSourceType.DataSourceTypeOps
 import scala.language.implicitConversions
 
 /**
-  * Created by propan on 26. 7. 2015.
+  * Created by Vaclav Zeman on 26. 7. 2015.
   */
 case class DataSource(name: String, `type`: DataSourceType)
 

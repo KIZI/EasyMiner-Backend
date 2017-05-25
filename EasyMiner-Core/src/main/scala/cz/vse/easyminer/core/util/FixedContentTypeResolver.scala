@@ -1,10 +1,16 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.util
 
 import spray.http.{ContentType, HttpCharsets}
 import spray.routing.directives.ContentTypeResolver
 
 /**
- * Created by propan on 19. 8. 2015.
+ * Created by Vaclav Zeman on 19. 8. 2015.
  */
 trait FixedContentTypeResolver {
 

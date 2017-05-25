@@ -1,9 +1,15 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.util
 
 import scala.language.implicitConversions
 
 /**
-  * Created by propan on 9. 10. 2016.
+  * Created by Vaclav Zeman on 9. 10. 2016.
   */
 object XmlUtils {
 

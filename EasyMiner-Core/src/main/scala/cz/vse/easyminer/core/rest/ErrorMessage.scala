@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.rest
 
 import spray.http.HttpCharsets._
@@ -6,7 +12,7 @@ import spray.http.{HttpData, ContentType, HttpEntity}
 import spray.json.{JsString, JsNumber, JsObject}
 
 /**
-  * Created by propan on 5. 8. 2015.
+  * Created by Vaclav Zeman on 5. 8. 2015.
   */
 trait ErrorMessage {
 

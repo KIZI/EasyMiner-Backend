@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.db.mysql
 
 import java.io.StringReader
@@ -10,7 +16,7 @@ import cz.vse.easyminer.data.impl.db.mysql.Tables.{DataSourceTable, FieldNumeric
 import scalikejdbc._
 
 /**
- * Created by propan on 24. 8. 2015.
+ * Created by Vaclav Zeman on 24. 8. 2015.
  */
 class MysqlSchemaOps(implicit connector: MysqlDBConnector) extends SchemaOps {
 

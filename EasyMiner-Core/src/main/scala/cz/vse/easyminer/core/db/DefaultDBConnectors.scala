@@ -1,10 +1,16 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.db
 
 import cz.vse.easyminer.core.util.Lazy._
 import cz.vse.easyminer.core.{HiveUserDatabase, MysqlUserDatabase}
 
 /**
-  * Created by propan on 9. 3. 2016.
+  * Created by Vaclav Zeman on 9. 3. 2016.
   */
 class DefaultDBConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: Option[HiveUserDatabase]) extends DBConnectors {
 

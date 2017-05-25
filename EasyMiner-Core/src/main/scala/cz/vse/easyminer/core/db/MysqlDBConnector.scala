@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.db
 
 import cz.vse.easyminer.core.MysqlUserDatabase
@@ -8,7 +14,7 @@ import scala.concurrent.duration.Duration
 import scala.language.{implicitConversions, postfixOps}
 
 /**
-  * Created by propan on 8. 8. 2015.
+  * Created by Vaclav Zeman on 8. 8. 2015.
   */
 class MysqlDBConnector(val dbSettings: MysqlUserDatabase) extends DBConnector[DBConnection] {
 

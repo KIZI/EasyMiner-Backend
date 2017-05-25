@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.parser
 
 import java.io.InputStream
@@ -16,7 +22,7 @@ import scala.annotation.tailrec
 import scala.io.Source
 
 /**
-  * Created by propan on 27. 7. 2015.
+  * Created by Vaclav Zeman on 27. 7. 2015.
   *
   * This class parses CSV input stream and sends parsed chunks to a data source builder.
   * Data are reading in stream, so this solution does not consume too much memory and is able to parse very large (infinite) CSV files.

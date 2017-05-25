@@ -1,9 +1,15 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.miner
 
 import scala.concurrent.duration.Duration
 
 /**
-  * Created by propan on 21. 11. 2015.
+  * Created by Vaclav Zeman on 21. 11. 2015.
   */
 case class MinerResult(task: MinerTask, headers: Set[MinerResultHeader], rules: Seq[ARule])
 

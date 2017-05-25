@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.miner.impl.r
 
 import cz.vse.easyminer.core.util.{AnyToInt, Template}
@@ -12,7 +18,7 @@ import scala.concurrent.duration.Duration
 import scala.language.postfixOps
 
 /**
-  * Created by propan on 27. 2. 2016.
+  * Created by Vaclav Zeman on 27. 2. 2016.
   */
 private[r] class AprioriIncrementalMiner(val minerTask: MinerTask, attributes: Seq[AttributeDetail])(val processListener: (MinerResult) => Unit)(implicit r: RScript) extends IncrementalMiner {
 

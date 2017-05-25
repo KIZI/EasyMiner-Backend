@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.db.mysql
 
 import java.io.PrintWriter
@@ -11,7 +17,7 @@ import scalikejdbc._
 import cz.vse.easyminer.core.util.MapOps.PimpedMap
 
 /**
-  * Created by propan on 8. 8. 2015.
+  * Created by Vaclav Zeman on 8. 8. 2015.
   */
 class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) extends DataSourceBuilder {
 

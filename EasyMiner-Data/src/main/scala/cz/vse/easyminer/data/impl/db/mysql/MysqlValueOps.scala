@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.db.mysql
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
@@ -7,7 +13,7 @@ import cz.vse.easyminer.data.impl.db.{DbValueHistogramOps, ValidationValueOps}
 import scalikejdbc._
 
 /**
-  * Created by propan on 1. 9. 2015.
+  * Created by Vaclav Zeman on 1. 9. 2015.
   */
 class MysqlValueOps private[db](val dataSource: DataSourceDetail, val field: FieldDetail)(implicit connector: MysqlDBConnector) extends ValueOps with DbValueHistogramOps {
 

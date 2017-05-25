@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.miner.impl
 
 import cz.vse.easyminer.core.util.Template
@@ -8,7 +14,7 @@ import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.InstanceTable
 import scala.language.reflectiveCalls
 
 /**
- * Created by propan on 4. 3. 2016.
+ * Created by Vaclav Zeman on 4. 3. 2016.
  */
 trait PmmlTaskBuilder {
 

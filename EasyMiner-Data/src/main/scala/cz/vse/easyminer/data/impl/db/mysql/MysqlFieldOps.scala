@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.db.mysql
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
@@ -7,7 +13,7 @@ import cz.vse.easyminer.data.impl.db.mysql.Tables.{FieldTable, InstanceTable, Va
 import scalikejdbc._
 
 /**
-  * Created by propan on 20. 8. 2015.
+  * Created by Vaclav Zeman on 20. 8. 2015.
   */
 class MysqlFieldOps private[db](val dataSource: DataSourceDetail)(implicit connector: MysqlDBConnector) extends FieldOps {
 

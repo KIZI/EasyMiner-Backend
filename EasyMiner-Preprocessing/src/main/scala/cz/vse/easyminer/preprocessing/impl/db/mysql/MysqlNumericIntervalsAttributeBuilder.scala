@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer
 package preprocessing.impl.db
 package mysql
@@ -10,7 +16,7 @@ import cz.vse.easyminer.preprocessing.impl.PersistentLocks
 import scalikejdbc._
 
 /**
-  * Created by propan on 12. 11. 2016.
+  * Created by Vaclav Zeman on 12. 11. 2016.
   */
 class MysqlNumericIntervalsAttributeBuilder private[db](val dataset: DatasetDetail,
                                                         val attributes: Seq[NumericIntervalsAttribute])

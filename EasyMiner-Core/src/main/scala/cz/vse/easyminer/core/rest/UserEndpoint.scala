@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.rest
 
 import akka.actor.ActorRefFactory
@@ -13,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 /**
- * Created by propan on 18. 8. 2015.
+ * Created by Vaclav Zeman on 18. 8. 2015.
  */
 trait UserEndpoint {
 

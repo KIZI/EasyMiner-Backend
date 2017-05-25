@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.db
 
 import java.io.Closeable
@@ -5,7 +11,7 @@ import java.io.Closeable
 import cz.vse.easyminer.core.UserDatabase
 
 /**
- * Created by propan on 16. 8. 2015.
+ * Created by Vaclav Zeman on 16. 8. 2015.
  */
 trait DBConnector[T] extends Closeable {
 

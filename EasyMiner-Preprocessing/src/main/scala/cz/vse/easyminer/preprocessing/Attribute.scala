@@ -1,10 +1,22 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.preprocessing
 
 import cz.vse.easyminer.data.IntervalBorder
 import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 
 /**
-  * Created by propan on 18. 12. 2015.
+  * Created by Vaclav Zeman on 18. 12. 2015.
   */
 sealed trait Attribute {
   val name: String

@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data
 
 import java.io.InputStream
@@ -6,7 +12,7 @@ import java.util.zip.ZipInputStream
 import org.apache.commons.compress.compressors.CompressorStreamFactory
 
 /**
- * Created by propan on 5. 9. 2015.
+ * Created by Vaclav Zeman on 5. 9. 2015.
  */
 sealed trait CompressionType
 

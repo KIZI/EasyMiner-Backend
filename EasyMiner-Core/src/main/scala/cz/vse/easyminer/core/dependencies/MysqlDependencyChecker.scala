@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.dependencies
 
 import akka.util.Timeout
@@ -14,7 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 /**
- * Created by propan on 20. 9. 2015.
+ * Created by Vaclav Zeman on 20. 9. 2015.
  */
 class MysqlDependencyChecker(val innerDependencyCheckers: Option[(InnerInput) => DependencyChecker.Runner] = None)(implicit ec: ExecutionContext) extends DependencyChecker[InnerInput] {
 

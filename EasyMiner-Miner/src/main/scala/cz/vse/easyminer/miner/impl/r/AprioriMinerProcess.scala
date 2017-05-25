@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.miner.impl.r
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
@@ -16,7 +22,7 @@ import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
 /**
-  * Created by propan on 20. 11. 2015.
+  * Created by Vaclav Zeman on 20. 11. 2015.
   */
 trait AprioriMinerProcess extends MinerProcess {
 

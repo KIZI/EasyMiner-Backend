@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.impl.db
 
 import cz.vse.easyminer.core.Validator
@@ -6,7 +12,7 @@ import cz.vse.easyminer.core.util.BasicValidators.{GreaterOrEqual, LowerOrEqual}
 import cz.vse.easyminer.data.impl.Validators.DataSourceValidators
 
 /**
- * Created by propan on 23. 8. 2015.
+ * Created by Vaclav Zeman on 23. 8. 2015.
  */
 class ValidationDataSourceOps(ops: DataSourceOps) extends DataSourceOps with DataSourceValidators {
 

@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.preprocessing.impl
 
 import cz.vse.easyminer.core.{JsonDeserializationNotSupported, JsonDeserializeAttributeException}
@@ -8,7 +14,7 @@ import spray.json._
 import scala.util.{Failure, Success, Try}
 
 /**
-  * Created by propan on 18. 8. 2015.
+  * Created by Vaclav Zeman on 18. 8. 2015.
   */
 object JsonFormatters extends DefaultJsonProtocol {
 

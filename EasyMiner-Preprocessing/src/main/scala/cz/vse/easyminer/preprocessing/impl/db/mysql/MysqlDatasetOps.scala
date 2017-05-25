@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.preprocessing.impl.db.mysql
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
@@ -7,7 +13,7 @@ import cz.vse.easyminer.preprocessing.{DatasetDetail, DatasetOps}
 import scalikejdbc._
 
 /**
- * Created by propan on 22. 12. 2015.
+ * Created by Vaclav Zeman on 22. 12. 2015.
  */
 class MysqlDatasetOps private[db](implicit mysqlDBConnector: MysqlDBConnector) extends DatasetOps {
 

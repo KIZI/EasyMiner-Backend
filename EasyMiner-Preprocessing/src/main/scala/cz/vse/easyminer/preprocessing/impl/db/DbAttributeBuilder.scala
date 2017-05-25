@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.preprocessing.impl.db
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
@@ -16,7 +22,7 @@ import scala.language.implicitConversions
 import scala.util.Try
 
 /**
-  * Created by propan on 22. 12. 2015.
+  * Created by Vaclav Zeman on 22. 12. 2015.
   */
 trait DbAttributeBuilder[T <: Attribute] extends AttributeBuilder[T] {
 

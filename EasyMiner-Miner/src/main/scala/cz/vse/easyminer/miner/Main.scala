@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer
 package miner
 
@@ -12,7 +18,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
- * Created by propan on 25. 7. 2015.
+ * Created by Vaclav Zeman on 25. 7. 2015.
  */
 object Main extends App {
 

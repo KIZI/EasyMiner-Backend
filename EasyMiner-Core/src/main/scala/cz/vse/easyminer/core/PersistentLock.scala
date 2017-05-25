@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core
 
 import java.sql.SQLIntegrityConstraintViolationException
@@ -16,7 +22,7 @@ import scala.language.postfixOps
 import scala.util.{DynamicVariable, Failure, Try}
 
 /**
-  * Created by propan on 16. 2. 2016.
+  * Created by Vaclav Zeman on 16. 2. 2016.
   */
 case class PersistentLock(name: String, refreshTime: Date)
 

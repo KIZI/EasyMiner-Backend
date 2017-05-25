@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.preprocessing.impl.db
 
 import cz.vse.easyminer.data.NominalValue
@@ -8,7 +14,7 @@ import scalikejdbc._
 import scala.language.implicitConversions
 
 /**
-  * Created by propan on 13. 2. 2016.
+  * Created by Vaclav Zeman on 13. 2. 2016.
   */
 trait DbValueMapperOps extends ValueMapperOps {
 

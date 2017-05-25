@@ -1,10 +1,16 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core
 
 import spray.http.{StatusCodes, StatusCode}
 import spray.json.{SerializationException, DeserializationException}
 
 /**
- * Created by propan on 5. 8. 2015.
+ * Created by Vaclav Zeman on 5. 8. 2015.
  */
 object UnexpectedActorRequest extends Exception("Unexpected actor request.")
 

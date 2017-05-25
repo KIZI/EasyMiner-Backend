@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.core.rest
 
 import akka.actor.{PoisonPill, Actor}
@@ -5,7 +11,7 @@ import cz.vse.easyminer.core.db.DBConnectors
 import cz.vse.easyminer.core.{HiveUserDatabase, MysqlUserDatabase}
 
 /**
-  * Created by propan on 9. 3. 2016.
+  * Created by Vaclav Zeman on 9. 3. 2016.
   *
   * All database connections within dbConnectors are strongly bound with an Actor.
   * Without database connections the actor can not exists.

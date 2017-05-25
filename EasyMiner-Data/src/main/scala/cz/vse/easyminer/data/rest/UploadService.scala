@@ -1,3 +1,9 @@
+/*
+ * @author Vaclav Zeman
+ * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
+ * @link http://easyminer.eu
+ */
+
 package cz.vse.easyminer.data.rest
 
 import java.io.InputStream
@@ -24,7 +30,7 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
 /**
-  * Created by propan on 24. 7. 2015.
+  * Created by Vaclav Zeman on 24. 7. 2015.
   */
 class UploadService(implicit dBConnectors: DBConnectors, actorContext: ActorContext) extends Directives with SprayJsonSupport {
 
