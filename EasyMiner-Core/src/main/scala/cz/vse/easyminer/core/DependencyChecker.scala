@@ -7,8 +7,11 @@
 package cz.vse.easyminer.core
 
 /**
- * Created by Vaclav Zeman on 20. 9. 2015.
- */
+  * Created by Vaclav Zeman on 20. 9. 2015.
+  *
+  * This trait checks whether some parts of easyminer system are working and cooperates with each other
+  * @tparam T result of a dependecy checker
+  */
 trait DependencyChecker[T] {
 
   val innerDependencyCheckers: Option[T => DependencyChecker.Runner]
@@ -17,8 +20,16 @@ trait DependencyChecker[T] {
 
 }
 
+/**
+  * This object applies dependency checkers
+  */
 object DependencyChecker {
 
+  /**
+    * This function creates dependency checker runner from checkers
+    * @param dependencyCheckers dependency checkers
+    * @return dependecy checker runner
+    */
   def apply(dependencyCheckers: DependencyChecker[_]*) = Runner(dependencyCheckers: _*)
 
   private object Runner {

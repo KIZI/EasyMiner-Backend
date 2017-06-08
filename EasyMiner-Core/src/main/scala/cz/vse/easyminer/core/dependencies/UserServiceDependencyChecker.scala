@@ -17,8 +17,14 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
- * Created by Vaclav Zeman on 20. 9. 2015.
- */
+  * Created by Vaclav Zeman on 20. 9. 2015.
+  */
+
+/**
+  * It checks, whether required user service is accessible
+  *
+  * @param actorRefFactory actor system for calling user service page by URL
+  */
 class UserServiceDependencyChecker(implicit actorRefFactory: ActorRefFactory) extends DependencyChecker[Nothing] {
 
   import Concurrency._

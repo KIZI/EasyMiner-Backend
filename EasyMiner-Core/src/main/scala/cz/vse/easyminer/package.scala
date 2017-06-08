@@ -13,6 +13,7 @@ import akka.actor.ActorSystem
  */
 package object easyminer {
 
+  //easyminer actor system
   implicit lazy val actorSystem = ActorSystem("easyminer-actor-system")
 
 }

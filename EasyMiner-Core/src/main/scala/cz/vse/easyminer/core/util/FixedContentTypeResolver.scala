@@ -10,10 +10,17 @@ import spray.http.{ContentType, HttpCharsets}
 import spray.routing.directives.ContentTypeResolver
 
 /**
- * Created by Vaclav Zeman on 19. 8. 2015.
- */
+  * Created by Vaclav Zeman on 19. 8. 2015.
+  */
+
+/**
+  * This trait is for fixing of the ContentType header within HTTP response
+  */
 trait FixedContentTypeResolver {
 
+  /**
+    * This implicit ContentType resolver adds to json ContentType UTF-8 charset
+    */
   implicit val ctr = new ContentTypeResolver {
     def apply(fileName: String): ContentType = {
       val ct = ContentTypeResolver.Default(fileName)

@@ -14,6 +14,12 @@ import spray.routing.Directives
 /**
   * Created by Vaclav Zeman on 28. 5. 2016.
   */
+
+/**
+  * This is global directive.
+  * Any operation within web service should be wrapped by this route.
+  * This adds access control headers for cross-site scripting
+  */
 trait GlobalRoute extends Directives {
 
   private val corsHeaders: List[HttpHeader] = List(`Access-Control-Allow-Origin`(AllOrigins),

@@ -20,10 +20,20 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 /**
- * Created by Vaclav Zeman on 20. 9. 2015.
- */
+  * Created by Vaclav Zeman on 20. 9. 2015.
+  */
+
+/**
+  * It checks, whether required database is accessible
+  *
+  * @param innerDependencyCheckers inner depencency checkers which required a database connection
+  * @param ec                      execution context for asynchronous process (it is for timeout checking)
+  */
 class MysqlDependencyChecker(val innerDependencyCheckers: Option[(InnerInput) => DependencyChecker.Runner] = None)(implicit ec: ExecutionContext) extends DependencyChecker[InnerInput] {
 
+  /**
+    * This checks availibility of a database and all inner checkers. If some is not available then it throws exception
+    */
   def check(): Unit = {
     val dBConnector = Future {
       val dBConnector = new MysqlDBConnector(

@@ -7,8 +7,18 @@
 package cz.vse.easyminer.core
 
 /**
- * Created by Vaclav Zeman on 8. 8. 2015.
- */
+  * Class for user and user database
+  * There are two supported database types, mysql = for fast and real-time mining, hive = for batch mining of big data
+  * Created by Vaclav Zeman on 8. 8. 2015.
+  */
+
+/**
+  * Basic user information
+  *
+  * @param id    user id
+  * @param name  user name
+  * @param email user email
+  */
 case class User(id: Int, name: String, email: String)
 
 trait UserDatabase {

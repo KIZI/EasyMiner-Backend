@@ -6,6 +6,9 @@
 
 package cz.vse.easyminer.core.util
 
+/**
+  * Exctractor which tries to convert any to integer
+  */
 object AnyToInt {
   def unapply(s: Any): Option[Int] = try {
     if (s == null)
@@ -22,6 +25,9 @@ object AnyToInt {
   }
 }
 
+/**
+  * Exctractor which tries to convert any to double
+  */
 object AnyToDouble {
   def unapply(s: Any): Option[Double] = try {
     if (s == null)
@@ -41,6 +47,9 @@ object AnyToDouble {
   }
 }
 
+/**
+  * Extractor for new line character (it also accepts unicode new lines)
+  */
 object NewLine {
   def unapply(s: Char): Boolean = s match {
     case '\n' => true

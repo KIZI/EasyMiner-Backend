@@ -11,8 +11,13 @@ import cz.vse.easyminer.core.Validator.ValidationException
 import cz.vse.easyminer.core.util.BasicValidators.Exceptions
 
 /**
- * Created by Vaclav Zeman on 22. 12. 2015.
- */
+  * Created by Vaclav Zeman on 22. 12. 2015.
+  */
+
+/**
+  * Basic validators for easyminer.
+  * Validators are self-documented
+  */
 trait BasicValidators {
 
   case class MaxLength(maxLength: Int) extends Validator[String] {

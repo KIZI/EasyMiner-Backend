@@ -16,10 +16,24 @@ import scala.language.{implicitConversions, postfixOps}
 /**
   * Created by Vaclav Zeman on 8. 8. 2015.
   */
+
+/**
+  * Mysql database connection
+  * This connection is managed by scalikeJDBC.
+  * We need to create connection pool for any user. For each user there are some maximal number of parallel connections in the pool.
+  *
+  * @param dbSettings database connection settings for some user
+  */
 class MysqlDBConnector(val dbSettings: MysqlUserDatabase) extends DBConnector[DBConnection] {
 
+  /**
+    * connectio pool name for scalikeJDBC
+    */
   private val connectionPoolName = s"mysql-${dbSettings.dbServer}-${dbSettings.dbUser}-${dbSettings.dbName}"
 
+  /**
+    * If this instance is created then it also creates connection pool for the user
+    */
   ConnectionPool.add(
     connectionPoolName,
     s"jdbc:mysql://${dbSettings.dbServer}:3306/${dbSettings.dbName}?characterEncoding=utf8&rewriteBatchedStatements=true",
@@ -28,12 +42,24 @@ class MysqlDBConnector(val dbSettings: MysqlUserDatabase) extends DBConnector[DB
     MysqlDBConnector.connectionPoolSettings
   )
 
+  /**
+    * This closes all connections in the pool
+    */
   def close(): Unit = ConnectionPool.close(connectionPoolName)
 
+  /**
+    * Get scalikeJDBC database connection
+    * This function is lazy. It does not create a connection in the pool, but it only prepares it
+    *
+    * @return lazy database connection
+    */
   def DBConn: DBConnection = NamedDB(connectionPoolName).toDB()
 
 }
 
+/**
+  * Basic settings for mysql connection
+  */
 object MysqlDBConnector {
 
   Class.forName("com.mysql.jdbc.Driver")
@@ -57,6 +83,12 @@ object MysqlDBConnector {
     connectionPoolFactoryName = "commons-dbcp2"
   )
 
+  /**
+    * Implicit conversion of database connectors into mysql database connector
+    *
+    * @param dBConnectors database connectors
+    * @return mysql database connector
+    */
   implicit def dBConnectorsToMysqlDbConnector(dBConnectors: DBConnectors): MysqlDBConnector = dBConnectors.connector(LimitedDBType)
 
 }

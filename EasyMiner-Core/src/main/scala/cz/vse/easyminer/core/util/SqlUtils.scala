@@ -11,8 +11,18 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 29. 6. 2016.
   */
+
+/**
+  * Utils for scalikeJDBC
+  */
 trait SqlUtils {
 
+  /**
+    * This converts sql syntax to string
+    *
+    * @param sqlSyntax input sql syntax
+    * @return string
+    */
   def stringifySqlSyntax(sqlSyntax: SQLSyntax) = {
     val params = sqlSyntax.parameters.toIterator
     sqlSyntax.value.foldLeft("") { (s, c) =>

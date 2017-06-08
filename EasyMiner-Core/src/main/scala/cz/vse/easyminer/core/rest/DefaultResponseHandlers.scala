@@ -10,18 +10,36 @@ import cz.vse.easyminer.core.StatusCodeException
 import org.slf4j.LoggerFactory
 import spray.routing.{ExceptionHandler, Rejection, RejectionHandler, Route}
 
+/**
+  * Default exception and rejection handler for web service
+  */
 trait DefaultResponseHandlers extends DefaulHandlers with ErrorMessage with GlobalRoute {
 
+  /**
+    * Get route which returns error information
+    *
+    * @param statusCode status code
+    * @param ex         exception
+    * @return route
+    */
   private def writeError(statusCode: Int, ex: Throwable) = requestUri { uri =>
     LoggerFactory.getLogger(ex.getClass.getName).error(s"Error with URI $uri", ex)
     globalRoute(complete(statusCode, errorMessage(statusCode, ex.getClass.getName, ex.getMessage)))
   }
 
+  /**
+    * This catches all exceptions for ws.
+    * If the exception has statuscode, then return error response with this code
+    * If no statuscode, then return 500
+    */
   implicit val exceptionHandler: ExceptionHandler = ExceptionHandler {
     case ex: StatusCodeException => writeError(ex.statusCode.intValue, ex)
     case ex: Throwable => writeError(500, ex)
   }
 
+  /**
+    * Map rejections into error message
+    */
   implicit val rejectionHandler: RejectionHandler = RejectionHandler {
     case rejections =>
       globalRoute {

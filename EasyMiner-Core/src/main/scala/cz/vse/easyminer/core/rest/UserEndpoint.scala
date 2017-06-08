@@ -19,10 +19,18 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 /**
- * Created by Vaclav Zeman on 18. 8. 2015.
- */
+  * Created by Vaclav Zeman on 18. 8. 2015.
+  */
+
+/**
+  * This is the basic trait for a user actor.
+  * This contains method for getting information about user databases and the user profile
+  */
 trait UserEndpoint {
 
+  /**
+    * All user actors are identified by their api keys
+    */
   val apiKey: String
 
   implicit def actorRefFactory: ActorRefFactory
@@ -32,8 +40,14 @@ trait UserEndpoint {
   import DefaultJsonProtocol._
   import SprayJsonSupport._
 
+  /**
+    * Json formatter for user information
+    */
   implicit val jsonUserFormat: RootJsonFormat[User] = jsonFormat3(User)
 
+  /**
+    * Json formatter (reader) for limited database information
+    */
   implicit object JsonLimitedDbFormat extends RootJsonFormat[MysqlUserDatabase] {
     def write(obj: MysqlUserDatabase): JsValue = throw JsonSerializationNotSupported
 
@@ -46,6 +60,9 @@ trait UserEndpoint {
     }
   }
 
+  /**
+    * Json formatter (reader) for unlimited database information
+    */
   implicit object JsonUnlimitedDbFormat extends RootJsonFormat[HiveUserDatabase] {
     def write(obj: HiveUserDatabase): JsValue = throw JsonSerializationNotSupported
 
@@ -58,20 +75,39 @@ trait UserEndpoint {
     }
   }
 
+  /**
+    * This is base of the request to the easyminer user service.
+    * The request accepts only json and adds api key header
+    */
   private lazy val pipeline = addHeader(HttpHeaders.Accept(MediaTypes.`application/json`)) ~> addHeader("Authorization", "ApiKey " + apiKey) ~> sendReceive
 
   private def safeRequest[T](request: HttpRequest)(implicit f: HttpRequest => Future[T]) = f(request).transform(x => x, th => new UserInformationRequestException(request, th))
 
+  /**
+    * Request for information about user
+    *
+    * @return future object with user information
+    */
   def getUser = {
     implicit val extPipeline: HttpRequest => Future[User] = pipeline ~> unmarshal[User]
     safeRequest(Get(UserEndpoint.userHttpEndpoint + UserEndpoint.authPath))
   }
 
+  /**
+    * Request for information about user unlimited database information
+    *
+    * @return future object with database information
+    */
   def getUnlimitedDb = {
     implicit val extPipeline: HttpRequest => Future[HiveUserDatabase] = pipeline ~> unmarshal[HiveUserDatabase]
     safeRequest(Get(UserEndpoint.userHttpEndpoint + UserEndpoint.unlimitedDbPath))
   }
 
+  /**
+    * Request for information about user limited database information
+    *
+    * @return future object with database information
+    */
   def getLimitedDb = {
     implicit val extPipeline: HttpRequest => Future[MysqlUserDatabase] = pipeline ~> unmarshal[MysqlUserDatabase]
     safeRequest(Get(UserEndpoint.userHttpEndpoint + UserEndpoint.limitedDbPath))

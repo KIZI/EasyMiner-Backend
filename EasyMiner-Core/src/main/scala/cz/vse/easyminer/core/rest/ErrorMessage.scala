@@ -14,24 +14,48 @@ import spray.json.{JsString, JsNumber, JsObject}
 /**
   * Created by Vaclav Zeman on 5. 8. 2015.
   */
+
+/**
+  * Error message which will be returned by web service
+  */
 trait ErrorMessage {
 
+  /**
+    * Error message with type of HttpEntity
+    *
+    * @param code response code
+    * @param name name of error
+    * @param msg  message of error
+    * @return HttpEntity
+    */
   def errorMessage(code: Int, name: String, msg: String): HttpEntity
 
 }
 
+/**
+  * Error message in XML format
+  */
 trait XmlErrorMessage extends ErrorMessage {
 
   def errorMessage(code: Int, name: String, msg: String): HttpEntity = HttpEntity(
     ContentType(`application/xml`, `UTF-8`), HttpData(<error>
-      <code>{ code }</code>
-      <name>{ name }</name>
-      <message>{ msg }</message>
+      <code>
+        {code}
+      </code>
+      <name>
+        {name}
+      </name>
+      <message>
+        {msg}
+      </message>
     </error>.toString())
   )
 
 }
 
+/**
+  * Error message in JSON format
+  */
 trait JsonErrorMessage extends ErrorMessage {
 
   def errorMessage(code: Int, name: String, msg: String): HttpEntity = HttpEntity(

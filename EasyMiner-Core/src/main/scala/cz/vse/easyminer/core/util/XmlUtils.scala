@@ -11,10 +11,20 @@ import scala.language.implicitConversions
 /**
   * Created by Vaclav Zeman on 9. 10. 2016.
   */
+
+/**
+  * Utils for XML processing
+  */
 object XmlUtils {
 
   case class TrimmedXml(node: xml.Node)
 
+  /**
+    * Implicit function for convert XML node seq into trimmed xml, where there are no spaces among tags.
+    *
+    * @param untrimmedXml xml input
+    * @return trimmed xml output
+    */
   implicit def XmlToTrimmedXml(untrimmedXml: xml.NodeSeq): TrimmedXml = TrimmedXml(xml.Utility.trim(untrimmedXml.head))
 
 }

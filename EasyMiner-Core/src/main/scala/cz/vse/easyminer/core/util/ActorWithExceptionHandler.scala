@@ -9,8 +9,13 @@ package cz.vse.easyminer.core.util
 import akka.actor.{FSM, Actor}
 
 /**
- * Created by Vaclav Zeman on 6. 9. 2015.
- */
+  * Created by Vaclav Zeman on 6. 9. 2015.
+  */
+
+/**
+  * Trait for actor which handles exceptions
+  * You need to specify handleException method and use exceptionHandling method in receive function
+  */
 trait ActorWithExceptionHandler extends Actor {
 
   def handleException(ex: Exception): Unit
@@ -27,7 +32,12 @@ trait ActorWithExceptionHandler extends Actor {
 
 }
 
-
+/**
+  * Same as ActorWithExceptionHandler but for FSM
+  *
+  * @tparam S state type
+  * @tparam D data type
+  */
 trait FSMWithExceptionHandler[S, D] extends FSM[S, D] {
 
   def handleException(ex: Exception): State

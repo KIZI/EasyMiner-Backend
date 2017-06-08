@@ -10,8 +10,9 @@ import spray.http.{StatusCodes, StatusCode}
 import spray.json.{SerializationException, DeserializationException}
 
 /**
- * Created by Vaclav Zeman on 5. 8. 2015.
- */
+  * Ordinary exceptions
+  * Created by Vaclav Zeman on 5. 8. 2015.
+  */
 object UnexpectedActorRequest extends Exception("Unexpected actor request.")
 
 object UnexpectedActorResponse extends Exception("Unexpected actor response.")

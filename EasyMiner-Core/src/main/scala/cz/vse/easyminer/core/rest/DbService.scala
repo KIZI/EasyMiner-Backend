@@ -19,8 +19,15 @@ import cz.vse.easyminer.core.{HiveUserDatabase, MysqlUserDatabase}
   */
 trait DbService extends Actor {
 
+  /**
+    * This trait requires also user endpoint trait
+    */
   ue: UserEndpoint =>
 
+  /**
+    * Create limited and unlimited db connectors for a specific user
+    * If some errors during creation then this actor will be stopped
+    */
   lazy val dbConnectors = {
     val process = getLimitedDb.zip(getUnlimitedDb.map(Option.apply).recover { case _ => None }).map {
       case (limitedDb, unlimitedDb) => buildDbConnectors(limitedDb, unlimitedDb)
@@ -31,6 +38,13 @@ trait DbService extends Actor {
     process
   }
 
+  /**
+    * Function for creation of database connectors by user database settings
+    *
+    * @param mysqlUserDatabase mysql database settings
+    * @param hiveUserDatabase  optinal hive database settings
+    * @return database connectors
+    */
   def buildDbConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: Option[HiveUserDatabase]): DBConnectors
 
 }
