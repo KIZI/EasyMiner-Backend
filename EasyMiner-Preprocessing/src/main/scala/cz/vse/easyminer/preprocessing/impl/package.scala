@@ -15,6 +15,12 @@ import cz.vse.easyminer.preprocessing.NumericIntervalsAttribute.Interval
   */
 package object impl {
 
+  /**
+    * Implicit operations for Interval class.
+    * It adds function for conversion interval to string
+    *
+    * @param interval interval object
+    */
   implicit class PimpedInterval(interval: Interval) {
     def toIntervalString = {
       val round = BasicFunction.roundAt(6) _

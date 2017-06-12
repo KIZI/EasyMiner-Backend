@@ -16,14 +16,23 @@ import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.Directives
 
 /**
- * Created by Vaclav Zeman on 1. 9. 2015.
- */
+  * Created by Vaclav Zeman on 1. 9. 2015.
+  */
+
+/**
+  * This handles requests for operations with values of a field and a data source
+  *
+  * @param dataSourceDetail data source
+  * @param fieldDetail      field detail
+  * @param dBConnectors     database connections
+  * @param actorContext     user actor context
+  */
 class ValueService(dataSourceDetail: DataSourceDetail, fieldDetail: FieldDetail)(implicit dBConnectors: DBConnectors, actorContext: ActorContext)
   extends Directives
-  with SprayJsonSupport
-  with DefaultJsonProtocol
-  with TaskStatusRestHelper
-  with DataMainService.BaseUriPath {
+    with SprayJsonSupport
+    with DefaultJsonProtocol
+    with TaskStatusRestHelper
+    with DataMainService.BaseUriPath {
 
   import JsonFormatters.JsonFieldNumericDetail._
   import JsonFormatters.JsonValueDetail._

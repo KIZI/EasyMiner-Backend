@@ -15,6 +15,13 @@ import cz.vse.easyminer.data._
 /**
   * Created by Vaclav Zeman on 15. 2. 2016.
   */
+
+/**
+  * This object contains implicit conversions from data source type to data source operations object.
+  * There are different operations for different data source types.
+  * We need to resolve operations for limited data source type where we work with limited db connector;
+  * and distinguish it from unlimited data source type where there are different connections and operations.
+  */
 object DataSourceTypeConversions {
 
   import scala.language.implicitConversions

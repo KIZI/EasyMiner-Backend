@@ -7,14 +7,25 @@
 package cz.vse.easyminer.preprocessing
 
 /**
- * Created by Vaclav Zeman on 18. 12. 2015.
- */
+  * Created by Vaclav Zeman on 18. 12. 2015.
+  */
+
+/**
+  * All operations for existed values within an attribute and dataset
+  */
 trait ValueOps {
 
   val dataset: DatasetDetail
 
   val attribute: AttributeDetail
 
+  /**
+    * Get all values for a specific dataset and attribute
+    *
+    * @param offset start pointer
+    * @param limit  number of records to retrieve
+    * @return value details
+    */
   def getValues(offset: Int, limit: Int): Seq[ValueDetail]
 
 }

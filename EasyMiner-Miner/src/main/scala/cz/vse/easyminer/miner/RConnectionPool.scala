@@ -8,13 +8,36 @@ package cz.vse.easyminer.miner
 
 import org.rosuda.REngine.Rserve.RConnection
 
+/**
+  * Abstraction for connection pool of connections to R environment by RServe
+  */
 trait RConnectionPool {
-  def borrow : BorrowedConnection
+
+  /**
+    * Get R connection from pool
+    *
+    * @return R connection
+    */
+  def borrow: BorrowedConnection
+
+  /**
+    * Release R connection and return it back into the pool
+    *
+    * @param bc R connection
+    */
   def release(bc: BorrowedConnection)
+
+  /**
+    * Refresh all connections in pool (close old idle connections)
+    */
   def refresh()
+
+  /**
+    * Close all R connections from the connection pool
+    */
   def close()
 }
 
-class BorrowedConnection(rServer : String, rPort : Int) extends RConnection(rServer, rPort) {
+class BorrowedConnection(rServer: String, rPort: Int) extends RConnection(rServer, rPort) {
   val created = System.currentTimeMillis
 }

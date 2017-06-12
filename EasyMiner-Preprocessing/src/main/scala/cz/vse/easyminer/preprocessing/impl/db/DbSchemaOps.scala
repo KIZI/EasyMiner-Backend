@@ -10,8 +10,12 @@ import cz.vse.easyminer.data.{SchemaOps => DataSchemaOps}
 import cz.vse.easyminer.preprocessing.{SchemaOps => PreprocessingSchemaOps}
 
 /**
- * Created by Vaclav Zeman on 29. 12. 2015.
- */
+  * Created by Vaclav Zeman on 29. 12. 2015.
+  */
+
+/**
+  * Abstraction for creating database schema
+  */
 trait DbSchemaOps extends PreprocessingSchemaOps {
 
   private[db] val dataSchemaOps: DataSchemaOps

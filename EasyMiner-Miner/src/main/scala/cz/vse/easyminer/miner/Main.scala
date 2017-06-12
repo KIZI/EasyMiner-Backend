@@ -18,8 +18,12 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
- * Created by Vaclav Zeman on 25. 7. 2015.
- */
+  * Created by Vaclav Zeman on 25. 7. 2015.
+  */
+
+/**
+  * Main object which starts HTTP service for this easyminer miner module
+  */
 object Main extends App {
 
   actorSystem.scheduler.schedule(0 seconds, 1 minute) {

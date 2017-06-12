@@ -15,6 +15,10 @@ import cz.vse.easyminer.preprocessing.{DatasetType, LimitedDatasetType, Unlimite
 /**
   * Created by Vaclav Zeman on 15. 2. 2016.
   */
+
+/**
+  * Implicit conversions which convert dataset type to dataset type operations for various types of database connection.
+  */
 object DatasetTypeConversions {
 
   import scala.language.implicitConversions

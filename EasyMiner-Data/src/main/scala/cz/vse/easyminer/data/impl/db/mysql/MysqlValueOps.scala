@@ -15,6 +15,14 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 1. 9. 2015.
   */
+
+/**
+  * Implementation of value operations on mysql database
+  *
+  * @param dataSource data source
+  * @param field      field
+  * @param connector  implicit! mysql db connector
+  */
 class MysqlValueOps private[db](val dataSource: DataSourceDetail, val field: FieldDetail)(implicit connector: MysqlDBConnector) extends ValueOps with DbValueHistogramOps {
 
   import connector._
@@ -34,6 +42,12 @@ class MysqlValueOps private[db](val dataSource: DataSourceDetail, val field: Fie
     sql.apply()
   }
 
+
+  /**
+    * Get numeric stats of this field
+    *
+    * @return stats object or None if the field is not numeric
+    */
   def getNumericStats: Option[FieldNumericDetail] = if (field.`type` == NumericFieldType) {
     DBConn readOnly {
       implicit session =>
@@ -44,6 +58,13 @@ class MysqlValueOps private[db](val dataSource: DataSourceDetail, val field: Fie
     None
   }
 
+  /**
+    * Get all values for the data source and field
+    *
+    * @param offset first record is 0 (not 1)
+    * @param limit  it is restricted by the maximal limit value
+    * @return seq of value details
+    */
   def getValues(offset: Int, limit: Int): Seq[ValueDetail] = DBConn readOnly {
     implicit session =>
       val valueTable = new ValueTable(dataSource.id)
@@ -56,6 +77,14 @@ class MysqlValueOps private[db](val dataSource: DataSourceDetail, val field: Fie
 
 object MysqlValueOps {
 
+  /**
+    * Create value operations instance decorated by validator
+    *
+    * @param dataSource data source
+    * @param field      field
+    * @param connector  implicit! mysql db connector
+    * @return value operations instance
+    */
   def apply(dataSource: DataSourceDetail, field: FieldDetail)(implicit connector: MysqlDBConnector) = new ValidationValueOps(new MysqlValueOps(dataSource, field))
 
 }

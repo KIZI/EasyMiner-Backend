@@ -15,24 +15,65 @@ import scala.annotation.tailrec
 /**
   * Created by Vaclav Zeman on 27. 2. 2016.
   */
+
+/**
+  * This is abstraction for incremental mining of association rules
+  * We sequentially mine rules with length 1-3, 4, 5, 6 etc...
+  * For each length we return result therefore we can get result step by step
+  */
 trait IncrementalMiner {
 
+  /**
+    * Miner task definition
+    */
   val minerTask: MinerTask
+  /**
+    * We send partial results to this method
+    */
   val processListener: MinerResult => Unit
+  /**
+    * Total number of attributes
+    */
   val numberOfAttributes: Int
 
+  /**
+    * Min rule length fetched from interest measures definition
+    */
   lazy val minlen = minerTask.interestMeasures.minlen
+  /**
+    * Max rule length fetched from interest measures definition
+    * Max rule length must not be greater than number of attributes
+    */
   lazy val maxlen = {
     val maxlens = List(minerTask.antecedent, minerTask.consequent).map(_.map(_.toAttributeDetails.size).getOrElse(0))
     val uppermaxlen = if (maxlens.contains(0)) numberOfAttributes else maxlens.sum
     math.min(uppermaxlen, minerTask.interestMeasures.maxlen)
   }
+  /**
+    * Max mined rules fetched from interest measures definition
+    */
   val limit = minerTask.interestMeasures.limit
 
   private val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.impl.IncrementalMiner")
 
+  /**
+    * Mine rules with a specific rule length range
+    *
+    * @param minlen minimal rule length
+    * @param maxlen maximal rule length
+    * @return miner result which contains assocation rules
+    */
   protected[this] def mine(minlen: Int, maxlen: Int): MinerResult
 
+  /**
+    * This function invokes mine function and then post-process a result
+    * It sorts result, checks rules size and adds headers to result
+    *
+    * @param minlen         minimal rule length
+    * @param maxlen         maximal rule length
+    * @param totalRulesSize fetched number of rules from previous steps
+    * @return miner result which contains assocation rules
+    */
   def partialMine(minlen: Int, maxlen: Int, totalRulesSize: Int) = {
     val result = {
       val result = mine(minlen, maxlen)
@@ -55,6 +96,12 @@ trait IncrementalMiner {
     result
   }
 
+  /**
+    * This sequentially mines rules with length 1-3, 4, 5, 6 etc...
+    * This sends partial results to processListener and merges all together
+    *
+    * @return miner result which contains assocation rules
+    */
   def incrementalMine = {
     val ruleLengths: Iterator[Int] = (minlen to maxlen).iterator
     @tailrec

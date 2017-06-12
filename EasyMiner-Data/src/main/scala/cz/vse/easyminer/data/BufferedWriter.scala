@@ -7,8 +7,12 @@
 package cz.vse.easyminer.data
 
 /**
- * Created by Vaclav Zeman on 4. 8. 2015.
- */
+  * Created by Vaclav Zeman on 4. 8. 2015.
+  */
+
+/**
+  * Simple abstraction for any buffered writer with an array
+  */
 trait BufferedWriter {
 
   def write(bytes: Array[Byte]): Boolean

@@ -19,6 +19,19 @@ import scala.util.{Failure, Success}
 /**
   * Created by Vaclav Zeman on 24. 7. 2015.
   */
+
+/**
+  * Actor for control of uploading and creating a data source from input data.
+  * This receives data buckets which are sent into writer.
+  * The writer parses input stream and send data into data source builder which creates a data source in a database.
+  * We observe future object of created data source; if it is filled the creation is completed and we can return a result.
+  * If there is some exception then we rollback all processes; we call delete data source function which removes all intermediate tables
+  *
+  * @param id               upload id
+  * @param bufferedWriter   writer where we send data buckets to
+  * @param futureDataSource future object where result of created data source will be placed
+  * @param dataSourceOps    data source operations for deleting the uploading data source during rollbacking
+  */
 class UploadActor(id: String,
                   bufferedWriter: BufferedWriter,
                   futureDataSource: Future[DataSourceDetail],
@@ -34,6 +47,13 @@ class UploadActor(id: String,
 
   val logger = LoggerFactory.getLogger("cz.vse.easyminer.data.impl.UploadActor")
 
+  /**
+    * This processes the future object with result.
+    * If the uploading is still in progress and future object is filled then we rollback process and return failure (it is not desirable behaviour)
+    *
+    * @param f state handler
+    * @return fsm state
+    */
   def handleFutureInProgress(f: => State) = futureDataSource.value match {
     case None => f
     case Some(Failure(ex)) => stop() replying Status.Failure(ex)
@@ -42,6 +62,12 @@ class UploadActor(id: String,
       stop() replying Status.Failure(Exceptions.ResultIsTooSoon)
   }
 
+  /**
+    * If there is some exception then we close the writer, rollback all uploading process and return exception
+    *
+    * @param ex exception
+    * @return state
+    */
   def handleException(ex: Exception): State = {
     bufferedWriter.finish()
     futureDataSource.onSuccess {
@@ -52,11 +78,22 @@ class UploadActor(id: String,
 
   def stoppingLog() = logger.debug(s"$id: The uploaded task is now stopping...")
 
+  /**
+    * Function for rollback uploading process
+    *
+    * @param dataSource created data source which we want to delete
+    */
   def rollback(dataSource: DataSourceDetail) = {
     logger.debug(s"$id: Rollback the whole upload task.")
     dataSourceOps.deleteDataSource(dataSource.id)
   }
 
+  /**
+    * This handles uploading process.
+    * If we obtain a data bucket we send it into writer.
+    * If the writer is full we need to wait once it will have some free space; therefore we send back message SlowDown uploading process!
+    * If we obtain the "end of uploading process flag" we close the writer and we wait for result
+    */
   when(State.InProgress) {
     exceptionHandling {
       case Event(Request.Data(chunk), Data.FileSize(size)) =>

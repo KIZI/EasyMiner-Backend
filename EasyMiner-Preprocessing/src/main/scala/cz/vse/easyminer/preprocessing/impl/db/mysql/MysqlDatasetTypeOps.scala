@@ -16,6 +16,14 @@ import cz.vse.easyminer.preprocessing.impl.db.MetaAttributeBuilder
 /**
   * Created by Vaclav Zeman on 15. 2. 2016.
   */
+
+/**
+  * Class for dataset type operations.
+  * Operations are for creation of dataset/attribute/value operations objects
+  *
+  * @param mysqlDBConnector    mysql database connection
+  * @param taskStatusProcessor task processor for monitoring
+  */
 class MysqlDatasetTypeOps private[db](implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) extends DatasetTypeOps[LimitedDatasetType.type] {
 
   def toDatasetBuilder(dataset: Dataset): DatasetBuilder = MysqlDatasetBuilder(dataset)

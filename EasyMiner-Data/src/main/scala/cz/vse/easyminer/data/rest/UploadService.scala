@@ -32,6 +32,14 @@ import scala.util.{Failure, Success}
 /**
   * Created by Vaclav Zeman on 24. 7. 2015.
   */
+
+/**
+  * This handles requests for operations which creates a data source
+  * Upload initialization, streaming upload, finish upload
+  *
+  * @param dBConnectors database connections
+  * @param actorContext user actor context
+  */
 class UploadService(implicit dBConnectors: DBConnectors, actorContext: ActorContext) extends Directives with SprayJsonSupport {
 
   val maxChunkSize = 1500000

@@ -15,10 +15,25 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 28. 1. 2016.
   */
+
+/**
+  * Implementation of value operations on mysql database
+  *
+  * @param dataset   dataset detail
+  * @param attribute attribute detail
+  * @param connector mysql connection
+  */
 class MysqlValueOps private[db](val dataset: DatasetDetail, val attribute: AttributeDetail)(implicit connector: MysqlDBConnector) extends ValueOps {
 
   import connector._
 
+  /**
+    * Get all values for a specific dataset and attribute
+    *
+    * @param offset start pointer
+    * @param limit  number of records to retrieve
+    * @return value details
+    */
   def getValues(offset: Int, limit: Int): Seq[ValueDetail] = DBConn readOnly {
     implicit session =>
       val valueTable = new ValueTable(dataset.id)
@@ -30,6 +45,14 @@ class MysqlValueOps private[db](val dataset: DatasetDetail, val attribute: Attri
 
 object MysqlValueOps {
 
+  /**
+    * Create value operations instance decorated by validator
+    *
+    * @param datasetDetail    dataset detail
+    * @param attributeDetail  attribute detail
+    * @param mysqlDBConnector mysql connection
+    * @return value operations instance
+    */
   def apply(datasetDetail: DatasetDetail, attributeDetail: AttributeDetail)(implicit mysqlDBConnector: MysqlDBConnector): ValueOps = new ValidationValueOps(
     new MysqlValueOps(datasetDetail, attributeDetail)
   )

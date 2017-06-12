@@ -19,6 +19,14 @@ import spray.routing.Directives
 /**
   * Created by Vaclav Zeman on 20. 8. 2015.
   */
+
+/**
+  * This handles requests for operations with a field of a data source
+  *
+  * @param dataSourceDetail data source
+  * @param dBConnectors     database connections
+  * @param actorContext     user actor context
+  */
 class FieldService(dataSourceDetail: DataSourceDetail)(implicit dBConnectors: DBConnectors, actorContext: ActorContext) extends Directives with SprayJsonSupport with DefaultJsonProtocol {
 
   import JsonFormatters.JsonFieldDetail._

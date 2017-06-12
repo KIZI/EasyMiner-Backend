@@ -18,8 +18,24 @@ import scala.collection.JavaConverters._
 /**
   * Created by Vaclav Zeman on 27. 12. 2016.
   */
+
+/**
+  * This parses RDF input, saves triples into an intermediate table and then resaves all into transactional database
+  *
+  * @param dataSourceBuilder         data source builder for creation of transactional data from RDF input
+  * @param settings                  RDF input settings
+  * @param dataSourceToRdfDataSource implicit! function for creation of RDF data source from data source detail
+  */
 class RdfInputParser private(val dataSourceBuilder: DataSourceBuilder, val settings: Settings)(implicit dataSourceToRdfDataSource: DataSourceDetail => RdfDataSource) extends InputParser {
 
+  /**
+    * Create data source detail from RDF input stream.
+    * This reads lines of input then saves all triples into temporary table.
+    * From temporary table we create transactions and build a data source.
+    *
+    * @param is input stream
+    * @return created data source detail
+    */
   def write(is: InputStream): DataSourceDetail = {
     BasicFunction.tryClose(new LineBoundedInputStream(settings.compression.map(CompressionType.decompressInputStream(is)).getOrElse(is), 1 * 1000 * 1000)) { is =>
       val it = RDFDataMgr.createIteratorTriples(is, settings.format, null).asScala
@@ -41,6 +57,14 @@ class RdfInputParser private(val dataSourceBuilder: DataSourceBuilder, val setti
 
 object RdfInputParser {
 
+  /**
+    * This parses RDF input, saves triples into an intermediate table and then resaves all into transactional database
+    *
+    * @param dataSourceBuilder         data source builder for creation of transactional data from RDF input
+    * @param settings                  RDF input settings
+    * @param dataSourceToRdfDataSource implicit! function for creation of RDF data source from data source detail
+    * @return rdf input parser
+    */
   def apply(dataSourceBuilder: DataSourceBuilder, settings: Settings)(implicit dataSourceToRdfDataSource: DataSourceDetail => RdfDataSource): RdfInputParser = new RdfInputParser(dataSourceBuilder, settings)
 
   case class Settings(format: Lang,

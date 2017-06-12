@@ -14,10 +14,19 @@ import cz.vse.easyminer.preprocessing._
 /**
   * Created by Vaclav Zeman on 2. 2. 2016.
   */
+
+/**
+  * This class loads an input PMML document, parses it and creates attribute definitions for transformation fields to attributes with some preprocessing
+  *
+  * @param pmml PMML xml document
+  */
 class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
 
   case class DerivedField(name: String, node: xml.Node)
 
+  /**
+    * Partial function for creation of simple attribute definition from DerivedField
+    */
   private val simpleAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
     def isDefinedAt(x: DerivedField): Boolean = (x.node \ "MapValues" \ "FieldColumnPair").headOption.exists(_.child.isEmpty)
 
@@ -27,18 +36,30 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
     }
   }
 
+  /**
+    * Partial function for creation of nominal enumeration attribute definition from DerivedField
+    */
   private val nominalEnumerationAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
     def isDefinedAt(x: DerivedField): Boolean = (x.node \ "MapValues" \ "FieldColumnPair").headOption.exists(_.child.isEmpty) && (x.node \ "MapValues" \ "InlineTable" \ "row").nonEmpty
 
     def apply(v1: DerivedField): Attribute = {
       val fieldId = AnyToInt.unapply(v1.node \ "MapValues" \ "FieldColumnPair" \@ "field").getOrElse(0)
       val mapping = (v1.node \ "MapValues" \ "InlineTable" \ "row").collect {
-        case <row><column>{xml.Text(originalValue)}</column><field>{xml.Text(targetValue)}</field></row> => targetValue -> originalValue
+        case <row>
+          <column>
+            {xml.Text(originalValue)}
+            </column> <field>
+          {xml.Text(targetValue)}
+          </field>
+          </row> => targetValue -> originalValue
       }.groupBy(_._1).iterator.map(x => NominalEnumerationAttribute.Bin(x._1, x._2.map(_._2))).toList
       NominalEnumerationAttribute(v1.name, fieldId, mapping)
     }
   }
 
+  /**
+    * Partial function for creation of equidistant intervals attribute definition from DerivedField
+    */
   private val equidistantIntervalsAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
     def isDefinedAt(x: DerivedField): Boolean = {
       val discretize = x.node \ "Discretize"
@@ -53,6 +74,9 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
     }
   }
 
+  /**
+    * Partial function for creation of equifrequent intervals attribute definition from DerivedField
+    */
   private val equifrequentIntervalsAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
     def isDefinedAt(x: DerivedField): Boolean = {
       val discretize = x.node \ "Discretize"
@@ -67,6 +91,9 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
     }
   }
 
+  /**
+    * Partial function for creation of equisized intervals attribute definition from DerivedField
+    */
   private val equisizedIntervalsAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
     def isDefinedAt(x: DerivedField): Boolean = {
       val discretize = x.node \ "Discretize"
@@ -81,6 +108,9 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
     }
   }
 
+  /**
+    * Partial function for creation of user-specified intervals attribute definition from DerivedField
+    */
   private val numericIntervalsAttributeBuilderExtractor: PartialFunction[DerivedField, Attribute] = new PartialFunction[DerivedField, Attribute] {
     def isDefinedAt(x: DerivedField): Boolean = (x.node \ "Discretize" \ "DiscretizeBin").nonEmpty
 
@@ -105,6 +135,10 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
     }
   }
 
+  /**
+    * Create attribute definitions from PMML
+    * It tries to parse definitions one by one and it returns empty collection if PMML is not parsable
+    */
   lazy val attributes: Seq[Attribute] = (pmml.node \ "DerivedField").map { derivedFieldNode =>
     DerivedField(derivedFieldNode \@ "name", derivedFieldNode)
   }.collect(nominalEnumerationAttributeBuilderExtractor

@@ -18,14 +18,21 @@ import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.Directives
 
 /**
- * Created by Vaclav Zeman on 19. 8. 2015.
- */
+  * Created by Vaclav Zeman on 19. 8. 2015.
+  */
+
+/**
+  * This handles requests for dataset operations
+  *
+  * @param dBConnectors database connections
+  * @param actorContext user actor context
+  */
 class DatasetService(implicit dBConnectors: DBConnectors, actorContext: ActorContext)
   extends Directives
-  with SprayJsonSupport
-  with DefaultJsonProtocol
-  with TaskStatusRestHelper
-  with PreprocessingMainService.BaseUriPath {
+    with SprayJsonSupport
+    with DefaultJsonProtocol
+    with TaskStatusRestHelper
+    with PreprocessingMainService.BaseUriPath {
 
   import JsonFormatters.JsonDatasetDetail._
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions._

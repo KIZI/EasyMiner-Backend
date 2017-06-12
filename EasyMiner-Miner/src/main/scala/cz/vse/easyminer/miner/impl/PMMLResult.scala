@@ -19,6 +19,14 @@ import spray.httpx.marshalling.Marshaller
 
 import scala.language.implicitConversions
 
+/**
+  * Write the result of association rules mining into PMML document
+  * PMML contains all rules with contingency tables, attributes and values information and headers as extensions with mining meta-information
+  * Final PMML is created according to mustache template PMMLResult.template.mustache
+  *
+  * @param data           result of association rules mining
+  * @param valueMapperOps object which maps value IDs to text values and vice versa$
+  */
 class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
 
   self: ARuleVisualizer with BoolExpressionVisualizer[Attribute] =>
@@ -32,6 +40,9 @@ class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
     )
   }
 
+  /**
+    * Map assotiation rule to template parameters
+    */
   private val arulesToPMMLMapper: PartialFunction[ARule, Map[String, Any]] = {
     case ar@ARule(ant, con, im, ct) => Map(
       "id" -> s"AR${ar.hashCode}",
@@ -44,6 +55,9 @@ class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
     ) ++ (if (ant.isEmpty) Map.empty else Map("id-antecedent" -> baref(ant)))
   }
 
+  /**
+    * Map rule statement to template parameters
+    */
   private val dbaToPMMLMapper = {
     def makeDbaMap(expr: BoolExpression[FixedValue], children: List[String]): Map[String, Any] = Map(
       "id" -> baref(expr),
@@ -57,6 +71,9 @@ class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
     pf
   }
 
+  /**
+    * Map rule atom to template parameters
+    */
   private val bbaToPMMLMapper: PartialFunction[BoolExpression[FixedValue], Map[String, Any]] = {
     case e@MappedFixedValue(attribute, NominalValue(value)) => Map(
       "id" -> baref(e),
@@ -77,6 +94,11 @@ class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
     case _ => Set(be)
   }
 
+  /**
+    * Create PMML document from mining result
+    *
+    * @return PMML as a string
+    */
   def toPMML = {
     val exprs = data.rules.iterator
       .flatMap[BoolExpression[FixedValue]](x => x.consequent :: x.antecedent.toOptBoolExpression.map(x => List(x)).getOrElse(Nil))
@@ -106,10 +128,22 @@ class PmmlResult(data: MinerResult, valueMapperOps: ValueMapperOps) {
 
 object PmmlResult {
 
+  /**
+    * Implicit conversion for miner result to pmml result object
+    *
+    * @param minerResult     miner result
+    * @param datasetTypeConv implicit! dataset type conversion to dataset type operations object
+    * @return pmml result object
+    */
   implicit def minerResultToPmmlResult(minerResult: MinerResult)(implicit datasetTypeConv: DatasetType => DatasetTypeOps[DatasetType]): PmmlResult = {
     new PmmlResult(minerResult, minerResult.task.datasetDetail.`type`.toValueMapperOps(minerResult.task.datasetDetail)) with ARuleText with BoolExpressionShortText
   }
 
+  /**
+    * Converts pmml result to HTTP response as XML
+    *
+    * @return PMML converter
+    */
   implicit def pmmlResultMarshaller: Marshaller[PmmlResult] = {
     Marshaller.delegate[PmmlResult, String](ContentType(`application/xml`, HttpCharsets.`UTF-8`)) { pmmlResult =>
       pmmlResult.toPMML

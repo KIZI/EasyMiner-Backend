@@ -16,6 +16,11 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Vaclav Zeman on 18. 8. 2015.
   */
+
+/**
+  * Converters from object to json and vice versa
+  * It is self-documented
+  */
 object JsonFormatters extends DefaultJsonProtocol {
 
   object JsonDatasetType {

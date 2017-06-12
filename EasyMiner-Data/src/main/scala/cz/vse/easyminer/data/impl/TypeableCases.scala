@@ -11,8 +11,12 @@ import cz.vse.easyminer.data.ValueInterval
 import shapeless.TypeCase
 
 /**
- * Created by Vaclav Zeman on 10. 2. 2016.
- */
+  * Created by Vaclav Zeman on 10. 2. 2016.
+  */
+
+/**
+  * Auxiliary objects for easier pattern matching
+  */
 object TypeableCases {
 
   val `Seq[ValueInterval]` = TypeCase[Seq[ValueInterval]]

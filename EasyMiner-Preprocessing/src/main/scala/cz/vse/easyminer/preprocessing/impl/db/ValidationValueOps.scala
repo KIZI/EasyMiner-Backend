@@ -11,8 +11,14 @@ import cz.vse.easyminer.core.util.BasicValidators.{GreaterOrEqual, LowerOrEqual}
 import cz.vse.easyminer.preprocessing._
 
 /**
- * Created by Vaclav Zeman on 29. 1. 2016.
- */
+  * Created by Vaclav Zeman on 29. 1. 2016.
+  */
+
+/**
+  * This is a decorator for value operations object which validates all input parameters and data
+  *
+  * @param valueOps value operations object
+  */
 class ValidationValueOps(valueOps: ValueOps) extends ValueOps {
 
   val dataset: DatasetDetail = valueOps.dataset

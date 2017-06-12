@@ -16,6 +16,12 @@ import cz.vse.easyminer.preprocessing._
 /**
   * Created by Vaclav Zeman on 29. 1. 2016.
   */
+
+/**
+  * Here are validators for some objects within this easyminer module
+  * In these validators we checks whether they contain valid paramaters
+  * This is self-documented
+  */
 object Validators {
 
   import BasicValidators._

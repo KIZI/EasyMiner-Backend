@@ -12,8 +12,12 @@ import java.util.zip.ZipInputStream
 import org.apache.commons.compress.compressors.CompressorStreamFactory
 
 /**
- * Created by Vaclav Zeman on 5. 9. 2015.
- */
+  * Created by Vaclav Zeman on 5. 9. 2015.
+  */
+
+/**
+  * Compression types for uploading files
+  */
 sealed trait CompressionType
 
 object Bzip2CompressionType extends CompressionType
@@ -24,6 +28,13 @@ object ZipCompressionType extends CompressionType
 
 object CompressionType {
 
+  /**
+    * Return decompressed input stream
+    *
+    * @param is              compressed input stream
+    * @param compressionType type of compression
+    * @return decompressed input stream
+    */
   def decompressInputStream(is: InputStream)(compressionType: CompressionType) = compressionType match {
     case ZipCompressionType =>
       val zis = new ZipInputStream(is)

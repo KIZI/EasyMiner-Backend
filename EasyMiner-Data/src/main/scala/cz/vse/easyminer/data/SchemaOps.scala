@@ -7,12 +7,24 @@
 package cz.vse.easyminer.data
 
 /**
- * Created by Vaclav Zeman on 24. 8. 2015.
- */
+  * Created by Vaclav Zeman on 24. 8. 2015.
+  */
+
+/**
+  * Abstraction for database schema
+  */
 trait SchemaOps {
 
+  /**
+    * It checks whether database schema exists
+    *
+    * @return true = schema exists
+    */
   def schemaExists: Boolean
 
+  /**
+    * Create database schema
+    */
   def createSchema(): Unit
 
 }

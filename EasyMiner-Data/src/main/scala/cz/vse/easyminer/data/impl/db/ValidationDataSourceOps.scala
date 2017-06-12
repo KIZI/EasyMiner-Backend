@@ -12,8 +12,14 @@ import cz.vse.easyminer.core.util.BasicValidators.{GreaterOrEqual, LowerOrEqual}
 import cz.vse.easyminer.data.impl.Validators.DataSourceValidators
 
 /**
- * Created by Vaclav Zeman on 23. 8. 2015.
- */
+  * Created by Vaclav Zeman on 23. 8. 2015.
+  */
+
+/**
+  * This is a decorator for data source operations object which validates all input parameters
+  *
+  * @param ops data source operations object
+  */
 class ValidationDataSourceOps(ops: DataSourceOps) extends DataSourceOps with DataSourceValidators {
 
   def renameDataSource(dataSourceId: Int, newName: String): Unit = {

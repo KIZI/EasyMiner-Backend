@@ -14,6 +14,12 @@ import cz.vse.easyminer.data.impl.db.ValidationDataSourceBuilder.Exceptions
 /**
   * Created by Vaclav Zeman on 18. 8. 2015.
   */
+
+/**
+  * This is a decorator for data source builder which validates all input parameters and data
+  *
+  * @param dataSourceBuilder data source builder
+  */
 class ValidationDataSourceBuilder(dataSourceBuilder: DataSourceBuilder) extends DataSourceBuilder with FieldValidators with DataSourceValidators with ValueValidators {
 
   val name: String = dataSourceBuilder.name

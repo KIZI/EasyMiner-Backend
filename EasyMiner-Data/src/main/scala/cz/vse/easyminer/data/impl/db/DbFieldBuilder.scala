@@ -14,6 +14,11 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 9. 12. 2015.
   */
+
+/**
+  * This is base for field builder.
+  * For all field builders we save field information into mysql database
+  */
 trait DbFieldBuilder extends FieldBuilder {
 
   val connector: MysqlDBConnector

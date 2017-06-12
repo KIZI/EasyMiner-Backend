@@ -13,8 +13,15 @@ import cz.vse.easyminer.preprocessing.impl.db.DbValueMapperOps
 import scalikejdbc.DBSession
 
 /**
- * Created by Vaclav Zeman on 15. 2. 2016.
- */
+  * Created by Vaclav Zeman on 15. 2. 2016.
+  */
+
+/**
+  * Class for mysql value mapper
+  *
+  * @param dataset          dataset detail
+  * @param mysqlDBConnector mysql connection
+  */
 class MysqlValueMapperOps private(val dataset: DatasetDetail)(implicit mysqlDBConnector: MysqlDBConnector) extends DbValueMapperOps {
 
   import mysqlDBConnector._

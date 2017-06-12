@@ -13,6 +13,12 @@ import cz.vse.easyminer.data.impl.Validators.FieldValidators
 /**
   * Created by Vaclav Zeman on 23. 8. 2015.
   */
+
+/**
+  * This is a decorator for field operations object which validates all input parameters
+  *
+  * @param ops field operations object
+  */
 class ValidationFieldOps(ops: FieldOps) extends FieldOps with FieldValidators {
 
   val dataSource: DataSourceDetail = ops.dataSource

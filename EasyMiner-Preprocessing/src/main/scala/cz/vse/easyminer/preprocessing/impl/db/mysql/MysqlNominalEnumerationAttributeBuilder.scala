@@ -18,6 +18,15 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 10. 11. 2016.
   */
+
+/**
+  * Class for creation attribute by user-specified nominal enumeration (mappings to bins)
+  *
+  * @param dataset             dataset detail
+  * @param attributes          input attribute definitions
+  * @param mysqlDBConnector    mysql database connections
+  * @param taskStatusProcessor task processor for monitoring
+  */
 class MysqlNominalEnumerationAttributeBuilder private[db](val dataset: DatasetDetail,
                                                           val attributes: Seq[NominalEnumerationAttribute])
                                                          (implicit

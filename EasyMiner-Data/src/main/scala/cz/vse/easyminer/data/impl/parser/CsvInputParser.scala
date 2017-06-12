@@ -23,12 +23,20 @@ import scala.io.Source
 
 /**
   * Created by Vaclav Zeman on 27. 7. 2015.
-  *
+  */
+
+/**
   * This class parses CSV input stream and sends parsed chunks to a data source builder.
   * Data are reading in stream, so this solution does not consume too much memory and is able to parse very large (infinite) CSV files.
+  *
+  * @param dataSourceBuilder this parser creates data source from an input stream and uses a specific data source builder
+  * @param settings          settings of input CSV format
   */
 class CsvInputParser(val dataSourceBuilder: DataSourceBuilder, val settings: Settings) extends InputParser {
 
+  /**
+    * number format for a specific localization
+    */
   implicit private val numberFormat = NumberFormat.getNumberInstance(settings.locale)
 
   sealed trait DataBuilderCsvAdapter {

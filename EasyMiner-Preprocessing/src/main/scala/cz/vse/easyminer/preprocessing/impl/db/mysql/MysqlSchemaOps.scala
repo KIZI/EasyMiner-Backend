@@ -20,8 +20,15 @@ import scalikejdbc._
 
 
 /**
- * Created by Vaclav Zeman on 21. 12. 2015.
- */
+  * Created by Vaclav Zeman on 21. 12. 2015.
+  */
+
+/**
+  * Class for creation mysql database schema for preprocessing tables
+  *
+  * @param dataSchemaOps schema builder for easyminer data module
+  * @param connector     mysql database connection
+  */
 class MysqlSchemaOps(private[db] val dataSchemaOps: DataSchemaOps)(implicit connector: MysqlDBConnector) extends DbSchemaOps {
 
   import connector._

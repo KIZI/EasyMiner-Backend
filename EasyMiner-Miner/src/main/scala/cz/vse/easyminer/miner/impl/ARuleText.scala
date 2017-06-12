@@ -10,6 +10,9 @@ import cz.vse.easyminer.miner._
 import cz.vse.easyminer.miner.conversion.AttributeConversion.PimpedFixedValueSeq
 import cz.vse.easyminer.miner.conversion.BoolExpressionConversion.fixedValuesToBoolExpression
 
+/**
+  * Convert association rule to text form
+  */
 trait ARuleText extends ARuleVisualizer {
 
   self: BoolExpressionVisualizer[Attribute] =>

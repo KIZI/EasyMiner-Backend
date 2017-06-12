@@ -19,6 +19,15 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 1. 12. 2016.
   */
+
+/**
+  * Class for creation attribute from numeric field by equisized discretization
+  *
+  * @param dataset             dataset detail
+  * @param attributes          input attribute definitions
+  * @param mysqlDBConnector    mysql database connections
+  * @param taskStatusProcessor task processor for monitoring
+  */
 class MysqlEquisizedIntervalsAttributeBuilder private[db](val dataset: DatasetDetail,
                                                           val attributes: Seq[EquisizedIntervalsAttribute])
                                                          (implicit

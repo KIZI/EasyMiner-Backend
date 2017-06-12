@@ -14,6 +14,12 @@ import cz.vse.easyminer.data._
 /**
   * Created by Vaclav Zeman on 20. 8. 2015.
   */
+
+/**
+  * Here there are validators for some objects within this easyminer module
+  * In these validators we checks whether they contain valid paramaters
+  * This is self-documented
+  */
 object Validators {
 
   import BasicValidators._

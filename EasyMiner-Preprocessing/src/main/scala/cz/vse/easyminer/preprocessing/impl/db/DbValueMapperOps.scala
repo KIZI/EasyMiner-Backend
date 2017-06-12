@@ -16,6 +16,11 @@ import scala.language.implicitConversions
 /**
   * Created by Vaclav Zeman on 13. 2. 2016.
   */
+
+/**
+  * All values within instances/transactions in a dataset are replaced by value id for easier manipulation with data.
+  * If we obtain some rules from these data we get values as IDs, therefore we need to map these IDs back to values or vice versa.
+  */
 trait DbValueMapperOps extends ValueMapperOps {
 
   type Values[A] = Map[AttributeDetail, Set[A]]
@@ -156,8 +161,20 @@ trait DbValueMapperOps extends ValueMapperOps {
     bucketedValues(values).map[SQLSyntax](x => x).flatMap(fetchValueDetails).map(valueDetailToMapperPair[MapperKey[A], B]).toMap
   }
 
+  /**
+    * For a collection of couples attribute-value, create a value mapper which maps attribute-value pair to value id.
+    *
+    * @param values map which represents collection of couples attribute-value
+    * @return value mapper
+    */
   def valueMapper(values: Values[NominalValue]): ValueMapper = new LoadedValueMapper(buildMapper(values))
 
+  /**
+    * For a collection of couples attribute-valueId, create a value mapper which maps attribute-valueId pair to a specific value.
+    *
+    * @param normalizedValues map which represents collection of couples attribute-valueId
+    * @return value mapper
+    */
   def itemMapper(normalizedValues: Values[Int]): ItemMapper = new LoadedNormalizedValueMapper(buildMapper(normalizedValues))
 
 }

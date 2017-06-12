@@ -11,6 +11,10 @@ import cz.vse.easyminer.miner._
 import cz.vse.easyminer.miner.impl.MinerTaskValidatorImpl.Exceptions.BadInterestMeasureInput
 import cz.vse.easyminer.preprocessing.UnlimitedDatasetType
 
+/**
+  * This trait is for validation miner task definition input parameters
+  * It validates interest measures thresholds (valid ranges and combinations)
+  */
 trait MinerTaskValidatorImpl extends MinerTaskValidator {
 
   private def validateBoolExp[A](exp: BoolExpression[Attribute])(implicit f: Attribute => A, join: (A, A) => A): A = exp match {
@@ -19,6 +23,11 @@ trait MinerTaskValidatorImpl extends MinerTaskValidator {
     case Value(x) => f(x)
   }
 
+  /**
+    * Validate miner task definitions
+    *
+    * @param mt miner task
+    */
   def validate(mt: MinerTask) = {
     if (!mt.interestMeasures.hasType[Limit]) throw new BadInterestMeasureInput("Rules limit is required.")
     if (!mt.interestMeasures.has(Auto)) {

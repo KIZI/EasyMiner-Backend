@@ -12,8 +12,15 @@ import cz.vse.easyminer.preprocessing._
 import cz.vse.easyminer.preprocessing.impl.Validators.AttributeValidators
 
 /**
- * Created by Vaclav Zeman on 29. 1. 2016.
- */
+  * Created by Vaclav Zeman on 29. 1. 2016.
+  */
+
+/**
+  * This is a decorator for attribute builder which validates all input parameters and data
+  *
+  * @param attributeBuilder attribute builder
+  * @tparam T type of attribute preprocessings
+  */
 class ValidationAttributeBuilder[T <: Attribute](attributeBuilder: AttributeBuilder[T]) extends AttributeBuilder[T] with AttributeValidators {
 
   val dataset: DatasetDetail = attributeBuilder.dataset

@@ -13,6 +13,10 @@ import scala.language.implicitConversions
 /**
   * Created by Vaclav Zeman on 9. 10. 2016.
   */
+
+/**
+  * Convert values/atoms to statements
+  */
 trait BoolExpressionConversion {
 
   implicit def fixedValueToBoolExpression(fixedValue: FixedValue): BoolExpression[FixedValue] = Value(fixedValue)

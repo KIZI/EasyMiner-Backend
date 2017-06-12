@@ -23,6 +23,14 @@ import scala.xml.NodeSeq
 /**
   * Created by Vaclav Zeman on 20. 8. 2015.
   */
+
+/**
+  * This handles requests for operations with an attribute of a dataset
+  *
+  * @param datasetDetail dataset
+  * @param dBConnectors  database connections
+  * @param actorContext  user actor context
+  */
 class AttributeService(datasetDetail: DatasetDetail)(implicit dBConnectors: DBConnectors, actorContext: ActorContext)
   extends Directives
     with SprayJsonSupport

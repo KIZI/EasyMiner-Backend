@@ -12,6 +12,10 @@ import cz.vse.easyminer.data._
 /**
   * Created by Vaclav Zeman on 9. 12. 2015.
   */
+
+/**
+  * Abstraction for data source operations; we work only with mysql db connector because we deal only with meta data
+  */
 trait DbDataSourceOps extends DataSourceOps {
 
   implicit private[db] val mysqlDBConnector: MysqlDBConnector

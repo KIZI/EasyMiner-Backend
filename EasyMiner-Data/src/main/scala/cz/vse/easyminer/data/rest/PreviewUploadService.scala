@@ -31,6 +31,12 @@ import scala.util.{Failure, Success}
 /**
   * Created by Vaclav Zeman on 5. 9. 2015.
   */
+
+/**
+  * This handles requests for uploading an input file and getting back some sample of uploading data as example of data
+  *
+  * @param actorContext user actor context
+  */
 class PreviewUploadService(implicit actorContext: ActorContext) extends Directives with SprayJsonSupport {
 
   val maxChunkSize = 150000

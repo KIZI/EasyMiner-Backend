@@ -14,16 +14,35 @@ import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.DatasetTable
 import scalikejdbc._
 
 /**
- * Created by Vaclav Zeman on 22. 12. 2015.
- */
+  * Created by Vaclav Zeman on 22. 12. 2015.
+  */
+
+/**
+  * Abstraction for building dataset from data source
+  * It only creates empty dataset prepared for adding attributes
+  */
 trait DbDatasetBuilder extends DatasetBuilder {
 
+  /**
+    * Mysql database connection
+    */
   private[db] val mysqlDBConnector: MysqlDBConnector
 
+  /**
+    * Operations for all datasets - it is needed for rollback function (delete existed dataset)
+    */
   private[db] val datasetOps: DatasetOps
 
+  /**
+    * Function for creating table where all preprocessed data will be placed
+    *
+    * @param datasetDetail dataset detail
+    */
   private[db] def buildInstanceTable(datasetDetail: DatasetDetail): Unit
 
+  /**
+    * Task processor for monitoring dataset bulding
+    */
   private[db] val taskStatusProcessor: TaskStatusProcessor
 
   implicit class DataSourceTypeConversion(dataSourceType: DataSourceType) {
@@ -37,6 +56,11 @@ trait DbDatasetBuilder extends DatasetBuilder {
 
   import mysqlDBConnector._
 
+  /**
+    * This function creates all metadata about dataset and empty table for preprocessed data
+    *
+    * @return new dataset
+    */
   final def build: DatasetDetail = {
     val datasetId = DBConn autoCommit { implicit session =>
       sql"""INSERT INTO ${DatasetTable.table}

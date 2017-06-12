@@ -14,8 +14,15 @@ import scalikejdbc._
 import scala.annotation.tailrec
 
 /**
- * Created by Vaclav Zeman on 28. 1. 2016.
- */
+  * Created by Vaclav Zeman on 28. 1. 2016.
+  */
+
+/**
+  * This is main implementation for making aggregated histogram from list of numeric values within some field.
+  * Aggregated histogram consists of intervals
+  * The final implementation of this trait must contain only information about sql symbols and table, stats and method for sql execution which returns bins
+  * Returned intervals are equidistant
+  */
 trait DbValueHistogramOps extends ValueHistogramOps {
 
   case class Bin(middlePoint: Option[Double], frequency: Int)
@@ -31,11 +38,30 @@ trait DbValueHistogramOps extends ValueHistogramOps {
                              val frequencyColName: SQLSyntax,
                              val valueColumnColName: SQLSyntax)
 
+  /**
+    * Information about table name and columns names
+    */
   protected[this] val valueTableProperties: ValueTableProperties
+  /**
+    * Modulo symbol for a specific sql database
+    */
   protected[this] val sqlModuloSymbol: SQLSyntax
+  /**
+    * Column/field id
+    */
   protected[this] val columnId: Int
+  /**
+    * Field stats; we need to know only min and max values
+    */
   protected[this] val columnStats: ColumnStats
 
+  /**
+    * Input is sql query which should return sequence of bins (intervals).
+    * This method only takes this query and execute it within some specific connector
+    *
+    * @param sql sql query
+    * @return sequence of intervals/bins
+    */
   protected[this] def histogramSqlQuery(sql: SQLToList[Bin, HasExtractor]): Seq[Bin]
 
   private def getNumericIntervalsData(maxBins: Int, min: IntervalBorder, max: IntervalBorder): Seq[Bin] = {
@@ -60,6 +86,14 @@ trait DbValueHistogramOps extends ValueHistogramOps {
     )
   }
 
+  /**
+    * For some data source and field this function return aggregated values/instances histogram by number of bins.
+    *
+    * @param maxBins  maximal number of bins
+    * @param minValue minimal value of the histogram
+    * @param maxValue maximal value of the histogram
+    * @return intervals which represents a histogram
+    */
   final def getHistogram(maxBins: Int, minValue: Option[IntervalBorder] = None, maxValue: Option[IntervalBorder] = None): Seq[ValueInterval] = columnStats match {
     case NumericColumnStats(minColumnValue, maxColumnValue) =>
       val min = minValue.getOrElse(InclusiveIntervalBorder(minColumnValue))
@@ -76,7 +110,7 @@ trait DbValueHistogramOps extends ValueHistogramOps {
           val binTo = if (interval.tail.head == max.value) max else ExclusiveIntervalBorder(interval.tail.head)
           def sumRestDataIfEnd(data: Seq[(Double, Int)]) = if (bins.size == 2) data.foldLeft(0)(_ + _._2) else 0
           data match {
-            case Seq((x, freq), tail @ _*) if x >= binFrom.value && x < binTo.value =>
+            case Seq((x, freq), tail@_*) if x >= binFrom.value && x < binTo.value =>
               fillBins(bins.tail, tail, result :+ NumericValueInterval(binFrom, binTo, freq + sumRestDataIfEnd(tail)))
             case _ =>
               fillBins(bins.tail, data, result :+ NumericValueInterval(binFrom, binTo, 0 + sumRestDataIfEnd(data)))
@@ -86,9 +120,9 @@ trait DbValueHistogramOps extends ValueHistogramOps {
         }
       }
       fillBins((min.value to max.value by intervalSize).toList, data.view.collect { case Bin(Some(x), y) => x -> y })
-      /*data.collectFirst {
-        case Bin(None, freq) => NullValueInterval(freq) +: result
-      }.getOrElse(result)*/
+    /*data.collectFirst {
+      case Bin(None, freq) => NullValueInterval(freq) +: result
+    }.getOrElse(result)*/
     case NoneColumnStats => Nil
   }
 

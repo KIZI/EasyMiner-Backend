@@ -16,8 +16,12 @@ import spray.can.Http
 import scala.language.postfixOps
 
 /**
- * Created by Vaclav Zeman on 15. 7. 2015.
- */
+  * Created by Vaclav Zeman on 15. 7. 2015.
+  */
+
+/**
+  * Main object for starting a web service of this easyminer module
+  */
 object Main extends App {
 
   val service = actorSystem.actorOf(Props[DataMainService], "main-service")

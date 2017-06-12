@@ -18,6 +18,15 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 22. 12. 2015.
   */
+
+/**
+  * This builds attributes from fields as the same copy
+  *
+  * @param dataset             dataset detail
+  * @param attributes          input attribute definitions
+  * @param mysqlDBConnector    mysql database connections
+  * @param taskStatusProcessor task processor for monitoring
+  */
 class MysqlSimpleAttributeBuilder private[db](val dataset: DatasetDetail,
                                               val attributes: Seq[SimpleAttribute])
                                              (implicit

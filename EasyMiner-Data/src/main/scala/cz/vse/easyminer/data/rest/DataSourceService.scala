@@ -16,16 +16,32 @@ import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.Directives
 
 /**
- * Created by Vaclav Zeman on 19. 8. 2015.
- */
+  * Created by Vaclav Zeman on 19. 8. 2015.
+  */
+
+/**
+  * This handles requests for operations with data source
+  *
+  * @param dBConnectors database connectors
+  * @param actorContext user actor context
+  */
 class DataSourceService(implicit dBConnectors: DBConnectors, actorContext: ActorContext) extends Directives with SprayJsonSupport with DefaultJsonProtocol {
 
   import JsonFormatters.JsonDataSourceDetail._
   import JsonFormatters.JsonAggregatedInstance._
   import cz.vse.easyminer.data.impl.db.DataSourceTypeConversions._
 
+  /**
+    * Get object of data source operations
+    */
   val dataSourceOps: DataSourceOps = LimitedDataSourceType.toDataSourceOps
 
+  /**
+    * Create field service from data source detail
+    *
+    * @param dataSourceDetail data source detail
+    * @return field service route rules
+    */
   private def routeField(dataSourceDetail: DataSourceDetail) = new FieldService(dataSourceDetail).route
 
   lazy val route = pathEnd {

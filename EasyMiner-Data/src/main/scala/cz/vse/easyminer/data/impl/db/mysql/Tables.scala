@@ -14,8 +14,16 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 9. 8. 2015.
   */
+
+/**
+  * Table definitions for all persistent objects on mysql database
+  * Definitions are self-documented
+  */
 object Tables {
 
+  /**
+    * Prefix for all table names
+    */
   val tablePrefix = Conf().getOrElse("easyminer.data.table-prefix", "")
 
   object DataSourceTable extends SQLSyntaxSupport[DataSourceDetail] {

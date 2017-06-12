@@ -15,7 +15,15 @@ import cz.vse.easyminer.miner.{Attribute, _}
 import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 import cz.vse.easyminer.preprocessing._
 
-class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => DatasetTypeOps[DatasetType]) extends {
+/**
+  * This is class for parsing PMML input task for association rules mining.
+  * It takes PMML document and creates miner task object where all needed parameters for association rules mining are placed.
+  * It parses rule pattern (constraints for left and right sides of rules) and interest measure thresholds
+  *
+  * @param pmml            input pmml document in xml format
+  * @param datasetTypeConv implicit! conversion function for dataset type to dataset operations object (it is needed for creation of value mapper object)
+  */
+class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => DatasetTypeOps[DatasetType]) {
 
   type ItemMapper = Map[Int, Attribute]
 
@@ -37,6 +45,13 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
     case AnyToInt(id) => getElementById(elt, id)
   }
 
+  /**
+    * Creates rule pattern statements from logic connections
+    *
+    * @param el         xml node where the rule pattern is defined
+    * @param itemMapper implicit! item mapper - get atom from atom id (atom can be attribute-value pair or attribute with all values)
+    * @return rule statement
+    */
   private def toExpression(el: xml.Node)(implicit itemMapper: ItemMapper): BoolExpression[Attribute] = el.label match {
     case `itemsetElemName` =>
       val rs = el \ itemElemRefName
@@ -60,6 +75,12 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
     case elabel => throw new UnspecifiedElement(elabel)
   }
 
+  /**
+    * Get all atoms (attributes and attribute-value pairs)
+    *
+    * @param datasetDetail dataset detail
+    * @return map of all atom (atom id -> atom instance)
+    */
   private def fetchItemMapper(datasetDetail: DatasetDetail): ItemMapper = {
     val attributeOps = datasetDetail.`type`.toAttributeOps(datasetDetail)
     val valueMapperOps = datasetDetail.`type`.toValueMapperOps(datasetDetail)
@@ -96,6 +117,11 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
     }.toMap
   }
 
+  /**
+    * Fetch information about dataset from which we want to mine rules
+    *
+    * @return dataset detail
+    */
   private def fetchDataset = {
     val datasetOps = LimitedDatasetType.toDatasetOps
     (pmml \ "Header" \ "Extension")
@@ -107,6 +133,11 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
       .flatten.getOrElse(throw NoDataset)
   }
 
+  /**
+    * Get all interest measure thresholds
+    *
+    * @return interest measures
+    */
   private def fetchInterestMeasures = {
     val limit = (pmml \\ "HypothesesCountMax")
       .map(_.text)
@@ -126,11 +157,27 @@ class PmmlTaskParser(pmml: xml.Node)(implicit datasetTypeConv: DatasetType => Da
     InterestMeasures(im ++ limit + MinRuleLength(1))
   }
 
+  /**
+    * Get antecedent rule pattern
+    *
+    * @param itemMapper implicit! atom mapper
+    * @return statement or None if there is no restriction
+    */
   private def fetchAntecedent(implicit itemMapper: ItemMapper): Option[BoolExpression[Attribute]] = (pmml \\ "AntecedentSetting").headOption.flatMap(x => findElemByElemId(x, itemsetElemName) map toExpression)
 
+  /**
+    * Get consequent rule pattern
+    *
+    * @param itemMapper implicit! atom mapper
+    * @return statement or None if there is no restriction
+    */
   private def fetchConsequent(implicit itemMapper: ItemMapper): Option[BoolExpression[Attribute]] = (pmml \\ "ConsequentSetting").headOption.flatMap(x => findElemByElemId(x, itemsetElemName) map toExpression)
 
-
+  /**
+    * Parse input PMML document and creates miner task definitions object
+    *
+    * @return miner task definitions
+    */
   def parse: MinerTask = {
     val dataset = fetchDataset
     implicit val itemMapper = fetchItemMapper(dataset)

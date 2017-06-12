@@ -11,10 +11,19 @@ import cz.vse.easyminer.miner._
 
 import scala.language.implicitConversions
 
+/**
+  * Convert rule statement to text form
+  */
 trait BoolExpressionText extends BoolExpressionVisualizer[Attribute] {
 
   val MappedFixedValue: MappedFixedValue
 
+  /**
+    * Convert rule statement to text form
+    *
+    * @param expr statement
+    * @return text
+    */
   def exprToString(expr: BoolExpression[Attribute]): String = expr match {
     case Value(AllValues(attribute)) => s"${attribute.name}(*)"
     case MappedFixedValue(attribute, NominalValue(value)) => s"${attribute.name}($value)"
@@ -26,10 +35,19 @@ trait BoolExpressionText extends BoolExpressionVisualizer[Attribute] {
 
 }
 
+/**
+  * Convert rule statement to text form
+  */
 trait BoolExpressionShortText extends BoolExpressionVisualizer[Attribute] {
 
   val MappedFixedValue: MappedFixedValue
 
+  /**
+    * Convert rule statement to text form
+    *
+    * @param expr statement
+    * @return text
+    */
   def exprToString(expr: BoolExpression[Attribute]): String = expr match {
     case Value(AllValues(attribute)) => s"${attribute.name}(*)"
     case MappedFixedValue(attribute, NominalValue(value)) => s"${attribute.name}($value)"
@@ -41,10 +59,23 @@ trait BoolExpressionShortText extends BoolExpressionVisualizer[Attribute] {
 
 }
 
+/**
+  * Additional operations for rule statements
+  */
 object BoolExpressionImpl {
 
+  /**
+    * Extension of rule statement
+    *
+    * @param expr rule statement
+    */
   implicit class PimpedBoolExpression(expr: BoolExpression[Attribute]) {
 
+    /**
+      * Get all attributes from the statement
+      *
+      * @return attributes
+      */
     def toAttributes = {
       def nextToAttributes(expr: BoolExpression[Attribute]): Set[Attribute] = {
         expr match {
@@ -57,6 +88,11 @@ object BoolExpressionImpl {
       nextToAttributes(expr)
     }
 
+    /**
+      * Get all attribute detail from the statement
+      *
+      * @return attribute details
+      */
     def toAttributeDetails = toAttributes collect {
       case AllValues(attributeDetail) => attributeDetail
       case FixedValue(attributeDetail, _) => attributeDetail

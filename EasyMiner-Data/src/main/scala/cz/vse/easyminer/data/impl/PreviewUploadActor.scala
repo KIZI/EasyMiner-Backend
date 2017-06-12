@@ -18,12 +18,25 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
 /**
- * Created by Vaclav Zeman on 5. 9. 2015.
- */
+  * Created by Vaclav Zeman on 5. 9. 2015.
+  */
+
+/**
+  * Actor for control preview uploading.
+  * This receives data buckets and send it into an input stream.
+  * After the preview uploader obtains some sample of data with a specific size we return this sample and stop this actor
+  *
+  * @param id             upload id
+  * @param bufferedWriter writer to which we will send data buckets
+  * @param futureData     future object of the result
+  */
 class PreviewUploadActor(id: String,
                          bufferedWriter: BufferedWriter,
                          futureData: Future[Array[Byte]]) extends Actor with FSMWithExceptionHandler[PreviewUploadActor.State, PreviewUploadActor.Data] {
 
+  /**
+    * After 30 seconds there are no arriving data we stop this actor
+    */
   context.setReceiveTimeout(30 seconds)
 
   startWith(State.InProgress, Data.NoData)
@@ -39,13 +52,18 @@ class PreviewUploadActor(id: String,
   }
 
   when(State.InProgress) {
+    //if some exception we stop this actor and send back the exception
     exceptionHandling {
+      //if we receive some data we first check whether the future result is completed (the preview is sufficient)
+      //if not then we write data to the writer
       case Event(Request.Data(data), _) => handleFuture {
         limitedRepeatUntil[Boolean](100)(x => x)(bufferedWriter.write(data)) match {
           case true => stay replying Response.InProgress
           case false => throw Exceptions.NoWrittenChunk
         }
       }
+      //if we receive end of stream then we check result and return it
+      //if the result is not completed then end the stream, go to finished state and return in progress state
       case Event(Request.Finish, _) => handleFuture {
         bufferedWriter.finish()
         goto(State.Finished) replying Response.InProgress
@@ -54,6 +72,8 @@ class PreviewUploadActor(id: String,
   }
 
   when(State.Finished) {
+    //wait for a result
+    //if there is no result return in progress state
     case Event(_: Request, _) => handleFuture {
       stay replying Response.InProgress
     }

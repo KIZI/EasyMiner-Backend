@@ -6,18 +6,24 @@
 
 package cz.vse.easyminer.data.impl.db.mysql
 
-import java.io.PrintWriter
-
 import cz.vse.easyminer.core.TaskStatusProcessor
 import cz.vse.easyminer.core.db.MysqlDBConnector
-import cz.vse.easyminer.data._
-import cz.vse.easyminer.data.impl.db.{DbFieldBuilder, ValidationDataSourceBuilder}
-import cz.vse.easyminer.data.impl.db.mysql.Tables._
-import scalikejdbc._
 import cz.vse.easyminer.core.util.MapOps.PimpedMap
+import cz.vse.easyminer.data._
+import cz.vse.easyminer.data.impl.db.mysql.Tables._
+import cz.vse.easyminer.data.impl.db.{DbFieldBuilder, ValidationDataSourceBuilder}
+import scalikejdbc._
 
 /**
   * Created by Vaclav Zeman on 8. 8. 2015.
+  */
+
+/**
+  * Implementation for data source building on mysql database
+  *
+  * @param name                data source name
+  * @param mysqlDBConnector    implicit! mysql db connector
+  * @param taskStatusProcessor implicit! task processor for monitoring
   */
 class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) extends DataSourceBuilder {
 
@@ -46,6 +52,14 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
       taskStatusProcessor.newStatus("The data source is now populating by uploaded instances... Inserted rows: " + dataSource.size)
     }
 
+
+    /**
+      * This adds one transaction into transaction database.
+      * One transaction is an itemset which contains couples (field -> value)
+      *
+      * @param itemset one transaction of input data
+      * @return new value builder with added data
+      */
     def addTransaction(itemset: Set[(FieldDetail, Value)]): ValueBuilder = if (batchParameters.size >= batchLimit) {
       flushBatch()
       new MysqlValueBuilder(
@@ -72,6 +86,11 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
       )
     }
 
+    /**
+      * After you added all values, then create a final shape of the data source detail
+      *
+      * @return created data source detail
+      */
     def build: DataSourceDetail = {
       if (batchParameters.nonEmpty) {
         flushBatch()
@@ -152,8 +171,21 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
       }
     }
 
+    /**
+      * Add a field to the data source
+      *
+      * @param field added field
+      * @return new field builder with an added field
+      */
     def field(field: Field): FieldBuilder = new MysqlFieldBuilder(dataSource, fields :+ field)
 
+    /**
+      * After you added all fields, then create value builder for populating all fields with data
+      * Created value builder is delegated to "f" function, which should create the final data source
+      *
+      * @param f function, which populates values to fields for a data source
+      * @return created data source detail
+      */
     def build(f: (ValueBuilder) => DataSourceDetail): DataSourceDetail = {
       val fieldsDetail = buildFields
       buildDataSourceTable
@@ -163,6 +195,14 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
 
   }
 
+  /**
+    * This function builds all.
+    * First it creates an empty data source and then creates a field builder and uses "f" function for building of fields for the data source
+    * The "f" function should create the final data source
+    *
+    * @param f function, which builds fields for a data source with a field builder
+    * @return created data source detail
+    */
   def build(f: (FieldBuilder) => DataSourceDetail): DataSourceDetail = {
     taskStatusProcessor.newStatus("Meta information about a data source are creating...")
     val dataSourceId = DBConn autoCommit { implicit session =>
@@ -192,6 +232,14 @@ class MysqlDataSourceBuilder private[db](val name: String)(implicit mysqlDBConne
 
 object MysqlDataSourceBuilder {
 
+  /**
+    * Create data source builder instance decorated by validator
+    *
+    * @param name                data source name
+    * @param mysqlDBConnector    implicit! mysql connector
+    * @param taskStatusProcessor implicit! task processor for monitoring
+    * @return data source builder
+    */
   def apply(name: String)(implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) = new ValidationDataSourceBuilder(new MysqlDataSourceBuilder(name))
 
 }

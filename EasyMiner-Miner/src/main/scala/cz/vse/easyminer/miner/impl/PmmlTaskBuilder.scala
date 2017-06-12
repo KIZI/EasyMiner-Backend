@@ -14,14 +14,35 @@ import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.InstanceTable
 import scala.language.reflectiveCalls
 
 /**
- * Created by Vaclav Zeman on 4. 3. 2016.
- */
+  * Created by Vaclav Zeman on 4. 3. 2016.
+  */
+
+/**
+  * This is trait for building PMML input task from miner task object
+  * PMML is created from mustache template PmmlInputUnlimitedTask.mustache
+  */
 trait PmmlTaskBuilder {
 
+  /**
+    * parameters for mustache templates
+    */
   val templateParameters: Map[String, Any]
 
+  /**
+    * Create PMML taske builder from task template parameters
+    *
+    * @param templateParameters template parameters
+    * @return pmml task builder
+    */
   def apply(templateParameters: Map[String, Any]): PmmlTaskBuilder
 
+  /**
+    * Get instance/transaction table from dataset detail.
+    * We need to specify table within input task.
+    *
+    * @param dataset dataset detail
+    * @return instance table
+    */
   protected[this] def datasetToInstanceTable(dataset: DatasetDetail): InstanceTable
 
   private sealed trait MergedExpression
@@ -53,9 +74,9 @@ trait PmmlTaskBuilder {
   }
 
   private def mergedExpressionToSet(mergedExpression: MergedExpression): Set[MergedExpression] = mergedExpression match {
-    case mergedExpressionParent @ Conjunction(mergedExpressionChildren) => mergedExpressionChildren.map(mergedExpressionToSet).reduce(_ ++ _) + mergedExpressionParent
-    case mergedExpressionParent @ Disjunction(mergedExpressionChildren) => mergedExpressionChildren.map(mergedExpressionToSet).reduce(_ ++ _) + mergedExpressionParent
-    case mergedExpressionParent @ Negation(mergedExpressionChild) => mergedExpressionToSet(mergedExpressionChild) + mergedExpressionParent
+    case mergedExpressionParent@Conjunction(mergedExpressionChildren) => mergedExpressionChildren.map(mergedExpressionToSet).reduce(_ ++ _) + mergedExpressionParent
+    case mergedExpressionParent@Disjunction(mergedExpressionChildren) => mergedExpressionChildren.map(mergedExpressionToSet).reduce(_ ++ _) + mergedExpressionParent
+    case mergedExpressionParent@Negation(mergedExpressionChild) => mergedExpressionToSet(mergedExpressionChild) + mergedExpressionParent
     case mergedExpression: Literal => Set(mergedExpression)
   }
 
@@ -70,19 +91,25 @@ trait PmmlTaskBuilder {
   }
 
   private def attributeToBbaSetting(bbaSettingsIds: Map[Attribute, Int]): PartialFunction[Attribute, Map[String, Any]] = {
-    case attribute @ AllValues(attributeDetail) => Map("id" -> bbaSettingsIds(attribute), "colname" -> attributeDetail.id, "allvalues" -> true)
-    case attribute @ FixedValue(attributeDetail, normalizedValue) => Map("id" -> bbaSettingsIds(attribute), "colname" -> attributeDetail.id, "fixedvalue" -> normalizedValue)
+    case attribute@AllValues(attributeDetail) => Map("id" -> bbaSettingsIds(attribute), "colname" -> attributeDetail.id, "allvalues" -> true)
+    case attribute@FixedValue(attributeDetail, normalizedValue) => Map("id" -> bbaSettingsIds(attribute), "colname" -> attributeDetail.id, "fixedvalue" -> normalizedValue)
   }
 
   private def interestMeasureToInterestMeasureThreshold(interestMeasuresIds: Map[InterestMeasure, Int]): PartialFunction[InterestMeasure, Map[String, Any]] = {
-    case im @ Confidence(value) => Map("id" -> interestMeasuresIds(im), "name" -> "FUI", "value" -> value)
-    case im @ Support(value) => Map("id" -> interestMeasuresIds(im), "name" -> "SUPP", "value" -> value)
-    case im @ Lift(value) => Map("id" -> interestMeasuresIds(im), "name" -> "LIFT", "value" -> value)
-    case im @ MaxRuleLength(value) => Map("id" -> interestMeasuresIds(im), "name" -> "RULE_LENGTH", "value" -> value)
-    case im @ CBA => Map("id" -> interestMeasuresIds(im), "name" -> "CBA")
-    case im @ Auto => Map("id" -> interestMeasuresIds(im), "name" -> "AUTO_CONF_SUPP")
+    case im@Confidence(value) => Map("id" -> interestMeasuresIds(im), "name" -> "FUI", "value" -> value)
+    case im@Support(value) => Map("id" -> interestMeasuresIds(im), "name" -> "SUPP", "value" -> value)
+    case im@Lift(value) => Map("id" -> interestMeasuresIds(im), "name" -> "LIFT", "value" -> value)
+    case im@MaxRuleLength(value) => Map("id" -> interestMeasuresIds(im), "name" -> "RULE_LENGTH", "value" -> value)
+    case im@CBA => Map("id" -> interestMeasuresIds(im), "name" -> "CBA")
+    case im@Auto => Map("id" -> interestMeasuresIds(im), "name" -> "AUTO_CONF_SUPP")
   }
 
+  /**
+    * Set input template parameters by miner task object
+    *
+    * @param minerTask miner task object
+    * @return pmml task builder
+    */
   def withMinerTask(minerTask: MinerTask) = {
     val antecedent = minerTask.antecedent.map(boolExpressionToMergedExpression)
     val consequent = minerTask.consequent.map(boolExpressionToMergedExpression)
@@ -105,10 +132,21 @@ trait PmmlTaskBuilder {
     )
   }
 
+  /**
+    * Set input templete parameters with information about database
+    *
+    * @param databaseName database name
+    * @return pmml task builder
+    */
   def withDatabaseName(databaseName: String) = apply(
     templateParameters + ("database-name" -> databaseName)
   )
 
+  /**
+    * It takes template parameters and use it for creation PMML input task from mustache template
+    *
+    * @return pmml document as string
+    */
   def toPmml = Template("PmmlInputUnlimitedTask.mustache", templateParameters)
 
 }

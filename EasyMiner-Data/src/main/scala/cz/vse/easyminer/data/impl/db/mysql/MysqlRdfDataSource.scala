@@ -18,6 +18,15 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 27. 12. 2016.
   */
+
+/**
+  * Implementation of rdf data source operations on mysql database.
+  * This is object which control working with input RDF data source.
+  *
+  * @param dataSourceDetail    data source detail
+  * @param mysqlDBConnector    implicit! mysql db connector
+  * @param taskStatusProcessor implicit! task processor for monitoring
+  */
 class MysqlRdfDataSource private(dataSourceDetail: DataSourceDetail)(implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) extends RdfDataSource with ValueValidators {
 
   import mysqlDBConnector._
@@ -60,6 +69,11 @@ class MysqlRdfDataSource private(dataSourceDetail: DataSourceDetail)(implicit my
     )
   }
 
+  /**
+    * Save all triples into a database
+    *
+    * @param it triple iterator
+    */
   def save(it: Iterator[Triple]): Unit = DBConn autoCommit { implicit session =>
     sql"""CREATE TABLE ${rdfTable.table} (
         subject varchar(255) NOT NULL,
@@ -79,6 +93,11 @@ class MysqlRdfDataSource private(dataSourceDetail: DataSourceDetail)(implicit my
     }
   }
 
+  /**
+    * Fetch all fields from triplestore; it transforms all predicates to fields
+    *
+    * @return seq of fields
+    */
   def fetchFields(): Seq[Field] = DBConn autoCommit { implicit session =>
     sql"SELECT predicate, BIT_OR(is_nominal) AS nominal FROM ${rdfTable.table} GROUP BY predicate"
       .map(wrs => Field(wrs.string("predicate"), if (wrs.boolean("nominal")) NominalFieldType else NumericFieldType))
@@ -86,6 +105,13 @@ class MysqlRdfDataSource private(dataSourceDetail: DataSourceDetail)(implicit my
       .apply()
   }
 
+  /**
+    * Fetch all transactions from triplestore
+    * One transaction represents one specific subject and all its predicate-object pairs
+    *
+    * @param fields created field detail sequence
+    * @return transactions
+    */
   def fetchTransactions(fields: Seq[FieldDetail]): Traversable[Set[Item]] = new Traversable[Set[Item]] {
     def foreach[U](f: (Set[Item]) => U): Unit = DBConn autoCommit { implicit session =>
       val fieldMap = fields.iterator.map(field => field.name -> field).toMap
@@ -105,6 +131,9 @@ class MysqlRdfDataSource private(dataSourceDetail: DataSourceDetail)(implicit my
     }
   }
 
+  /**
+    * Remove the intermediate table with all triples from database
+    */
   def remove(): Unit = DBConn autoCommit { implicit session =>
     sql"DROP TABLE IF EXISTS ${rdfTable.table}".execute().apply()
   }
@@ -113,6 +142,14 @@ class MysqlRdfDataSource private(dataSourceDetail: DataSourceDetail)(implicit my
 
 object MysqlRdfDataSource {
 
+  /**
+    * Create rdf data source operations instance
+    *
+    * @param dataSourceDetail    data source detail
+    * @param mysqlDBConnector    implicit! mysql db connector
+    * @param taskStatusProcessor implicit! task processor for monitoring
+    * @return rdf data source
+    */
   def apply(dataSourceDetail: DataSourceDetail)(implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor) = new MysqlRdfDataSource(dataSourceDetail)
 
   object Exceptions {

@@ -16,14 +16,23 @@ import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.Directives
 
 /**
- * Created by Vaclav Zeman on 1. 9. 2015.
- */
+  * Created by Vaclav Zeman on 1. 9. 2015.
+  */
+
+/**
+  * This handles requests for value operations of an attribute and dataset
+  *
+  * @param datasetDetail   dataset
+  * @param attributeDetail attribute
+  * @param dBConnectors    database connections
+  * @param actorContext    user actor context
+  */
 class ValueService(datasetDetail: DatasetDetail, attributeDetail: AttributeDetail)(implicit dBConnectors: DBConnectors, actorContext: ActorContext)
   extends Directives
-  with SprayJsonSupport
-  with DefaultJsonProtocol
-  with TaskStatusRestHelper
-  with PreprocessingMainService.BaseUriPath {
+    with SprayJsonSupport
+    with DefaultJsonProtocol
+    with TaskStatusRestHelper
+    with PreprocessingMainService.BaseUriPath {
 
   import JsonFormatters.JsonValueDetail._
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions._

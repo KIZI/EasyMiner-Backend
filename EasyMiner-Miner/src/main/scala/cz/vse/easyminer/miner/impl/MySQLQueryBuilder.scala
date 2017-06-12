@@ -9,6 +9,9 @@ package cz.vse.easyminer.miner.impl
 import cz.vse.easyminer.miner._
 import scalikejdbc._
 
+/**
+  * Create database queries from a rule definition
+  */
 trait MysqlQueryBuilder extends DatasetQueryBuilder {
 
   val attributeColumn: SQLSyntax
@@ -24,6 +27,12 @@ trait MysqlQueryBuilder extends DatasetQueryBuilder {
     case _ => sqls"0"
   }
 
+  /**
+    * Create sql query syntax from a rule statement
+    *
+    * @param exp statement
+    * @return sql syntax
+    */
   def toSqlConditions(exp: BoolExpression[Attribute]): scalikejdbc.SQLSyntax = buildSqlConditionFromExpression(exp)
 
 }

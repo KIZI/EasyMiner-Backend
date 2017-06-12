@@ -16,6 +16,15 @@ import scalikejdbc._
 /**
   * Created by Vaclav Zeman on 21. 12. 2015.
   */
+
+/**
+  * Class for dataset building
+  *
+  * @param dataset             dataset for creation
+  * @param datasetOps          dataset operations object
+  * @param mysqlDBConnector    mysql database connection
+  * @param taskStatusProcessor task processor for monitoring
+  */
 class MysqlDatasetBuilder private[db](val dataset: Dataset,
                                       private[db] val datasetOps: DatasetOps)
                                      (implicit
@@ -24,6 +33,11 @@ class MysqlDatasetBuilder private[db](val dataset: Dataset,
 
   import mysqlDBConnector._
 
+  /**
+    * Function for creating table where all preprocessed data will be placed
+    *
+    * @param datasetDetail dataset detail
+    */
   private[db] def buildInstanceTable(datasetDetail: DatasetDetail): Unit = {
     val preprocessingInstanceTable = new PreprocessingInstanceTable(datasetDetail.id)
     val valueTable = new ValueTable(datasetDetail.id)

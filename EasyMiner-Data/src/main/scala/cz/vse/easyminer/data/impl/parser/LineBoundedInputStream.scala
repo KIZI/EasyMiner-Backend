@@ -11,14 +11,27 @@ import java.io.InputStream
 import cz.vse.easyminer.core.StatusCodeException.BadRequest
 
 /**
- * Created by Vaclav Zeman on 5. 9. 2015.
- */
+  * Created by Vaclav Zeman on 5. 9. 2015.
+  */
+
+/**
+  * This input stream restricts row size of an input document.
+  * It is also prevention against DoS attack because very large rows can cause memory problem because some input format are parsed line by line and whole line is written into the memory.
+  *
+  * @param is          input stream
+  * @param maxLineSize max line size in bytes
+  */
 class LineBoundedInputStream(is: InputStream, maxLineSize: Int) extends InputStream {
 
   val newline = 0x0A
 
   private var byteCounter = 0
 
+  /**
+    * If the maxLineSize is reached for a specific line then IndexOutOfBoundsException will be thrown
+    *
+    * @return byte
+    */
   def read(): Int = {
     val byte = is.read()
     if (byte == -1) {

@@ -24,22 +24,58 @@ import scala.util.Try
 /**
   * Created by Vaclav Zeman on 22. 12. 2015.
   */
+
+/**
+  * Main abstraction for attribute building from fields
+  * It automatically validates input attributes, creates empty attributes, launches attribute builders and completes finally information about dataset.
+  * It also controls any errors and executes rollback if any exception
+  *
+  * @tparam T type of attribute preprocessings
+  */
 trait DbAttributeBuilder[T <: Attribute] extends AttributeBuilder[T] {
 
   case class AttributeWithDetail(attribute: T, attributeDetail: AttributeDetail, fieldDetail: FieldDetail)
 
+  /**
+    * Mysql database connection
+    */
   private[db] val mysqlDBConnector: MysqlDBConnector
 
+  /**
+    * Field operations of a data source
+    */
   private[db] val fieldOps: Option[FieldOps]
 
+  /**
+    * Attribute operations of a dataset
+    */
   private[db] val attributeOps: AttributeOps
 
+  /**
+    * Task processor for monitoring of building process
+    */
   private[db] val taskStatusProcessor: TaskStatusProcessor
 
+  /**
+    * If this flag is true then it activates created attributes automatically after buildAttributes function
+    */
   private[db] val attributeAutoActive = true
 
+  /**
+    * This is main building function which populates attributes from fields and their field detail and attribute detail
+    *
+    * @param attributes input attribute definitions with created empty attribute detail and field detail
+    * @return populated attribute details
+    */
   private[db] def buildAttributes(attributes: Seq[AttributeWithDetail]): Seq[AttributeDetail]
 
+  /**
+    * This function wraps building process.
+    * It is suitable if we want to lock some tables before building and then release them after successful building or for controlling building process
+    *
+    * @param f function which we can wrap/decorate
+    * @return decorated function
+    */
   private[db] def buildWrapper(f: => Seq[AttributeDetail]) = f
 
   private[db] def getNumericComparator(intervalBorder: IntervalBorder, greaterThan: Boolean) = intervalBorder match {
@@ -60,6 +96,12 @@ trait DbAttributeBuilder[T <: Attribute] extends AttributeBuilder[T] {
     AttributeDetail(attributeId, attribute.name, fieldDetail.id, dataset.id, fieldDetail.uniqueValuesSize, false)
   }
 
+  /**
+    * Main building function which calls all necessary methods for creating attributes
+    * It controls whole building process
+    *
+    * @return created attributes
+    */
   final def build: Seq[AttributeDetail] = {
     Validator(attributes)(CollectionValidators.NonEmpty)
     taskStatusProcessor.newStatus("Attribute builder is waiting for completion of the last task which may still be in progress...")
@@ -85,8 +127,22 @@ trait DbAttributeBuilder[T <: Attribute] extends AttributeBuilder[T] {
     }
   }
 
+  /**
+    * Function which can be overwritten.
+    * It checks whether input attribute is valid with combination of a field detail
+    *
+    * @param attribute   attribute to build
+    * @param fieldDetail existed field detail which is bound with this attribute
+    * @return true if attribute is valid
+    */
   def attributeIsValid(attribute: T, fieldDetail: FieldDetail) = true
 
+  /**
+    * Function which activates created attribute after building process
+    *
+    * @param attributeDetail built attribute detail
+    * @return activated attribute detail
+    */
   def activeAttribute(attributeDetail: AttributeDetail) = {
     DBConn autoCommit { implicit session =>
       sql"UPDATE ${AttributeTable.table} SET ${AttributeTable.column.uniqueValuesSize} = ${attributeDetail.uniqueValuesSize}, ${AttributeTable.column.active} = 1 WHERE ${AttributeTable.column.id} = ${attributeDetail.id}".execute().apply()
@@ -96,6 +152,9 @@ trait DbAttributeBuilder[T <: Attribute] extends AttributeBuilder[T] {
 
 }
 
+/**
+  * Definitions of all tables needed for attribute building
+  */
 trait DbMysqlTables {
   val dataset: DatasetDetail
   protected[this] val preprocessingInstanceTable = new MysqlPreprocessingInstanceTable(dataset.id)
@@ -107,10 +166,22 @@ trait DbMysqlTables {
   protected[this] val pv = preprocessingValueTable.syntax("pv")
 }
 
+/**
+  * Auxiliary operations for working with intervals if we discretize numeric field
+  */
 trait IntervalOps {
 
   case class AttributeInterval(interval: Interval, frequency: Int)
 
+  /**
+    * This function smoots collection of interval.
+    * It moves interval borders and tries to find such setting where intervals will be smoothed and their frequency will be equal
+    *
+    * @param intervals      input intervals
+    * @param records        collection of all numbers from which intervals have been created
+    * @param canItMoveLeft  it checks whether it is possible to move greater left interval border to lower right interval border (right interval has higher frequency than left interval)
+    * @param canItMoveRight it checks whether it is possible to move lower right interval border to greater left interval border (left interval has higher frequency than right interval)
+    */
   @scala.annotation.tailrec
   final def smoothAttributeIntervals(intervals: collection.mutable.ArrayBuffer[AttributeInterval], records: => Traversable[data.NumericValueDetail])
                                     (canItMoveLeft: (data.NumericValueDetail, AttributeInterval, AttributeInterval) => Boolean)

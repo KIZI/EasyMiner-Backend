@@ -16,13 +16,27 @@ import cz.vse.easyminer.core.util.BasicValidators.Greater
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Created by Vaclav Zeman on 5. 9. 2015.
- */
+  * Created by Vaclav Zeman on 5. 9. 2015.
+  */
+
+/**
+  * This parses input stream and return a specific number of lines.
+  * This parser is suitable for preview upload and returns only a sample of whole input data.
+  *
+  * @param maxLines      maximal number of lines to return
+  * @param maxBufferSize maximal size of readed document with a specific maxLines (in bytes)
+  */
 class LineParser private(maxLines: Int,
                          maxBufferSize: Int) extends PreviewParser {
 
   val maxLineSize = (maxBufferSize.toDouble / maxLines).toInt
 
+  /**
+    * Parse input stream and return a specific number of lines
+    *
+    * @param is input stream
+    * @return array of bytes which contains only sample of input data (first x lines)
+    */
   def parse(is: InputStream): Array[Byte] = {
     val arrayBuffer = ArrayBuffer.empty[Byte]
     var numberOfLines = 0
@@ -42,6 +56,13 @@ class LineParser private(maxLines: Int,
 
 object LineParser {
 
+  /**
+    * Create an instance of LineParser class
+    *
+    * @param maxLines      maximal number of lines to return
+    * @param maxBufferSize maximal size of readed document with a specific maxLines (in bytes); default is 1mb
+    * @return function which creates line parser by a compression type
+    */
   def apply(maxLines: Int, maxBufferSize: Int = 1000000) = {
     Validator(maxLines)(Greater(0))
     PreviewParser(new LineParser(maxLines, maxBufferSize)) _

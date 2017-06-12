@@ -12,6 +12,10 @@ import cz.vse.easyminer.preprocessing.Item
 /**
   * Created by Vaclav Zeman on 3. 10. 2016.
   */
+
+/**
+  * Convert item (attribute-value pair) to text form
+  */
 object ItemText {
 
   def apply(item: Item) = s"${item.attribute}=${item.value}"

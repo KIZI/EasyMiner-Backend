@@ -17,6 +17,11 @@ import spray.json._
 /**
   * Created by Vaclav Zeman on 18. 8. 2015.
   */
+
+/**
+  * Converters from object to json and vice versa
+  * It is self-documented
+  */
 object JsonFormatters extends DefaultJsonProtocol {
 
   object JsonDataSourceType {

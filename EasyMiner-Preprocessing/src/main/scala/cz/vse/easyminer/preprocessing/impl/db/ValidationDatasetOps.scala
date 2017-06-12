@@ -12,8 +12,14 @@ import cz.vse.easyminer.preprocessing.impl.Validators.DatasetValidators
 import cz.vse.easyminer.preprocessing.{Dataset, DatasetDetail, DatasetOps}
 
 /**
- * Created by Vaclav Zeman on 29. 1. 2016.
- */
+  * Created by Vaclav Zeman on 29. 1. 2016.
+  */
+
+/**
+  * This is a decorator for dataset operations object which validates all input parameters and data
+  *
+  * @param datasetOps dataset operations object
+  */
 class ValidationDatasetOps(datasetOps: DatasetOps) extends DatasetOps with DatasetValidators {
 
   def renameDataset(datasetId: Int, newName: String): Unit = {
