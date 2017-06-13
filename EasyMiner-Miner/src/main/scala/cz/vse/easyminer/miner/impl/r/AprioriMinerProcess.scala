@@ -24,6 +24,12 @@ import scala.language.{implicitConversions, postfixOps}
 /**
   * Created by Vaclav Zeman on 20. 11. 2015.
   */
+
+/**
+  * Main operations for apriori mining of association rules in R environment by arules library
+  * First, from miner task definitions we create R functions for load transactions and partial mining
+  * Then we call partial mining process and transform results to output miner result
+  */
 trait AprioriMinerProcess extends MinerProcess {
 
   implicit val mysqlDBConnector: MysqlDBConnector
@@ -115,6 +121,11 @@ trait AprioriMinerProcess extends MinerProcess {
 
   }
 
+  /**
+    * Prepare and load all R functions for getting transactions and lauching association rules mining
+    *
+    * @param mt miner task definitions
+    */
   private def init(mt: MinerTask): Unit = {
     val instanceTable = new InstanceTable(mt.datasetDetail.id)
     val queryBuilder = new QueryBuilder with MysqlQueryBuilder {
@@ -188,6 +199,13 @@ trait AprioriMinerProcess extends MinerProcess {
     r.eval(rscriptMiner)
   }
 
+  /**
+    * Mine rules from a dataset by a miner task definition
+    *
+    * @param mt              task definition for mining asssocation rules
+    * @param processListener listener that obtains partial results of association rules
+    * @return completed result which contains all mined association rules
+    */
   def process(mt: MinerTask)(processListener: (MinerResult) => Unit): MinerResult = {
     val startTime = System.currentTimeMillis()
     init(mt)

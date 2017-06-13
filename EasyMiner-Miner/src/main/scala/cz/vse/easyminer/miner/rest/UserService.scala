@@ -20,24 +20,38 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
- * Created by Vaclav Zeman on 15. 8. 2015.
- */
+  * Created by Vaclav Zeman on 15. 8. 2015.
+  */
+
+/**
+  * This is the main actor for request/response control for a specific user
+  *
+  * @param user   user information
+  * @param apiKey api key
+  */
 class UserService private(user: User, val apiKey: String)
   extends HttpServiceActor
-  with DefaultResponseHandlers
-  with XmlErrorMessage
-  with UserEndpoint
-  with DbService {
+    with DefaultResponseHandlers
+    with XmlErrorMessage
+    with UserEndpoint
+    with DbService {
 
   implicit val ec: ExecutionContext = context.dispatcher
   implicit val timeout = Timeout(10 seconds)
 
+  /**
+    * This actor lives 5 minutes after last request from the user.
+    * Therefore we do not need to authenticate all requests by third part, but we preserve user states some time
+    */
   context.setReceiveTimeout(5 minutes)
 
   val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.rest.UserService")
 
   logger.debug(s"User service ${self.path.toString} has been created.")
 
+  /**
+    * Create service for mining which requires database connections
+    */
   val minerService = dbConnectors.map { implicit dbConnectors =>
     new MinerService()
   }
@@ -53,11 +67,21 @@ class UserService private(user: User, val apiKey: String)
     }
   }
 
+  /**
+    * After stopping this actor close all database connection of this user
+    */
   override def postStop(): Unit = {
     logger.debug(s"User service ${self.path.toString} is stopping...")
     dbConnectors.foreach(_.close())
   }
 
+  /**
+    * Function for creation of database connectors by user database settings
+    *
+    * @param mysqlUserDatabase mysql database settings
+    * @param hiveUserDatabase  optinal hive database settings
+    * @return database connectors
+    */
   def buildDbConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase: Option[HiveUserDatabase]): DBConnectors = new PreprocessingDBConnectors(mysqlUserDatabase, hiveUserDatabase)
 
 }

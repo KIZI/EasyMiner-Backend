@@ -34,6 +34,14 @@ import scala.xml.NodeSeq
 /**
   * Created by Vaclav Zeman on 22. 2. 2016.
   */
+
+/**
+  * Service which contains all routing rules for mining http requests/responses
+  * All operations are described in swagger doc
+  *
+  * @param actorContext user actor context
+  * @param dBConnectors database connections
+  */
 class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnectors) extends Directives {
 
   private val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.rest.MinerService")
@@ -60,6 +68,13 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
       }
   }
 
+  /**
+    * This starts mining asynchronously and returns future object
+    *
+    * @param minerActor actor which controls mining process
+    * @param pmml       input pmml task
+    * @return future object with result of asociation rules mining
+    */
   private def startMining(minerActor: ActorRef, pmml: NodeSeq): Future[MinerResult] = Future {
     logger.info(s"${minerActor.path.name}: mining start...")
     def useMiner(minerTask: MinerTask)(f: Miner => MinerResult) = minerTask.datasetDetail.`type` match {
@@ -95,9 +110,15 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
             <code>202 Accepted</code>
             <miner>
               <state>In progress</state>
-              <task-id>{id}</task-id>
-              <started>{new Date}</started>
-              <partial-result-url>{rurl}</partial-result-url>
+              <task-id>
+                {id}
+              </task-id>
+              <started>
+                {new Date}
+              </started>
+              <partial-result-url>
+                {rurl}
+              </partial-result-url>
             </miner>
           </status>
         )
@@ -119,8 +140,12 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
               <code>303 See Other</code>
               <miner>
                 <state>Done</state>
-                <task-id>{id}</task-id>
-                <complete-result-url>{rurl}</complete-result-url>
+                <task-id>
+                  {id}
+                </task-id>
+                <complete-result-url>
+                  {rurl}
+                </complete-result-url>
               </miner>
             </status>
           )

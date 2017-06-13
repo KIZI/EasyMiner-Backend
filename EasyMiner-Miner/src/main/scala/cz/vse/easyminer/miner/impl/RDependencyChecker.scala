@@ -21,8 +21,15 @@ import scala.language.implicitConversions
 
 
 /**
- * Created by Vaclav Zeman on 20. 9. 2015.
- */
+  * Created by Vaclav Zeman on 20. 9. 2015.
+  */
+
+/**
+  * Dependency checker for checking wherher R environment is available.
+  * It also checks posibility of association rules mining in R environment
+  *
+  * @param mysqlDBConnector mysql database connection
+  */
 class RDependencyChecker(implicit mysqlDBConnector: MysqlDBConnector) extends DependencyChecker[Nothing] {
 
   val innerDependencyCheckers: Option[(Nothing) => Runner] = None

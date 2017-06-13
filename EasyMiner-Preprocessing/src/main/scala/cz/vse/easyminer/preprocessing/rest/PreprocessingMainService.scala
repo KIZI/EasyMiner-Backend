@@ -18,18 +18,40 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
- * Created by Vaclav Zeman on 15. 8. 2015.
- */
+  * Created by Vaclav Zeman on 15. 8. 2015.
+  */
+
+/**
+  * Main service class
+  * Here are main routing rules for REST preprocessing service
+  * Others rules are nested within this rules but are placed in other classes
+  */
 class PreprocessingMainService extends HttpServiceActor with MainService with DefaultResponseHandlers with JsonErrorMessage with FixedContentTypeResolver {
 
   implicit val ec = context.dispatcher
 
   val strBasePath: String = PreprocessingMainService.strBasePath
 
+  /**
+    * This creates a user actor from api key
+    *
+    * @param user   user information
+    * @param apiKey api key
+    * @return actor
+    */
   def createUserActor(user: User, apiKey: String): Props = Props(new UserService(user, apiKey))
 
+  /**
+    * This function delegates request context to actor which represents the security facade.
+    * Security actor then sends authorization information back to this main actor.
+    *
+    * @param rc request context
+    */
   def secure(rc: RequestContext): Unit = context.actorOf(Props(new RequestService)) ! rc
 
+  /**
+    * Main routing rules
+    */
   val route = pathPrefix("api") {
     pathPrefix("v1") {
       path("doc.json") {

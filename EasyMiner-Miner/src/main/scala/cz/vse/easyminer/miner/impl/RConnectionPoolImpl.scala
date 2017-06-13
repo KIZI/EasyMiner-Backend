@@ -16,11 +16,28 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
+/**
+  * Connection pool for connections to R environment by RServe.
+  * All operations within this connection pool are thread safe.
+  * If in the pool is a prepared connection then after calling borrow function the connection is fetched from pool and there is not created a new one (it saves time)
+  * After close connection, the connection is throw away and new one is created and saved in the pool. It waits for borrowing
+  * If a connection is in the connection pool more than 15 minutes, it is automatically closed
+  *
+  * @param rServer     RServe address
+  * @param rPort       RServe port
+  * @param prepareLibs if this flag is true then after each connection all necesary libraries for assotiation rules mining are loaded
+  */
 class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = true) extends RConnectionPool {
 
   import ExecutionContext.Implicits.global
 
+  /**
+    * Max idle connections in the pool
+    */
   val maxIdle = 10
+  /**
+    * Min idle connections in the pool
+    */
   val minIdle = 2
   val connectionTimeout = 15 minutes
   val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.impl.RConnectionPool")
@@ -49,10 +66,26 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
     conn
   }
 
+  /**
+    * Get number of active/borrowed connections
+    *
+    * @return number of active connections
+    */
   def numActive = activeConnections
 
+  /**
+    * Get number of idle connections in the pool
+    *
+    * @return number of idle connections
+    */
   def numIdle = pool.size
 
+
+  /**
+    * Get R connection from pool
+    *
+    * @return R connection
+    */
   def borrow = {
     //borrow connection from pool
     //returns none if the pool is empty
@@ -77,6 +110,11 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
     conn
   }
 
+  /**
+    * Release R connection and return it back into the pool
+    *
+    * @param bc R connection
+    */
   def release(bc: BorrowedConnection) = {
     Future {
       //check whether connection pool is not full
@@ -121,6 +159,9 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
     }
   }
 
+  /**
+    * Refresh all connections in pool (close old idle connections)
+    */
   def refresh() = pool.synchronized {
     //close old connections
     //the connection pool may be empty if there is no connection borrowing within connectionTimeout
@@ -132,6 +173,9 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
     }
   }
 
+  /**
+    * Close all R connections from the connection pool
+    */
   def close() = pool.synchronized {
     pool.dequeueAll foreach (_.close)
   }
@@ -140,6 +184,9 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
 
 object RConnectionPoolImpl {
 
+  /**
+    * Default R connection pool
+    */
   val default = new RConnectionPoolImpl(Conf().get[String]("easyminer.miner.r.rserve-address"), Conf().getOrElse[Int]("easyminer.miner.r.rserve-port", 6311))
 
 }

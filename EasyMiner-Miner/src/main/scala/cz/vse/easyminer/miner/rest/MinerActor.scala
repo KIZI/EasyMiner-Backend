@@ -17,6 +17,13 @@ import scala.collection.immutable.Queue
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
+/**
+  * Actor which controls asociation rules mining process
+  * This receives partial or completed results of mining, requests for current mining state and exceptions
+  * After completion of mining and picking the result up this actor will be stopped
+  *
+  * @param id mining id
+  */
 class MinerActor private(id: UUID) extends Actor with FSM[MinerActor.State, MinerActor.Data] {
 
   import MinerActor._

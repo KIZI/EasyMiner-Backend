@@ -20,15 +20,31 @@ import scala.language.postfixOps
 /**
   * Created by Vaclav Zeman on 27. 2. 2016.
   */
+
+/**
+  * Incremental miner which uses apriori algorithm implemented in the arules R library
+  *
+  * @param minerTask       miner task definitions
+  * @param attributes      all dataset attributes
+  * @param processListener function to which partial results are being sent
+  * @param r               implicit! r script executor
+  */
 private[r] class AprioriIncrementalMiner(val minerTask: MinerTask, attributes: Seq[AttributeDetail])(val processListener: (MinerResult) => Unit)(implicit r: RScript) extends IncrementalMiner {
 
   val numberOfAttributes: Int = attributes.size
 
   private val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.impl.r.AprioriIncrementalMiner")
+  /**
+    * Mustache template with R mining function for partial mining
+    */
   private val rProcessTemplateName = "RAprioriProcess.mustache"
-
+  /**
+    * Mapper for conversion of association rules mined from R arules library into ARule objects
+    */
   private val outputAruleMapper = AruleExtractor.getOutputARuleMapper(Count(minerTask.datasetDetail.size), attributes)
-
+  /**
+    * Mapper for conversion of headers (meta information) about mining in R into scala objects
+    */
   private val outputHeaderMapper = {
     val TimeoutRegExp = """timeout rulelen=(\d+)""".r.unanchored
     val LimitRegExp = """limit rulelen=(\d+) size=(\d+)""".r.unanchored
@@ -40,6 +56,13 @@ private[r] class AprioriIncrementalMiner(val minerTask: MinerTask, attributes: S
     pf
   }
 
+  /**
+    * Mine rules with a specific rule length range
+    *
+    * @param minlen minimal rule length
+    * @param maxlen maximal rule length
+    * @return miner result which contains assocation rules
+    */
   protected[this] def mine(minlen: Int, maxlen: Int): MinerResult = {
     val startTime = System.currentTimeMillis()
     val im = Map(

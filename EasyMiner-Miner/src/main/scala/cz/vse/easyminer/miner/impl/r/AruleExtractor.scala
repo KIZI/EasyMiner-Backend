@@ -15,10 +15,14 @@ import cz.vse.easyminer.preprocessing.AttributeDetail
   * Created by Vaclav Zeman on 16. 11. 2015.
   */
 
+/**
+  * Extractors for associations rules returned by R arules library
+  */
 object AruleExtractor {
 
   private class Cedent(attributes: Seq[AttributeDetail]) {
     private lazy val attributeMap = attributes.view.map(x => x.id -> x).toMap
+
     def unapply(str: String): Option[List[FixedValue]] = if (str.trim.isEmpty) {
       Some(Nil)
     } else {
@@ -26,6 +30,14 @@ object AruleExtractor {
     }
   }
 
+  /**
+    * Get partial function which converts associations rules returned by R arules library into scala ARule objects
+    * ARule object contains antecedent, consequent, contingency table and all interest measures
+    *
+    * @param count      total number of transactions (it is needed for counting interest measures)
+    * @param attributes all attributes details of dataset from which we mined rules
+    * @return partial function string -> ARule
+    */
   def getOutputARuleMapper(count: Count, attributes: Seq[AttributeDetail]) = {
     val ArulePattern = """\d*\s*"?\{(.*?)\}\s+=>\s+\{(.+?)\}"?(?:\s+|,)([0-9.]+)(?:\s+|,)([0-9.]+)(?:\s+|,)([0-9.]+)""".r
     val Cedent = new Cedent(attributes)
