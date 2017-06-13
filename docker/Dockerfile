@@ -15,13 +15,15 @@ RUN echo 'deb http://http.debian.net/debian jessie-backports main' >> /etc/apt/s
     apt-get update
 
 # install tools needed for compilation of the easyminer backend
-RUN apt-get install -y openjdk-8-jdk git sbt curl
+RUN apt-get install -y -t jessie-backports openjdk-8-jdk && \
+    apt-get install -y git sbt curl
 
 # install R environment
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ADD r-install.R /root
-RUN apt-get install -y r-base r-base-dev libcurl4-openssl-dev libssl-dev && \
-    R CMD javareconf && \ 
+RUN apt-get install -y -t jessie-backports libcurl4-openssl-dev libssl-dev && \
+    apt-get install -y r-base r-base-dev && \
+    R CMD javareconf && \
     Rscript r-install.R
 
 # pull easyminer backend code from github
