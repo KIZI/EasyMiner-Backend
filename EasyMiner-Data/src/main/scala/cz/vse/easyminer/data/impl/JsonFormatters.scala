@@ -7,22 +7,35 @@
 package cz.vse.easyminer.data.impl
 
 import java.nio.charset.Charset
-import java.util.Locale
+import java.util.{Date, Locale}
 
 import cz.vse.easyminer.core.{JsonDeserializationNotSupported, JsonDeserializeAttributeException, JsonSerializationNotSupported}
 import cz.vse.easyminer.data._
 import org.apache.jena.riot.Lang
-import spray.json._
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
+import spray.json.{JsString, _}
 
-/**
-  * Created by Vaclav Zeman on 18. 8. 2015.
-  */
+import scala.util.Try
 
 /**
   * Converters from object to json and vice versa
   * It is self-documented
   */
 object JsonFormatters extends DefaultJsonProtocol {
+
+  object JsonDate {
+
+    implicit object DateJsonFormat extends JsonFormat[Date] {
+      def write(x: Date) = JsString(new DateTime(x).toString(ISODateTimeFormat.basicDateTimeNoMillis()))
+
+      def read(value: JsValue) = value match {
+        case JsString(date) => Try(DateTime.parse(date, ISODateTimeFormat.basicDateTimeNoMillis())).getOrElse(throw new JsonDeserializeAttributeException("Date", "Date should have ISO8601 format (yyyyMMdd'T'HHmmssZ)")).toDate
+        case _ => throw new JsonDeserializeAttributeException("Date", "Date should be a string.")
+      }
+    }
+
+  }
 
   object JsonDataSourceType {
 
@@ -102,7 +115,11 @@ object JsonFormatters extends DefaultJsonProtocol {
   object JsonValue {
 
     implicit object JsonValueFormat extends RootJsonFormat[Value] {
-      def read(json: JsValue): Value = throw JsonDeserializationNotSupported
+      def read(json: JsValue): Value = json match {
+        case JsNumber(value) => NumericValue(value.toString(), value.toDouble)
+        case JsString(value) => NominalValue(value)
+        case _ => NullValue
+      }
 
       def write(obj: Value): JsValue = obj match {
         case NominalValue(value) => JsString(value)

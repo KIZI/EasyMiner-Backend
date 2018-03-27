@@ -25,11 +25,11 @@ import scalikejdbc._
   * @param mysqlDBConnector    mysql database connection
   * @param taskStatusProcessor task processor for monitoring
   */
-class MysqlDatasetBuilder private[db](val dataset: Dataset,
-                                      private[db] val datasetOps: DatasetOps)
-                                     (implicit
-                                      private[db] val mysqlDBConnector: MysqlDBConnector,
-                                      private[db] val taskStatusProcessor: TaskStatusProcessor) extends DbDatasetBuilder {
+class MysqlDatasetBuilder private(val dataset: Dataset,
+                                  protected val datasetOps: DatasetOps)
+                                 (implicit
+                                  protected val mysqlDBConnector: MysqlDBConnector,
+                                  protected val taskStatusProcessor: TaskStatusProcessor) extends DbDatasetBuilder {
 
   import mysqlDBConnector._
 
@@ -38,11 +38,13 @@ class MysqlDatasetBuilder private[db](val dataset: Dataset,
     *
     * @param datasetDetail dataset detail
     */
-  private[db] def buildInstanceTable(datasetDetail: DatasetDetail): Unit = {
+  protected def buildInstanceTable(datasetDetail: DatasetDetail): Unit = {
     val preprocessingInstanceTable = new PreprocessingInstanceTable(datasetDetail.id)
     val valueTable = new ValueTable(datasetDetail.id)
     DBConn autoCommit { implicit session =>
       //create instance table
+      //indexes: pid = autonumber - auxiliary unique id
+      //         attribute = for faster mining - data are loading only for some subset of attributes or even with fixed values (maybe it is better to add the composite index with id)
       sql"""CREATE TABLE ${preprocessingInstanceTable.table} (
         pid int(10) unsigned NOT NULL AUTO_INCREMENT,
         ${preprocessingInstanceTable.column.id} int(10) unsigned NOT NULL,
@@ -53,14 +55,15 @@ class MysqlDatasetBuilder private[db](val dataset: Dataset,
         ) ENGINE=MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin""".execute().apply()
       //create value table
       taskStatusProcessor.newStatus("The instance table has been populated successfully. Now aggregated data are creating...")
+      //indexes: attribute - id = for value mapper - (attribute, id) to (attribute, value)
+      //         attribute - value = for value mapper - (attribute, value) to (attribute, id)
       sql"""CREATE TABLE ${valueTable.table} (
         ${valueTable.column.id} int(10) unsigned NOT NULL,
         ${valueTable.column.attribute} int(10) unsigned NOT NULL,
         ${valueTable.column.value} varchar(255) NOT NULL,
         ${valueTable.column.frequency} int(10) unsigned NOT NULL,
         PRIMARY KEY (${valueTable.column.attribute}, ${valueTable.column.id}),
-        UNIQUE KEY ${valueTable.column.attribute}_${valueTable.column.value} (${valueTable.column.attribute},${valueTable.column.value}),
-        KEY ${valueTable.column.attribute} (${valueTable.column.attribute})
+        UNIQUE KEY ${valueTable.column.attribute}_${valueTable.column.value} (${valueTable.column.attribute},${valueTable.column.value})
         ) ENGINE=MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin""".execute().apply()
     }
   }

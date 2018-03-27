@@ -6,6 +6,8 @@
 
 package cz.vse.easyminer.preprocessing.impl.db
 
+import java.util.Date
+
 import cz.vse.easyminer.core.TaskStatusProcessor
 import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.data._
@@ -26,24 +28,24 @@ trait DbDatasetBuilder extends DatasetBuilder {
   /**
     * Mysql database connection
     */
-  private[db] val mysqlDBConnector: MysqlDBConnector
+  protected val mysqlDBConnector: MysqlDBConnector
 
   /**
     * Operations for all datasets - it is needed for rollback function (delete existed dataset)
     */
-  private[db] val datasetOps: DatasetOps
+  protected val datasetOps: DatasetOps
 
   /**
     * Function for creating table where all preprocessed data will be placed
     *
     * @param datasetDetail dataset detail
     */
-  private[db] def buildInstanceTable(datasetDetail: DatasetDetail): Unit
+  protected def buildInstanceTable(datasetDetail: DatasetDetail): Unit
 
   /**
     * Task processor for monitoring dataset bulding
     */
-  private[db] val taskStatusProcessor: TaskStatusProcessor
+  protected val taskStatusProcessor: TaskStatusProcessor
 
   implicit class DataSourceTypeConversion(dataSourceType: DataSourceType) {
 
@@ -70,7 +72,7 @@ trait DbDatasetBuilder extends DatasetBuilder {
         """.updateAndReturnGeneratedKey().apply().toInt
     }
     taskStatusProcessor.newStatus("Dataset meta information have been created. The instance table building is now in progress...")
-    val datasetDetail = DatasetDetail(datasetId, dataset.name, dataset.dataSourceDetail.id, DatasetType(dataset.dataSourceDetail.`type`), dataset.dataSourceDetail.size, false)
+    val datasetDetail = DatasetDetail(datasetId, dataset.name, dataset.dataSourceDetail.id, DatasetType(dataset.dataSourceDetail.`type`), dataset.dataSourceDetail.size, new Date(), new Date(), false)
     try {
       buildInstanceTable(datasetDetail)
       DBConn autoCommit { implicit session =>

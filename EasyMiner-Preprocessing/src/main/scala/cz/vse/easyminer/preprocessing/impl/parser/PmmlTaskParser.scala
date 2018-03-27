@@ -8,8 +8,11 @@ package cz.vse.easyminer.preprocessing.impl.parser
 
 import cz.vse.easyminer.core.util.XmlUtils.TrimmedXml
 import cz.vse.easyminer.core.util.{AnyToDouble, AnyToInt}
-import cz.vse.easyminer.data.{ExclusiveIntervalBorder, InclusiveIntervalBorder}
+import cz.vse.easyminer.data.{ExclusiveIntervalBorder, InclusiveIntervalBorder, IntervalBorder}
 import cz.vse.easyminer.preprocessing._
+
+import scala.collection.mutable.ListBuffer
+import scala.util.Try
 
 /**
   * Created by Vaclav Zeman on 2. 2. 2016.
@@ -24,6 +27,31 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
 
   case class DerivedField(name: String, node: xml.Node)
 
+  private implicit class PimpedExtensions(extensions: Seq[(String, String)]) {
+    def leftMargin: Option[IntervalBorder] = extensions.collectFirst {
+      case ("leftMarginOpen", AnyToDouble(value)) => ExclusiveIntervalBorder(value)
+      case ("leftMarginClose", AnyToDouble(value)) => InclusiveIntervalBorder(value)
+    }
+
+    def rightMargin: Option[IntervalBorder] = extensions.collectFirst {
+      case ("rightMarginOpen", AnyToDouble(value)) => ExclusiveIntervalBorder(value)
+      case ("rightMarginClose", AnyToDouble(value)) => InclusiveIntervalBorder(value)
+    }
+
+    def hasPreserveUncovered = extensions.collectFirst {
+      case ("preserveUncovered", value) => Try(value.toBoolean).getOrElse(false)
+    }.getOrElse(false)
+  }
+
+  private def getAttributeFeatures(derivedField: DerivedField) = {
+    val extensions = (derivedField.node \\ "Extension").map(x => (x \@ "name") -> (x \@ "value"))
+    val listBuffer = ListBuffer.empty[AttributeFeature]
+    val (lm, rm) = (extensions.leftMargin, extensions.rightMargin)
+    if (lm.nonEmpty || rm.nonEmpty) listBuffer += IntervalsBorder(lm, rm)
+    if (extensions.hasPreserveUncovered) listBuffer += PreserveUncovered
+    listBuffer.toList
+  }
+
   /**
     * Partial function for creation of simple attribute definition from DerivedField
     */
@@ -32,7 +60,7 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
 
     def apply(v1: DerivedField): Attribute = {
       val fieldId = AnyToInt.unapply(v1.node \ "MapValues" \ "FieldColumnPair" \@ "field").getOrElse(0)
-      SimpleAttribute(v1.name, fieldId)
+      SimpleAttribute(v1.name, fieldId, getAttributeFeatures(v1))
     }
   }
 
@@ -45,15 +73,9 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
     def apply(v1: DerivedField): Attribute = {
       val fieldId = AnyToInt.unapply(v1.node \ "MapValues" \ "FieldColumnPair" \@ "field").getOrElse(0)
       val mapping = (v1.node \ "MapValues" \ "InlineTable" \ "row").collect {
-        case <row>
-          <column>
-            {xml.Text(originalValue)}
-            </column> <field>
-          {xml.Text(targetValue)}
-          </field>
-          </row> => targetValue -> originalValue
+        case <row><column>{xml.Text(originalValue)}</column><field>{xml.Text(targetValue)}</field></row> => targetValue -> originalValue
       }.groupBy(_._1).iterator.map(x => NominalEnumerationAttribute.Bin(x._1, x._2.map(_._2))).toList
-      NominalEnumerationAttribute(v1.name, fieldId, mapping)
+      NominalEnumerationAttribute(v1.name, fieldId, mapping, getAttributeFeatures(v1))
     }
   }
 
@@ -69,8 +91,9 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
 
     def apply(v1: DerivedField): Attribute = {
       val discretize = v1.node \ "Discretize"
-      val bins = (discretize \ "Extension").find(x => (x \@ "name") == "bins").flatMap(x => AnyToInt.unapply(x \@ "value")).get
-      EquidistantIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, bins)
+      val extensions = discretize \ "Extension"
+      val bins = extensions.find(x => (x \@ "name") == "bins").flatMap(x => AnyToInt.unapply(x \@ "value")).get
+      EquidistantIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, bins, getAttributeFeatures(v1))
     }
   }
 
@@ -86,8 +109,9 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
 
     def apply(v1: DerivedField): Attribute = {
       val discretize = v1.node \ "Discretize"
-      val bins = (discretize \ "Extension").find(x => (x \@ "name") == "bins").flatMap(x => AnyToInt.unapply(x \@ "value")).get
-      EquifrequentIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, bins)
+      val extensions = discretize \ "Extension"
+      val bins = extensions.find(x => (x \@ "name") == "bins").flatMap(x => AnyToInt.unapply(x \@ "value")).get
+      EquifrequentIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, bins, getAttributeFeatures(v1))
     }
   }
 
@@ -103,8 +127,9 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
 
     def apply(v1: DerivedField): Attribute = {
       val discretize = v1.node \ "Discretize"
-      val support = (discretize \ "Extension").find(x => (x \@ "name") == "support").flatMap(x => AnyToDouble.unapply(x \@ "value")).get
-      EquisizedIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, support)
+      val extensions = discretize \ "Extension"
+      val support = extensions.find(x => (x \@ "name") == "support").flatMap(x => AnyToDouble.unapply(x \@ "value")).get
+      EquisizedIntervalsAttribute(v1.name, AnyToInt.unapply(discretize \@ "field").get, support, getAttributeFeatures(v1))
     }
   }
 
@@ -120,7 +145,7 @@ class PmmlTaskParser(pmml: TrimmedXml) extends TaskParser {
         val binValue = discretizeBinNode \@ "binValue"
         (discretizeBinNode \ "Interval").map(intervalNodeToInterval).map(binValue -> _)
       }.groupBy(_._1).iterator.map(x => NumericIntervalsAttribute.Bin(x._1, x._2.map(_._2))).toList.sortBy(_.intervals.minBy(_.from.value).from.value)
-      NumericIntervalsAttribute(v1.name, fieldId, intervals)
+      NumericIntervalsAttribute(v1.name, fieldId, intervals, getAttributeFeatures(v1))
     }
 
     private def intervalNodeToInterval(intervalNode: xml.Node) = {

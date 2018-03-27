@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PMML>
+    <Header>
+        <Extension name="dataset" value="{{dataset-id}}"></Extension>
+    </Header>
+    <guha:AssociationModel xmlns:guha="http://keg.vse.cz/ns/GUHA0.1rev1" xmlns=""
+                           modelName="655191cce4badffee2b486f8deae7bac" functionName="associationRules"
+                           algorithmName="4ft">
+        <TaskSetting xmlns="">
+            <Extension xmlns="" name="LISp-Miner">
+                <HypothesesCountMax xmlns="">{{im-limit}}</HypothesesCountMax>
+            </Extension>
+            <BBASettings xmlns="">
+                <BBASetting id="4">
+                    <Text>age_gt_60</Text>
+                    <Name>age_gt_60</Name>
+                    <FieldRef>{{age-attribute-id}}</FieldRef>
+                    <Coefficient>
+                        <Type>Subset</Type>
+                        <MinimalLength>1</MinimalLength>
+                        <MaximalLength>1</MaximalLength>
+                    </Coefficient>
+                </BBASetting>
+                <BBASetting id="44">
+                    <Text>air</Text>
+                    <Name>air</Name>
+                    <FieldRef>{{air-attribute-id}}</FieldRef>
+                    <Coefficient>
+                        <Type>Subset</Type>
+                        <MinimalLength>1</MinimalLength>
+                        <MaximalLength>1</MaximalLength>
+                    </Coefficient>
+                </BBASetting>
+                <BBASetting id="444">
+                    <Text>airBoneGap</Text>
+                    <Name>airBoneGap</Name>
+                    <FieldRef>{{airbonegap-attribute-id}}</FieldRef>
+                    <Coefficient>
+                        <Type>Subset</Type>
+                        <MinimalLength>1</MinimalLength>
+                        <MaximalLength>1</MaximalLength>
+                    </Coefficient>
+                </BBASetting>
+                <BBASetting id="10">
+                    <Text>class</Text>
+                    <Name>class</Name>
+                    <FieldRef>{{class-attribute-id}}</FieldRef>
+                    <Coefficient>
+                        <Type>One category</Type>
+                        <Category>cochlear_age</Category>
+                    </Coefficient>
+                </BBASetting>
+                <BBASetting id="11">
+                    <Text>class</Text>
+                    <Name>class</Name>
+                    <FieldRef>{{class-attribute-id}}</FieldRef>
+                    <Coefficient>
+                        <Type>One category</Type>
+                        <Category>cochlear_unknown</Category>
+                    </Coefficient>
+                </BBASetting>
+            </BBASettings>
+            <DBASettings xmlns="">
+                <DBASetting id="1" type="Conjunction">
+                    <BASettingRef>2</BASettingRef>
+                    <BASettingRef>3</BASettingRef>
+                    <BASettingRef>33</BASettingRef>
+                    <MinimalLength>1</MinimalLength>
+                </DBASetting>
+                <DBASetting id="2" type="Literal">
+                    <BASettingRef>4</BASettingRef>
+                    <LiteralSign>Positive</LiteralSign>
+                </DBASetting>
+                <DBASetting id="3" type="Literal">
+                    <BASettingRef>44</BASettingRef>
+                    <LiteralSign>Positive</LiteralSign>
+                </DBASetting>
+                <DBASetting id="33" type="Literal">
+                    <BASettingRef>444</BASettingRef>
+                    <LiteralSign>Positive</LiteralSign>
+                </DBASetting>
+                <DBASetting id="7" type="Disjunction">
+                    <BASettingRef>8</BASettingRef>
+                    <BASettingRef>9</BASettingRef>
+                    <MinimalLength>1</MinimalLength>
+                </DBASetting>
+                <DBASetting id="8" type="Literal">
+                    <BASettingRef>10</BASettingRef>
+                    <MinimalLength>0</MinimalLength>
+                </DBASetting>
+                <DBASetting id="9" type="Literal">
+                    <BASettingRef>11</BASettingRef>
+                    <LiteralSign>Positive</LiteralSign>
+                </DBASetting>
+            </DBASettings>
+            <AntecedentSetting xmlns="">1</AntecedentSetting>
+            <ConsequentSetting xmlns="">7</ConsequentSetting>
+            <InterestMeasureSetting xmlns="">
+                <InterestMeasureThreshold id="5">
+                    <InterestMeasure>FUI</InterestMeasure>
+                    <Threshold>{{im-confidence}}</Threshold>
+                    <ThresholdType>% of all</ThresholdType>
+                    <CompareType>Greater than or equal</CompareType>
+                </InterestMeasureThreshold>
+                <InterestMeasureThreshold id="6">
+                    <InterestMeasure>SUPP</InterestMeasure>
+                    <Threshold>{{im-support}}</Threshold>
+                    <ThresholdType>% of all</ThresholdType>
+                    <CompareType>Greater than or equal</CompareType>
+                </InterestMeasureThreshold>
+                <InterestMeasureThreshold id="50">
+                    <InterestMeasure>RULE_LENGTH</InterestMeasure>
+                    <Threshold>{{im-rulelength}}</Threshold>
+                    <ThresholdType>Abs</ThresholdType>
+                    <CompareType>Less than or equal</CompareType>
+                </InterestMeasureThreshold>
+            </InterestMeasureSetting>
+        </TaskSetting>
+    </guha:AssociationModel>
+</PMML>

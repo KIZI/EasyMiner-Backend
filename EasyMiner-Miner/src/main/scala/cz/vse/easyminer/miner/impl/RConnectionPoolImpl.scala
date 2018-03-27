@@ -9,7 +9,8 @@ package cz.vse.easyminer.miner.impl
 import java.util.Date
 
 import cz.vse.easyminer.core.util.{Conf, Template}
-import cz.vse.easyminer.miner.{BorrowedConnection, RConnectionPool}
+import cz.vse.easyminer.miner.impl.r.RConnectionInits.{MinerRConnectionInit, OutlierDetectionRConnectionInit}
+import cz.vse.easyminer.miner.{BorrowedConnection, RConnectionInit, RConnectionPool}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent._
@@ -28,6 +29,8 @@ import scala.language.postfixOps
   * @param prepareLibs if this flag is true then after each connection all necesary libraries for assotiation rules mining are loaded
   */
 class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = true) extends RConnectionPool {
+
+  self: RConnectionInit =>
 
   import ExecutionContext.Implicits.global
 
@@ -56,10 +59,8 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
     val conn = new BorrowedConnection(rServer, rPort)
     if (prepareLibs) {
       conn.eval("options(java.parameters=\"-Xmx" + Conf().get[String]("easyminer.miner.r.java-max-heap-size") + "\")")
-      conn.eval("library(RJDBC)")
-      conn.eval("library(arules)")
-      conn.eval("library(rCBA)")
       conn.eval("library(R.utils)")
+      init(conn)
       conn.parseAndEval(rInitScript)
     }
     logger.debug("New R connection has been created and prepared.")
@@ -123,6 +124,7 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
         pool.size < maxIdle
       }
       //close connection
+      bc.eval("rm(list=ls(all=TRUE))")
       bc.close()
       if (poolIsNotFull) {
         //if connection pool is not full then create new connection which replaces old closed connection.
@@ -184,9 +186,8 @@ class RConnectionPoolImpl(rServer: String, rPort: Int, prepareLibs: Boolean = tr
 
 object RConnectionPoolImpl {
 
-  /**
-    * Default R connection pool
-    */
-  val default = new RConnectionPoolImpl(Conf().get[String]("easyminer.miner.r.rserve-address"), Conf().getOrElse[Int]("easyminer.miner.r.rserve-port", 6311))
+  val defaultMiner = new RConnectionPoolImpl(Conf().get[String]("easyminer.miner.r.rserve-address"), Conf().getOrElse[Int]("easyminer.miner.r.rserve-port", 6311)) with MinerRConnectionInit
+
+  val defaultOutliers = new RConnectionPoolImpl(Conf().get[String]("easyminer.miner.r.rserve-address"), Conf().getOrElse[Int]("easyminer.miner.r.rserve-port", 6311)) with OutlierDetectionRConnectionInit
 
 }

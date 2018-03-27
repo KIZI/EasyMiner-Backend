@@ -19,7 +19,14 @@ import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 sealed trait Attribute {
   val name: String
   val field: Int
+  val features: Seq[AttributeFeature]
 }
+
+sealed trait AttributeFeature
+
+case class IntervalsBorder(min: Option[IntervalBorder], max: Option[IntervalBorder]) extends AttributeFeature
+
+object PreserveUncovered extends AttributeFeature
 
 /**
   * Simple attribute is created as the clone of a field
@@ -27,7 +34,7 @@ sealed trait Attribute {
   * @param name  attribute name
   * @param field field id
   */
-case class SimpleAttribute(name: String, field: Int) extends Attribute
+case class SimpleAttribute(name: String, field: Int, features: Seq[AttributeFeature]) extends Attribute
 
 /**
   * User specified mappings of field values to attribute bins.
@@ -37,7 +44,7 @@ case class SimpleAttribute(name: String, field: Int) extends Attribute
   * @param field field id
   * @param bins  mapping rules
   */
-case class NominalEnumerationAttribute(name: String, field: Int, bins: Seq[NominalEnumerationAttribute.Bin]) extends Attribute
+case class NominalEnumerationAttribute(name: String, field: Int, bins: Seq[NominalEnumerationAttribute.Bin], features: Seq[AttributeFeature]) extends Attribute
 
 object NominalEnumerationAttribute {
 
@@ -53,7 +60,7 @@ object NominalEnumerationAttribute {
   * @param field field id
   * @param bins  mapping rules
   */
-case class NumericIntervalsAttribute(name: String, field: Int, bins: Seq[NumericIntervalsAttribute.Bin]) extends Attribute
+case class NumericIntervalsAttribute(name: String, field: Int, bins: Seq[NumericIntervalsAttribute.Bin], features: Seq[AttributeFeature]) extends Attribute
 
 object NumericIntervalsAttribute {
 
@@ -72,7 +79,7 @@ object NumericIntervalsAttribute {
   * @param field field id
   * @param bins  number of bins/intervals
   */
-case class EquidistantIntervalsAttribute(name: String, field: Int, bins: Int) extends Attribute
+case class EquidistantIntervalsAttribute(name: String, field: Int, bins: Int, features: Seq[AttributeFeature]) extends Attribute
 
 /**
   * Attribute created from a numeric field where all field values are mapped into intervals.
@@ -83,7 +90,7 @@ case class EquidistantIntervalsAttribute(name: String, field: Int, bins: Int) ex
   * @param field field id
   * @param bins  number of bins/intervals
   */
-case class EquifrequentIntervalsAttribute(name: String, field: Int, bins: Int) extends Attribute
+case class EquifrequentIntervalsAttribute(name: String, field: Int, bins: Int, features: Seq[AttributeFeature]) extends Attribute
 
 /**
   * Attribute created from a numeric field where all field values are mapped into intervals.
@@ -94,7 +101,7 @@ case class EquifrequentIntervalsAttribute(name: String, field: Int, bins: Int) e
   * @param field   field id
   * @param support minimal relative frequency/support of each interval
   */
-case class EquisizedIntervalsAttribute(name: String, field: Int, support: Double) extends Attribute
+case class EquisizedIntervalsAttribute(name: String, field: Int, support: Double, features: Seq[AttributeFeature]) extends Attribute
 
 /**
   * Object of created attribute which is saved in database

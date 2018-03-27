@@ -19,7 +19,7 @@ import spray.routing.Directives
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
+import scala.language.{implicitConversions, postfixOps}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -481,7 +481,7 @@ trait TaskStatusRestHelper extends Directives with SprayJsonSupport with Default
       requestUri { implicit uri =>
         val basicStatusRoute: PartialFunction[Try[TaskStatus], spray.routing.Route] = {
           case Success(EmptyOrMessageTaskStatus(taskStatus)) => complete(taskStatus.toJson(new JsonEmptyOrMessageTaskStatusWriter(uri)).asJsObject)
-          case Success(taskStatus@ResultTaskStatus(_, _, _: Any)) => completeResultTaskStatus(taskStatus)
+          case Success(taskStatus @ ResultTaskStatus(_, _, _: Any)) => completeResultTaskStatus(taskStatus)
           case Failure(ex) => throw ex
         }
         TaskStatusProvider.status(taskId)(basicStatusRoute.orElse(pf))

@@ -18,7 +18,7 @@ object Conf {
   private val config = new Conf(new EnrichTypesafeConfig(ConfigFactory.load))
 
   def apply() = config
-
+  
 }
 
 class Conf(etc: EnrichTypesafeConfig) {

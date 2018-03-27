@@ -67,7 +67,3 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 private.sbt
-
-src/main/scala/cz/vse/easyminer/preprocessing/impl/db/hive*
-src/test*
-.idea/

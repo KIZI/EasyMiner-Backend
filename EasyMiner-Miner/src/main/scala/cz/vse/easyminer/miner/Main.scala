@@ -27,7 +27,8 @@ import scala.language.postfixOps
 object Main extends App {
 
   actorSystem.scheduler.schedule(0 seconds, 1 minute) {
-    RConnectionPoolImpl.default.refresh()
+    RConnectionPoolImpl.defaultMiner.refresh()
+    RConnectionPoolImpl.defaultOutliers.refresh()
   }(actorSystem.dispatcher)
 
   val service = actorSystem.actorOf(Props[MinerMainService], "main-service")

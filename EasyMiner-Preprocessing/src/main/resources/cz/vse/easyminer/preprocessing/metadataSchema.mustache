@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}dataset` (
 `name` varchar(255) NOT NULL,
 `type` enum('LIMITED','UNLIMITED') NOT NULL,
 `size` int(10) unsigned NOT NULL,
+`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 `active` tinyint(1) NOT NULL DEFAULT '0',
 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;

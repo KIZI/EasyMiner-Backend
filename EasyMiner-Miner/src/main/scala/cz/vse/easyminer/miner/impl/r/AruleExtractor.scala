@@ -22,7 +22,6 @@ object AruleExtractor {
 
   private class Cedent(attributes: Seq[AttributeDetail]) {
     private lazy val attributeMap = attributes.view.map(x => x.id -> x).toMap
-
     def unapply(str: String): Option[List[FixedValue]] = if (str.trim.isEmpty) {
       Some(Nil)
     } else {

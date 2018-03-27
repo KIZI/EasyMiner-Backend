@@ -29,10 +29,10 @@ import spray.routing.Directives
   */
 class ValueService(dataSourceDetail: DataSourceDetail, fieldDetail: FieldDetail)(implicit dBConnectors: DBConnectors, actorContext: ActorContext)
   extends Directives
-    with SprayJsonSupport
-    with DefaultJsonProtocol
-    with TaskStatusRestHelper
-    with DataMainService.BaseUriPath {
+  with SprayJsonSupport
+  with DefaultJsonProtocol
+  with TaskStatusRestHelper
+  with DataMainService.BaseUriPath {
 
   import JsonFormatters.JsonFieldNumericDetail._
   import JsonFormatters.JsonValueDetail._

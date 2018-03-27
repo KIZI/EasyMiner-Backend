@@ -39,15 +39,9 @@ trait XmlErrorMessage extends ErrorMessage {
 
   def errorMessage(code: Int, name: String, msg: String): HttpEntity = HttpEntity(
     ContentType(`application/xml`, `UTF-8`), HttpData(<error>
-      <code>
-        {code}
-      </code>
-      <name>
-        {name}
-      </name>
-      <message>
-        {msg}
-      </message>
+      <code>{ code }</code>
+      <name>{ name }</name>
+      <message>{ msg }</message>
     </error>.toString())
   )
 

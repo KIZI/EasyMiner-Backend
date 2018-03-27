@@ -29,11 +29,11 @@ import scalikejdbc._
   * @param dataSchemaOps schema builder for easyminer data module
   * @param connector     mysql database connection
   */
-class MysqlSchemaOps(private[db] val dataSchemaOps: DataSchemaOps)(implicit connector: MysqlDBConnector) extends DbSchemaOps {
+class MysqlSchemaOps private(protected val dataSchemaOps: DataSchemaOps)(implicit connector: MysqlDBConnector) extends DbSchemaOps {
 
   import connector._
 
-  private[db] def createPreprocessingSchema(): Unit = DBConn autoCommit { implicit session =>
+  protected def createPreprocessingSchema(): Unit = DBConn autoCommit { implicit session =>
     try {
       tryClose(new StringReader(Template("preprocessing/metadataSchema.mustache", Map("prefix" -> Tables.tablePrefix))))(new ScriptRunner(session.connection, false, true).runScript)
     } catch {
@@ -44,7 +44,7 @@ class MysqlSchemaOps(private[db] val dataSchemaOps: DataSchemaOps)(implicit conn
     }
   }
 
-  private[db] def preprocessingSchemaExists: Boolean = DBConn readOnly { implicit session =>
+  protected def preprocessingSchemaExists: Boolean = DBConn readOnly { implicit session =>
     sql"SHOW TABLES LIKE ${DatasetTable.tableName}".map(_ => true).first().apply.getOrElse(false)
   }
 

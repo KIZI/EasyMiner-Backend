@@ -16,6 +16,13 @@ package cz.vse.easyminer.preprocessing
 trait DatasetOps {
 
   /**
+    * It only changes updated timestamp
+    *
+    * @param datasetId ID
+    */
+  def updateDataset(datasetId: Int): Unit
+
+  /**
     * Rename dataset
     *
     * @param datasetId dataset id

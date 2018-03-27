@@ -27,22 +27,20 @@ import scalikejdbc._
   * @param mysqlDBConnector    mysql database connections
   * @param taskStatusProcessor task processor for monitoring
   */
-class MysqlSimpleAttributeBuilder private[db](val dataset: DatasetDetail,
+class MysqlSimpleAttributeBuilder private(val dataset: DatasetDetail,
                                               val attributes: Seq[SimpleAttribute])
                                              (implicit
-                                              private[db] val mysqlDBConnector: MysqlDBConnector,
-                                              private[db] val taskStatusProcessor: TaskStatusProcessor) extends DbAttributeBuilder[SimpleAttribute] with DbMysqlTables {
+                                              protected val mysqlDBConnector: MysqlDBConnector,
+                                              protected val taskStatusProcessor: TaskStatusProcessor) extends DbAttributeBuilder[SimpleAttribute] with DbMysqlTables {
 
   import mysqlDBConnector._
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions.Limited._
 
-  private[db] lazy val attributeOps = dataset.toAttributeOps(dataset)
+  protected lazy val attributeOps = dataset.toAttributeOps(dataset)
 
-  private[db] lazy val fieldOps = dataset.toFieldOps
+  protected lazy val fieldOps = dataset.toFieldOps
 
-  //TODO - value table has nominal and numeric values - for attribute we need to copy only nominal or numeric
-  //better solution - use only nominal for attribute!
-  private[db] def buildAttributes(attributes: Seq[AttributeWithDetail]): Seq[AttributeDetail] = {
+  protected def buildAttributes(attributes: Seq[AttributeWithDetail]): Seq[AttributeDetail] = {
     //filter of instances (joined preprocessing value table and data instance table)
     //preprocessing attribute == current attribute AND data instance field id = current field
     val dataWhere = attributes.map(attributeWithDetail => sqls"${pv.attribute} = ${attributeWithDetail.attributeDetail.id} AND ${di.field("field")} = ${attributeWithDetail.attributeDetail.field}").reduce(_ or _)
@@ -75,13 +73,15 @@ class MysqlSimpleAttributeBuilder private[db](val dataset: DatasetDetail,
     attributes.map(_.attributeDetail)
   }
 
-  override private[db] def buildWrapper(f: => Seq[AttributeDetail]): Seq[AttributeDetail] = PersistentLock(PersistentLocks.datasetLockName(dataset.id)) {
+  override protected def buildWrapper(f: => Seq[AttributeDetail]): Seq[AttributeDetail] = PersistentLock(PersistentLocks.datasetLockName(dataset.id)) {
     f
   }
 
 }
 
 object MysqlSimpleAttributeBuilder {
+
+  import DatasetTypeConversions.Limited._
 
   def apply(attributes: Seq[SimpleAttribute], datasetDetail: DatasetDetail)(implicit mysqlDBConnector: MysqlDBConnector, taskStatusProcessor: TaskStatusProcessor): AttributeBuilder[SimpleAttribute] = {
     new ValidationAttributeBuilder(

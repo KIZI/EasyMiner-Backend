@@ -26,9 +26,9 @@ class MysqlValueMapperOps private(val dataset: DatasetDetail)(implicit mysqlDBCo
 
   import mysqlDBConnector._
 
-  protected[this] val valueDetailTable: scalikejdbc.SQLSyntaxSupport[ValueDetail] = new ValueTable(dataset.id)
+  protected val valueDetailTable: scalikejdbc.SQLSyntaxSupport[ValueDetail] = new ValueTable(dataset.id)
 
-  protected[this] def useDbSession[T](f: (DBSession) => T): T = DBConn readOnly f
+  protected def useDbSession[T](f: (DBSession) => T): T = DBConn readOnly f
 
 }
 

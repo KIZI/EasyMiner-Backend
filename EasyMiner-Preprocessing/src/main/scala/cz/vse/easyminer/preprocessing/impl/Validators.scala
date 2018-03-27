@@ -55,7 +55,7 @@ object Validators {
         Validator(obj.name)(MaxLength(tableColMaxlen))
         Validator(obj.name)(NonEmpty)
         Match(obj) {
-          case NominalEnumerationAttribute(_, _, bins) =>
+          case NominalEnumerationAttribute(_, _, bins, _) =>
             Validator(bins)(CollectionValidators.NonEmpty)
             Validator(bins.length)(LowerOrEqual(maxBins))
             bins.foreach { bin =>
@@ -63,7 +63,7 @@ object Validators {
               Validator(bin.name)(NonEmpty)
               Validator(bin.values)(CollectionValidators.NonEmpty)
             }
-          case NumericIntervalsAttribute(_, _, bins) =>
+          case NumericIntervalsAttribute(_, _, bins, _) =>
             Validator(bins)(CollectionValidators.NonEmpty)
             Validator(bins.length)(LowerOrEqual(maxBins))
             bins.foreach { bin =>
@@ -72,13 +72,13 @@ object Validators {
               Validator(bin.intervals)(CollectionValidators.NonEmpty)
               bin.intervals.foreach(interval => Validator(interval))
             }
-          case EquidistantIntervalsAttribute(_, _, bins) =>
+          case EquidistantIntervalsAttribute(_, _, bins, _) =>
             Validator(bins)(Greater(0))
             Validator(bins)(LowerOrEqual(maxBins))
-          case EquifrequentIntervalsAttribute(_, _, bins) =>
+          case EquifrequentIntervalsAttribute(_, _, bins, _) =>
             Validator(bins)(Greater(0))
             Validator(bins)(LowerOrEqual(maxBins))
-          case EquisizedIntervalsAttribute(_, _, support) =>
+          case EquisizedIntervalsAttribute(_, _, support, _) =>
             Validator(support)(Greater(1.0 / maxBins))
             Validator(support)(LowerOrEqual(1.0))
         }

@@ -62,9 +62,3 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
-lib/hive*
-src/main/scala/cz/vse/easyminer/core/db/Hive*
-src/main/scala/cz/vse/easyminer/core/hadoop*
-src/test*
-.idea

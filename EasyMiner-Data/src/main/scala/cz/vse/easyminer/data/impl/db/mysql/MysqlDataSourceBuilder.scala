@@ -6,13 +6,15 @@
 
 package cz.vse.easyminer.data.impl.db.mysql
 
+import java.io.PrintWriter
+
 import cz.vse.easyminer.core.TaskStatusProcessor
 import cz.vse.easyminer.core.db.MysqlDBConnector
-import cz.vse.easyminer.core.util.MapOps.PimpedMap
 import cz.vse.easyminer.data._
-import cz.vse.easyminer.data.impl.db.mysql.Tables._
 import cz.vse.easyminer.data.impl.db.{DbFieldBuilder, ValidationDataSourceBuilder}
+import cz.vse.easyminer.data.impl.db.mysql.Tables._
 import scalikejdbc._
+import cz.vse.easyminer.core.util.MapOps.PimpedMap
 
 /**
   * Created by Vaclav Zeman on 8. 8. 2015.

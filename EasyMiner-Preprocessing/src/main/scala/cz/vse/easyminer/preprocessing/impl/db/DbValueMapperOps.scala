@@ -28,9 +28,9 @@ trait DbValueMapperOps extends ValueMapperOps {
 
   private val bucketSize = 100
 
-  protected[this] val valueDetailTable: SQLSyntaxSupport[ValueDetail]
+  protected val valueDetailTable: SQLSyntaxSupport[ValueDetail]
 
-  protected[this] def useDbSession[T](f: DBSession => T): T
+  protected def useDbSession[T](f: DBSession => T): T
 
   /**
     * This separates the enter map with seq values to smaller buckets where each bucket has maximal $bucketSize values.

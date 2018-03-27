@@ -1,0 +1,40 @@
+#library(RJDBC)
+#library(fpmoutliers)
+
+drv <- JDBC("com.mysql.jdbc.Driver", list.files("{{jdbcDriverAbsolutePath}}", pattern="jar$",full.names=T))
+con <- dbConnect(drv, "jdbc:mysql://{{{dbServer}}}:3306/{{{dbName}}}?characterEncoding=utf8", "{{{dbUser}}}", "{{{dbPassword}}}")
+train <- dbGetQuery(con, "SELECT id, CONCAT(attribute, '=', value) AS item FROM `{{{dbTableName}}}`")
+train <- aggregate(item~id, data=train, simplify = FALSE, FUN = function(t) t)
+txns <- as(train[[2]], "transactions")
+
+model <- FPI(txns, minSupport = {{{minSupport}}})
+
+flushOutliers <- function(sql) {
+  if (sql != "") {
+    sql <- substr(sql, 1, nchar(sql) - 1)
+    dbSendUpdate(con, sql)
+  }
+}
+
+j <- 1
+i <- 1
+sqlInsert <- ""
+for (score in model$scores) {
+  if ((j %% 100) == 0) {
+    flushOutliers(sqlInsert)
+    sqlInsert <- ""
+    j <- 1
+  }
+  if (j == 1) {
+    sqlInsert <- "INSERT INTO `{{{dbOutliersTableName}}}` (id, score) VALUES "
+  }
+  sqlInsert <- paste(sqlInsert, "(", train[[1]][i], ", ", score, "),", sep="")
+  j <- j + 1
+  i <- i + 1
+}
+flushOutliers(sqlInsert)
+
+options(width=10000)
+options(max.print=1000000)
+
+capture.output(print("ok"))

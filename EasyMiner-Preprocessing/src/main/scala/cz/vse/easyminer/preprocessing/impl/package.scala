@@ -22,18 +22,27 @@ package object impl {
     * @param interval interval object
     */
   implicit class PimpedInterval(interval: Interval) {
+
+    private def doubleToString(value: Double) = if (value == Double.NegativeInfinity) {
+      "-Inf"
+    } else if (value == Double.PositiveInfinity) {
+      "Inf"
+    } else {
+      BasicFunction.roundAt(6)(value).toString
+    }
+
     def toIntervalString = {
-      val round = BasicFunction.roundAt(6) _
       val leftCutPoint = interval.from match {
-        case InclusiveIntervalBorder(value) => "[" + round(value)
-        case ExclusiveIntervalBorder(value) => "(" + round(value)
+        case InclusiveIntervalBorder(value) => "[" + doubleToString(value)
+        case ExclusiveIntervalBorder(value) => "(" + doubleToString(value)
       }
       val rightCutPoint = interval.to match {
-        case InclusiveIntervalBorder(value) => round(value) + "]"
-        case ExclusiveIntervalBorder(value) => round(value) + ")"
+        case InclusiveIntervalBorder(value) => doubleToString(value) + "]"
+        case ExclusiveIntervalBorder(value) => doubleToString(value) + ")"
       }
       leftCutPoint + "," + rightCutPoint
     }
+
   }
 
 }

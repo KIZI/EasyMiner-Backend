@@ -58,4 +58,5 @@ class MysqlDataSourceTypeOps private[db](implicit mysqlDBConnector: MysqlDBConne
     * @return value operations object
     */
   def toValueOps(dataSourceDetail: DataSourceDetail, fieldDetail: FieldDetail): ValueOps = MysqlValueOps(dataSourceDetail, fieldDetail)
+
 }

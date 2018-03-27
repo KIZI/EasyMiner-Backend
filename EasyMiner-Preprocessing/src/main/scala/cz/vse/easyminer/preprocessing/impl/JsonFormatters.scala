@@ -93,8 +93,23 @@ object JsonFormatters extends DefaultJsonProtocol {
   object JsonDatasetDetail {
 
     import JsonDatasetType._
+    import cz.vse.easyminer.data.impl.JsonFormatters.JsonDate.DateJsonFormat
 
-    implicit val JsonDatasetDetailFormat: RootJsonFormat[DatasetDetail] = jsonFormat6(DatasetDetail.apply)
+    implicit val JsonDatasetDetailFormat: RootJsonFormat[DatasetDetail] = jsonFormat8(DatasetDetail.apply)
+
+  }
+
+  object JsonInstanceWithValue {
+
+    import JsonInstanceItemWithValue._
+
+    implicit val JsonInstanceWithValueFormat: RootJsonFormat[InstanceWithValue] = jsonFormat2(InstanceWithValue)
+
+  }
+
+  object JsonInstanceItemWithValue {
+
+    implicit val JsonInstanceItemWithValueFormat: RootJsonFormat[InstanceItemWithValue] = jsonFormat2(InstanceItemWithValue)
 
   }
 

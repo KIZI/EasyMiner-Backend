@@ -9,6 +9,7 @@ package cz.vse.easyminer.data.impl.db
 import cz.vse.easyminer.core.TaskStatusProcessor
 import cz.vse.easyminer.core.db._
 import cz.vse.easyminer.data.DataSourceType.DataSourceTypeOps
+import cz.vse.easyminer.data.impl.db.hive.HiveDataSourceTypeOps
 import cz.vse.easyminer.data.impl.db.mysql.{MysqlDataSourceTypeOps, MysqlRdfDataSource}
 import cz.vse.easyminer.data._
 
@@ -39,7 +40,13 @@ object DataSourceTypeConversions {
   implicit def unlimitedDataSourceTypeToHiveDataSourceTypeOps(unlimitedDataSourceType: UnlimitedDataSourceType.type)
                                                              (implicit dBConnectors: DBConnectors,
                                                               taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
-  : DataSourceTypeOps[UnlimitedDataSourceType.type] = ???
+  : DataSourceTypeOps[UnlimitedDataSourceType.type] = new HiveDataSourceTypeOps()(dBConnectors.connector(LimitedDBType), dBConnectors.connector(UnlimitedDBType), taskStatusProcessor)
+
+  implicit def directUnlimitedDataSourceTypeToHiveDataSourceTypeOps(unlimitedDataSourceType: UnlimitedDataSourceType.type)
+                                                                   (implicit mysqlDBConnector: MysqlDBConnector,
+                                                                    hiveDBConnector: HiveDBConnector,
+                                                                    taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
+  : DataSourceTypeOps[UnlimitedDataSourceType.type] = new HiveDataSourceTypeOps()
 
   object Limited {
     implicit def dataSourceTypeToMysqlDataSourceTypeOps(limitedDataSourceType: DataSourceType)
@@ -54,10 +61,11 @@ object DataSourceTypeConversions {
   object Unlimited {
     implicit def dataSourceTypeToHiveDataSourceTypeOps(unlimitedDataSourceType: DataSourceType)
                                                       (implicit mysqlDBConnector: MysqlDBConnector,
+                                                       hiveDBConnector: HiveDBConnector,
                                                        taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
     : DataSourceTypeOps[UnlimitedDataSourceType.type] = unlimitedDataSourceType match {
       case LimitedDataSourceType => throw new IllegalArgumentException
-      case UnlimitedDataSourceType => ???
+      case UnlimitedDataSourceType => new HiveDataSourceTypeOps()
     }
   }
 

@@ -59,6 +59,11 @@ class MysqlDatasetOps private[db](implicit mysqlDBConnector: MysqlDBConnector) e
     sql"DROP TABLE IF EXISTS ${valueTable.table}".execute().apply()
   }
 
+  def getDataset(datasetId: Int): Option[DatasetDetail] = DBConn readOnly { implicit session =>
+    val d = DatasetTable.syntax("d")
+    sql"SELECT ${d.result.*} FROM ${DatasetTable as d} WHERE ${d.id} = $datasetId AND ${d.active} = 1".map(DatasetTable(d.resultName)).first().apply()
+  }
+
   /**
     * Get all existed dataset
     *
@@ -67,6 +72,15 @@ class MysqlDatasetOps private[db](implicit mysqlDBConnector: MysqlDBConnector) e
   def getAllDatasets: List[DatasetDetail] = DBConn readOnly { implicit session =>
     val d = DatasetTable.syntax("d")
     sql"SELECT ${d.result.*} FROM ${DatasetTable as d} WHERE ${d.active} = 1".map(DatasetTable(d.resultName)).list().apply()
+  }
+
+  /**
+    * It only changes updated timestamp
+    *
+    * @param datasetId ID
+    */
+  def updateDataset(datasetId: Int): Unit = DBConn autoCommit { implicit session =>
+    sql"UPDATE ${DatasetTable.table} SET ${DatasetTable.column.updated} = CURRENT_TIMESTAMP() WHERE ${DatasetTable.column.id} = $datasetId".execute().apply()
   }
 
 }

@@ -6,6 +6,7 @@
 
 package cz.vse.easyminer.core.db
 
+import cz.vse.easyminer.core.db.DBConnector.Exceptions.NoDbConnection
 import cz.vse.easyminer.core.util.Lazy._
 import cz.vse.easyminer.core.{HiveUserDatabase, MysqlUserDatabase}
 
@@ -37,6 +38,12 @@ class DefaultDBConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase
     conn
   }
 
+  private val hiveConnector = lazily {
+    val conn = new HiveDBConnector(hiveUserDatabase.getOrElse(throw new NoDbConnection(UnlimitedDBType)))
+    afterConnection(conn)
+    conn
+  }
+
   /**
     * Return a database connection for a specific database type
     *
@@ -46,7 +53,7 @@ class DefaultDBConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase
     */
   def connector[A <: DBConnector[_]](dbType: DBType): A = dbType match {
     case LimitedDBType => mysqlConnector.apply().asInstanceOf[A]
-    case UnlimitedDBType => ???
+    case UnlimitedDBType => hiveConnector.apply().asInstanceOf[A]
     case _ => throw DBConnector.Exceptions.UnknownDBConnector
   }
 
@@ -54,6 +61,7 @@ class DefaultDBConnectors(mysqlUserDatabase: MysqlUserDatabase, hiveUserDatabase
     * Close the database connection
     */
   def close(): Unit = {
+    if (hiveConnector.isEvaluated) hiveConnector.close()
     if (mysqlConnector.isEvaluated) mysqlConnector.close()
   }
 

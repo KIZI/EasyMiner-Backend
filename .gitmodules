@@ -1,0 +1,12 @@
+[submodule ".\\EasyMiner-Core"]
+	path = .\\EasyMiner-Core
+	url = https://propi@bitbucket.org/easyminer/easyminer-core.git
+[submodule ".\\EasyMiner-Data"]
+	path = .\\EasyMiner-Data
+	url = https://propi@bitbucket.org/easyminer/easyminer-data.git
+[submodule ".\\EasyMiner-Preprocessing"]
+	path = .\\EasyMiner-Preprocessing
+	url = https://propi@bitbucket.org/easyminer/easyminer-preprocessing.git
+[submodule ".\\EasyMiner-Miner"]
+	path = .\\EasyMiner-Miner
+	url = https://propi@bitbucket.org/easyminer/easyminer-miner.git

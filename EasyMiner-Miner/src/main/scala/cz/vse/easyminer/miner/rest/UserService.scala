@@ -56,8 +56,12 @@ class UserService private(user: User, val apiKey: String)
     new MinerService()
   }
 
+  val outlierDetectionService = dbConnectors.map { implicit dbConnectors =>
+    new OutlierDetectionService()
+  }
+
   val route = sealRoute {
-    onSuccess(minerService)(_.route)
+    onSuccess(minerService)(_.route) ~ onSuccess(outlierDetectionService)(_.route)
   }
 
   def receive: Receive = {
