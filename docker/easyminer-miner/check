@@ -1,0 +1,22 @@
+#!/bin/bash  
+# Script for service checking
+
+cd /root/easyminer-miner
+. ./env
+
+STATUS_OK=$(curl -I http://${EM_MINER_REST_ADDRESS}:${EM_MINER_REST_PORT}/${EM_MINER_BASEPATH}/index.html | grep "200 OK")
+if [ -z "${STATUS_OK}" ]; then
+  /etc/init.d/easyminer-miner stop
+  x=1
+  while :
+  do
+    LOGFILE="rest.log.${x}.gz" 
+	  if [ ! -f "$LOGFILE" ]
+    then
+      gzip -c rest.log > $LOGFILE
+      break
+    fi
+    x=$(( $x + 1 ))
+  done
+  /etc/init.d/easyminer-miner start
+fi

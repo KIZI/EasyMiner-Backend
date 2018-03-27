@@ -1,0 +1,6 @@
+#!/bin/bash  
+# Script for running Rest Easyminer Data
+
+cd /root/easyminer-data
+. ./env
+./bin/main > rest.log 2>&1

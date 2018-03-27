@@ -1,0 +1,45 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          easyminer-data
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Easyminer data rest
+# Description:       Easyminer data rest
+### END INIT INFO
+
+
+set -e
+
+start() {
+        echo "Starting easyminer data rest service..."
+        start-stop-daemon --start --make-pidfile --pidfile /var/run/easyminer-data.pid --background --exec /root/easyminer-data/run
+}
+
+stop() {
+        echo "Stopping easyminer date rest service..."
+        /root/easyminer-data/stop
+        start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/easyminer-data.pid
+}
+
+#
+# main()
+#
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload|condrestart)
+        stop
+        start
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac
+exit 0

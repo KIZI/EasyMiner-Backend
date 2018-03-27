@@ -1,0 +1,54 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          easyminer-miner
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Easyminer apriori R rest
+# Description:       Easyminer apriori R rest
+### END INIT INFO
+
+
+set -e
+
+start() {
+        echo "Starting easyminer apriori R rest service..."
+	      JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+        export JAVA_HOME
+        R CMD javareconf
+        Rscript /root/easyminer-miner/rserve-start.R
+        start-stop-daemon --start --make-pidfile --pidfile /var/run/easyminer-miner.pid --background --exec /root/easyminer-miner/run
+}
+
+stop() {
+        echo "Stopping easyminer apriori R rest service..."
+	      cd /root/easyminer-miner
+	      . ./env
+        curl http://${EM_MINER_REST_ADDRESS}:${EM_MINER_REST_PORT}/${EM_MINER_BASEPATH}/stop
+        start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/easyminer-miner.pid
+	      Rscript /root/easyminer-miner/rserve-stop.R
+}
+
+#
+# main()
+#
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload|condrestart)
+        stop
+        start
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac
+exit 0
+
+
