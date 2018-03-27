@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PMML>
+    <Header>
+        <Extension name="dataset" value="{{dataset-id}}"></Extension>
+    </Header>
+    <guha:AssociationModel xmlns:guha="http://keg.vse.cz/ns/GUHA0.1rev1" xmlns=""
+                           modelName="655191cce4badffee2b486f8deae7bac" functionName="associationRules"
+                           algorithmName="4ft">
+        <TaskSetting xmlns="">
+            <Extension xmlns="" name="LISp-Miner">
+                <HypothesesCountMax xmlns="">100</HypothesesCountMax>
+            </Extension>
+            <BBASettings xmlns="">
+                <BBASetting id="4">
+                    <Text>district</Text>
+                    <Name>district</Name>
+                    <FieldRef>{{district-attribute-id}}</FieldRef>
+                    <Coefficient>
+                        <Type>Subset</Type>
+                        <MinimalLength>1</MinimalLength>
+                        <MaximalLength>1</MaximalLength>
+                    </Coefficient>
+                </BBASetting>
+                <BBASetting id="10">
+                    <Text>rating</Text>
+                    <Name>rating</Name>
+                    <FieldRef>{{rating-attribute-id}}</FieldRef>
+                    <Coefficient>
+                        <Type>One category</Type>
+                        <Category>A</Category>
+                    </Coefficient>
+                </BBASetting>
+            </BBASettings>
+            <DBASettings xmlns="">
+                <DBASetting id="1" type="Conjunction">
+                    <BASettingRef>2</BASettingRef>
+                    <MinimalLength>1</MinimalLength>
+                </DBASetting>
+                <DBASetting id="2" type="Conjunction">
+                    <BASettingRef>3</BASettingRef>
+                    <MinimalLength>0</MinimalLength>
+                </DBASetting>
+                <DBASetting id="3" type="Literal">
+                    <BASettingRef>4</BASettingRef>
+                    <LiteralSign>Positive</LiteralSign>
+                </DBASetting>
+                <DBASetting id="7" type="Conjunction">
+                    <BASettingRef>8</BASettingRef>
+                    <MinimalLength>1</MinimalLength>
+                </DBASetting>
+                <DBASetting id="8" type="Conjunction">
+                    <BASettingRef>9</BASettingRef>
+                    <MinimalLength>0</MinimalLength>
+                </DBASetting>
+                <DBASetting id="9" type="Literal">
+                    <BASettingRef>10</BASettingRef>
+                    <LiteralSign>Positive</LiteralSign>
+                </DBASetting>
+            </DBASettings>
+            <AntecedentSetting xmlns="">1</AntecedentSetting>
+            <ConsequentSetting xmlns="">7</ConsequentSetting>
+            <InterestMeasureSetting xmlns="">
+                <InterestMeasureThreshold id="5">
+                    <InterestMeasure>FUI</InterestMeasure>
+                    <Threshold>0.1</Threshold>
+                    <ThresholdType>% of all</ThresholdType>
+                    <CompareType>Greater than or equal</CompareType>
+                </InterestMeasureThreshold>
+                <InterestMeasureThreshold id="6">
+                    <InterestMeasure>SUPP</InterestMeasure>
+                    <Threshold>0.01</Threshold>
+                    <ThresholdType>% of all</ThresholdType>
+                    <CompareType>Greater than or equal</CompareType>
+                </InterestMeasureThreshold>
+                <InterestMeasureThreshold id="15">
+                    <InterestMeasure>LIFT</InterestMeasure>
+                    <Threshold>1.30</Threshold>
+                    <ThresholdType>% of all</ThresholdType>
+                    <CompareType>Greater than or equal</CompareType>
+                </InterestMeasureThreshold>
+                <InterestMeasureThreshold id="50">
+                    <InterestMeasure>RULE_LENGTH</InterestMeasure>
+                    <Threshold>3</Threshold>
+                    <ThresholdType>Abs</ThresholdType>
+                    <CompareType>Less than or equal</CompareType>
+                </InterestMeasureThreshold>
+                <InterestMeasureThreshold id="60">
+                    <InterestMeasure>CBA</InterestMeasure>
+                    <ThresholdType/>
+                    <CompareType/>
+                </InterestMeasureThreshold>
+            </InterestMeasureSetting>
+        </TaskSetting>
+    </guha:AssociationModel>
+</PMML>

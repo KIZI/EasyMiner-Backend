@@ -67,7 +67,3 @@ start.cmd
 /webapp
 private.sbt
 *.bat
-
-src/main/scala/cz/vse/easyminer/miner/impl/spark*
-src/test*
-.idea/

@@ -34,3 +34,7 @@ case class NarrowInstance(id: Int, attribute: Int, value: Int)
   * @param value     value id
   */
 case class Item(attribute: Int, value: Int)
+
+case class InstanceWithValue(id: Int, values: Seq[InstanceItemWithValue])
+
+case class InstanceItemWithValue(attribute: Int, value: String)

@@ -12,11 +12,13 @@ import akka.actor.{ActorContext, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
 import cz.vse.easyminer.core.Validator.ValidationException
-import cz.vse.easyminer.core.db.{MysqlDBConnector, DBConnectors}
+import cz.vse.easyminer.core.db.{DBConnectors, HiveDBConnector, MysqlDBConnector}
 import cz.vse.easyminer.core.util.RestUtils.PathExtension
 import cz.vse.easyminer.core.{UnexpectedActorRequest, UnexpectedActorResponse}
+import cz.vse.easyminer.miner.impl.io.{PmmlResult, PmmlTaskParser}
 import cz.vse.easyminer.miner.impl.r.AprioriMiner
-import cz.vse.easyminer.miner.impl.{MinerTaskValidatorImpl, PmmlResult, PmmlTaskParser}
+import cz.vse.easyminer.miner.impl.spark.FpGrowthMiner
+import cz.vse.easyminer.miner.impl.{MinerTaskValidatorImpl, RConnectionPoolImpl}
 import cz.vse.easyminer.miner.{Miner, MinerResult, MinerTask, RScript}
 import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions._
 import cz.vse.easyminer.preprocessing.{LimitedDatasetType, UnlimitedDatasetType}
@@ -49,6 +51,8 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
   implicit private val ec: ExecutionContext = actorContext.dispatcher
   implicit private val timeout = Timeout(5 seconds)
   implicit private lazy val mysqlDBConnector: MysqlDBConnector = dBConnectors
+  implicit private lazy val hiveDBConnector: HiveDBConnector = dBConnectors
+  implicit private val rConnectionPool = RConnectionPoolImpl.defaultMiner
 
   lazy val route = path("mine" ~ Slash.?) {
     post {
@@ -81,7 +85,7 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
       case LimitedDatasetType => RScript evalTx { rscript =>
         f(new AprioriMiner(rscript) with MinerTaskValidatorImpl)
       }
-      case UnlimitedDatasetType => ???
+      case UnlimitedDatasetType => f(new FpGrowthMiner() with MinerTaskValidatorImpl)
     }
     logger.trace(s"${minerActor.path.name}: input task is:\n$pmml")
     pmml.find(_.label == "PMML").map(new PmmlTaskParser(_).parse).map(minerTask => useMiner(minerTask) { miner =>
@@ -110,15 +114,9 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
             <code>202 Accepted</code>
             <miner>
               <state>In progress</state>
-              <task-id>
-                {id}
-              </task-id>
-              <started>
-                {new Date}
-              </started>
-              <partial-result-url>
-                {rurl}
-              </partial-result-url>
+              <task-id>{id}</task-id>
+              <started>{new Date}</started>
+              <partial-result-url>{rurl}</partial-result-url>
             </miner>
           </status>
         )
@@ -140,12 +138,8 @@ class MinerService(implicit actorContext: ActorContext, dBConnectors: DBConnecto
               <code>303 See Other</code>
               <miner>
                 <state>Done</state>
-                <task-id>
-                  {id}
-                </task-id>
-                <complete-result-url>
-                  {rurl}
-                </complete-result-url>
+                <task-id>{id}</task-id>
+                <complete-result-url>{rurl}</complete-result-url>
               </miner>
             </status>
           )

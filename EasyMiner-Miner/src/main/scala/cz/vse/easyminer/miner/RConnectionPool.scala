@@ -38,6 +38,10 @@ trait RConnectionPool {
   def close()
 }
 
+trait RConnectionInit {
+  def init(rConnection: RConnection)
+}
+
 class BorrowedConnection(rServer: String, rPort: Int) extends RConnection(rServer, rPort) {
   val created = System.currentTimeMillis
 }

@@ -34,5 +34,5 @@ object RestUtils {
       */
     def parent = findClosestParent(path.reverse).reverse
   }
-
+  
 }

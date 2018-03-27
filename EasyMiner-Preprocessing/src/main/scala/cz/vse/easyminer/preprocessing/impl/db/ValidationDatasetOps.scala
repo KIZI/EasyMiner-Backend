@@ -33,4 +33,11 @@ class ValidationDatasetOps(datasetOps: DatasetOps) extends DatasetOps with Datas
 
   def getAllDatasets: List[DatasetDetail] = datasetOps.getAllDatasets
 
+  /**
+    * It only changes updated timestamp
+    *
+    * @param datasetId ID
+    */
+  def updateDataset(datasetId: Int): Unit = datasetOps.updateDataset(datasetId)
+
 }

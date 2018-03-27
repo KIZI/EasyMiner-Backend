@@ -9,6 +9,7 @@ package cz.vse.easyminer.preprocessing.impl.db
 import cz.vse.easyminer.core.TaskStatusProcessor
 import cz.vse.easyminer.core.db._
 import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
+import cz.vse.easyminer.preprocessing.impl.db.hive.HiveDatasetTypeOps
 import cz.vse.easyminer.preprocessing.impl.db.mysql.MysqlDatasetTypeOps
 import cz.vse.easyminer.preprocessing.{DatasetType, LimitedDatasetType, UnlimitedDatasetType}
 
@@ -31,7 +32,7 @@ object DatasetTypeConversions {
   implicit def unlimitedDatasetTypeToHiveDatasetTypeOps(unlimitedDatasetType: UnlimitedDatasetType.type)
                                                        (implicit dBConnectors: DBConnectors,
                                                         taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
-  : DatasetTypeOps[UnlimitedDatasetType.type] = ???
+  : DatasetTypeOps[UnlimitedDatasetType.type] = new HiveDatasetTypeOps()(dBConnectors.connector(LimitedDBType), dBConnectors.connector(UnlimitedDBType), taskStatusProcessor)
 
   object Limited {
     implicit def datasetTypeToMysqlDatasetTypeOps(limitedDatasetType: DatasetType)
@@ -46,10 +47,11 @@ object DatasetTypeConversions {
   object Unlimited {
     implicit def datasetTypeToHiveDatasetTypeOps(unlimitedDatasetType: DatasetType)
                                                 (implicit mysqlDBConnector: MysqlDBConnector,
+                                                 hiveDBConnector: HiveDBConnector,
                                                  taskStatusProcessor: TaskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor)
     : DatasetTypeOps[UnlimitedDatasetType.type] = unlimitedDatasetType match {
       case LimitedDatasetType => throw new IllegalArgumentException
-      case UnlimitedDatasetType => ???
+      case UnlimitedDatasetType => new HiveDatasetTypeOps()
     }
   }
 

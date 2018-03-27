@@ -10,7 +10,8 @@ import cz.vse.easyminer.core.db.MysqlDBConnector
 import cz.vse.easyminer.core.util.{SqlUtils, Template}
 import cz.vse.easyminer.miner.MinerResultHeader.MiningTime
 import cz.vse.easyminer.miner.impl.BoolExpressionImpl._
-import cz.vse.easyminer.miner.impl.{ItemText, MysqlMinerDatasetOps, MysqlQueryBuilder}
+import cz.vse.easyminer.miner.impl.mysql.{MysqlMinerDatasetOps, MysqlQueryBuilder}
+import cz.vse.easyminer.miner.impl.ItemText
 import cz.vse.easyminer.miner.{Attribute, _}
 import cz.vse.easyminer.preprocessing._
 import cz.vse.easyminer.preprocessing.impl.db.mysql.MysqlAttributeOps

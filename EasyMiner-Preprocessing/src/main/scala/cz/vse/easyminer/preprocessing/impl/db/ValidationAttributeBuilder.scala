@@ -10,6 +10,7 @@ import cz.vse.easyminer.core.Validator
 import cz.vse.easyminer.core.util.CollectionValidators
 import cz.vse.easyminer.preprocessing._
 import cz.vse.easyminer.preprocessing.impl.Validators.AttributeValidators
+import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 
 /**
   * Created by Vaclav Zeman on 29. 1. 2016.
@@ -21,7 +22,8 @@ import cz.vse.easyminer.preprocessing.impl.Validators.AttributeValidators
   * @param attributeBuilder attribute builder
   * @tparam T type of attribute preprocessings
   */
-class ValidationAttributeBuilder[T <: Attribute](attributeBuilder: AttributeBuilder[T]) extends AttributeBuilder[T] with AttributeValidators {
+class ValidationAttributeBuilder[T <: Attribute](attributeBuilder: AttributeBuilder[T])
+                                                (implicit datasetDetailToDatasetTypeOps: DatasetDetail => DatasetTypeOps[DatasetType]) extends AttributeBuilder[T] with AttributeValidators {
 
   val dataset: DatasetDetail = attributeBuilder.dataset
 
@@ -31,6 +33,7 @@ class ValidationAttributeBuilder[T <: Attribute](attributeBuilder: AttributeBuil
     Validator(attributes)
     val result = attributeBuilder.build
     Validator(result)(CollectionValidators.NonEmpty)
+    dataset.toDatasetOps.updateDataset(dataset.id)
     result
   }
 

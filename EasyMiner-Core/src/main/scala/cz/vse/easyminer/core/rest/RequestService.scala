@@ -9,7 +9,6 @@ package cz.vse.easyminer.core.rest
 import akka.actor.{Actor, ActorRef, ReceiveTimeout}
 import cz.vse.easyminer.core.User
 import cz.vse.easyminer.core.rest.RequestService.{ParentRequest, ParentResponse}
-import spray.client.pipelining._
 import spray.http.HttpHeader
 import spray.routing.authentication._
 import spray.routing.{AuthenticationFailedRejection, Directives, RequestContext}
@@ -31,8 +30,6 @@ class RequestService extends Actor with Directives {
   implicit val ec = context.dispatcher
 
   context.setReceiveTimeout(1 minute)
-
-  sendReceive
 
   /**
     * This is api key authenticator.

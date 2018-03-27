@@ -7,6 +7,7 @@
 package cz.vse.easyminer.preprocessing.impl.db
 
 import cz.vse.easyminer.core.Validator
+import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 import cz.vse.easyminer.preprocessing.impl.Validators.AttributeValidators
 import cz.vse.easyminer.preprocessing._
 
@@ -19,18 +20,22 @@ import cz.vse.easyminer.preprocessing._
   *
   * @param attributeOps attribute operations object
   */
-class ValidationAttributeOps(attributeOps: AttributeOps) extends AttributeOps with AttributeValidators {
+class ValidationAttributeOps(attributeOps: AttributeOps)
+                            (implicit datasetDetailToDatasetTypeOps: DatasetDetail => DatasetTypeOps[DatasetType]) extends AttributeOps with AttributeValidators {
 
   val dataset: DatasetDetail = attributeOps.dataset
 
   def renameAttribute(attributeId: Int, newName: String): Unit = {
-    Validator(SimpleAttribute(newName, 0))
+    Validator(SimpleAttribute(newName, 0, Nil))
     attributeOps.renameAttribute(attributeId, newName)
   }
 
   def getAttribute(attributeId: Int): Option[AttributeDetail] = attributeOps.getAttribute(attributeId)
 
-  def deleteAttribute(attributeId: Int): Unit = attributeOps.deleteAttribute(attributeId)
+  def deleteAttribute(attributeId: Int): Unit = {
+    attributeOps.deleteAttribute(attributeId)
+    dataset.toDatasetOps.updateDataset(dataset.id)
+  }
 
   def getAllAttributes: List[AttributeDetail] = attributeOps.getAllAttributes
 

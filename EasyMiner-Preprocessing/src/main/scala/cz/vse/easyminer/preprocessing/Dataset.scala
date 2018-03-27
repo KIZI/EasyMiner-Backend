@@ -6,6 +6,8 @@
 
 package cz.vse.easyminer.preprocessing
 
+import java.util.Date
+
 import cz.vse.easyminer.data.{DataSourceDetail, DataSourceType, LimitedDataSourceType, UnlimitedDataSourceType}
 import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 
@@ -33,7 +35,7 @@ case class Dataset(name: String, dataSourceDetail: DataSourceDetail)
   * @param size       number of transactions for this dataset
   * @param active     flag which indicates whether this dataset is active (if it is inactive it is probably under construction)
   */
-case class DatasetDetail(id: Int, name: String, dataSource: Int, `type`: DatasetType, size: Int, active: Boolean)
+case class DatasetDetail(id: Int, name: String, dataSource: Int, `type`: DatasetType, size: Int, created: Date, updated: Date, active: Boolean)
 
 object DatasetDetail {
 

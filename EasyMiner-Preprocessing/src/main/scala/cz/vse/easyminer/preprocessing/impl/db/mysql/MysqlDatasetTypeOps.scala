@@ -12,6 +12,7 @@ import cz.vse.easyminer.preprocessing.DatasetType.DatasetTypeOps
 import cz.vse.easyminer.preprocessing._
 import cz.vse.easyminer.preprocessing.impl.TypeableCases._
 import cz.vse.easyminer.preprocessing.impl.db.MetaAttributeBuilder
+import cz.vse.easyminer.preprocessing.impl.db.AttributeConversions._
 
 /**
   * Created by Vaclav Zeman on 15. 2. 2016.
@@ -40,9 +41,9 @@ class MysqlDatasetTypeOps private[db](implicit mysqlDBConnector: MysqlDBConnecto
     case `Seq[SimpleAttribute]`(attributes) => MysqlSimpleAttributeBuilder(attributes, datasetDetail)
     case `Seq[NominalEnumerationAttribute]`(attributes) => MysqlNominalEnumerationAttributeBuilder(attributes, datasetDetail)
     case `Seq[NumericIntervalsAttribute]`(attributes) => MysqlNumericIntervalsAttributeBuilder(attributes, datasetDetail)
-    case `Seq[EquidistantIntervalsAttribute]`(attributes) => MysqlEquidistantIntervalsAttributeBuilder(attributes, datasetDetail)
-    case `Seq[EquifrequentIntervalsAttribute]`(attributes) => MysqlEquifrequentIntervalsAttributeBuilder(attributes, datasetDetail)
-    case `Seq[EquisizedIntervalsAttribute]`(attributes) => MysqlEquisizedIntervalsAttributeBuilder(attributes, datasetDetail)
+    case `Seq[EquidistantIntervalsAttribute]`(attributes) => MysqlDiscretizationAttributeBuilder(attributes, datasetDetail)
+    case `Seq[EquifrequentIntervalsAttribute]`(attributes) => MysqlDiscretizationAttributeBuilder(attributes, datasetDetail)
+    case `Seq[EquisizedIntervalsAttribute]`(attributes) => MysqlDiscretizationAttributeBuilder(attributes, datasetDetail)
     case _ => throw new IllegalArgumentException
   })
 

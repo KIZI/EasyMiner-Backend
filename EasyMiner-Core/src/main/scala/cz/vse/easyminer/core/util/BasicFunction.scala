@@ -7,11 +7,12 @@
 package cz.vse.easyminer.core.util
 
 import java.security.MessageDigest
+import java.util.UUID
 
 import scala.annotation.tailrec
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Random, Try}
 
 /**
   * This can be used for pattern-matching which need not be completed. Each case must return Unit
@@ -151,6 +152,24 @@ object BasicFunction {
   def md5(string: String) = new String(MessageDigest.getInstance("MD5").digest(string.getBytes))
 
   /**
+    * It is same as repeatUntil but the number of repeats is limited
+    *
+    * @param times       max number of repeats
+    * @param waitingTime if "until" function is false then wait the waitingTime and repeat function f
+    * @param until       output of f function is delegated to "until" function, which returns boolean (true = it is ok, return output of the f function; false = repeat function f)
+    * @param f           repeatable function
+    * @tparam T output of the f function
+    * @return output of the f function
+    */
+  def limitedRepeatUntil[T](times: Int, waitingTime: Duration = 100 milliseconds)(until: T => Boolean)(f: => T) = {
+    var repeated = 0
+    repeatUntil(waitingTime)(until.andThen(_ || repeated >= times)) {
+      repeated = repeated + 1
+      f
+    }
+  }
+
+  /**
     * This methods repeats function f while the condition "until" is false
     *
     * @param waitingTime if "until" function is false then wait the waitingTime and repeat function f
@@ -167,24 +186,6 @@ object BasicFunction {
     } else {
       Thread.sleep(waitingTime.toMillis)
       repeatUntil(waitingTime)(until)(f)
-    }
-  }
-
-  /**
-    * It is same as repeatUntil but the number of repeats is limited
-    *
-    * @param times       max number of repeats
-    * @param waitingTime if "until" function is false then wait the waitingTime and repeat function f
-    * @param until       output of f function is delegated to "until" function, which returns boolean (true = it is ok, return output of the f function; false = repeat function f)
-    * @param f           repeatable function
-    * @tparam T output of the f function
-    * @return output of the f function
-    */
-  def limitedRepeatUntil[T](times: Int, waitingTime: Duration = 100 milliseconds)(until: T => Boolean)(f: => T) = {
-    var repeated = 0
-    repeatUntil(waitingTime)(until.andThen(_ || repeated >= times)) {
-      repeated = repeated + 1
-      f
     }
   }
 
@@ -220,8 +221,25 @@ object BasicFunction {
     * @return output rounded number
     */
   def roundAt(p: Int)(n: Double): Double = {
-    val s = math pow(10, p);
+    val s = math pow(10, p)
     (math round n * s) / s
+  }
+
+  def randomString(num: Int) = Random.alphanumeric.take(num).mkString
+
+  def uuidhash(num: Int)(uUID: UUID) = {
+    def intToChar(number: Int) = {
+      val modNumber = number % 62
+      if (modNumber < 10) {
+        (modNumber + 48).toChar
+      } else if (modNumber <= 35) {
+        (modNumber + 55).toChar
+      } else {
+        (modNumber + 61).toChar
+      }
+    }
+    val bitArray = MessageDigest.getInstance("MD5").digest(uUID.toString.getBytes)
+    (0 until num).iterator.map(x => bitArray(x % 16) & 0xFF).scanLeft(0)(_ + _).drop(1).map(intToChar).mkString
   }
 
 }

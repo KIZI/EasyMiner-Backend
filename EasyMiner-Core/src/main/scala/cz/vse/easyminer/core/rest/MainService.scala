@@ -9,6 +9,7 @@ package cz.vse.easyminer.core.rest
 import akka.actor.{Actor, Props}
 import cz.vse.easyminer.core.User
 import shapeless.HNil
+import spray.http.HttpMethods
 import spray.routing._
 
 /**
@@ -57,6 +58,6 @@ trait MainService extends Actor with HttpService with DefaulHandlers with Direct
     *
     * @return route
     */
-  def receive: Receive = actorHandler orElse runRoute(basePath(globalRoute(options(complete("")) ~ route)))
+  def receive: Receive = actorHandler orElse runRoute(basePath(globalRoute(cancelRejection(MethodRejection(HttpMethods.OPTIONS))(options(complete(""))) ~ route)))
 
 }

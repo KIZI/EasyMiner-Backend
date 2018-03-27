@@ -21,7 +21,7 @@ object Tables {
 
     override val tableName = tablePrefix + "dataset"
 
-    override val columns = Seq("id", "name", "data_source", "type", "size", "active")
+    override val columns = Seq("id", "name", "data_source", "type", "size", "created", "updated", "active")
 
     def apply(m: ResultName[DatasetDetail])(rs: WrappedResultSet) = DatasetDetail(
       rs.int(m.id),
@@ -32,6 +32,8 @@ object Tables {
         case "UNLIMITED" => UnlimitedDatasetType
       },
       rs.int(m.size),
+      rs.timestamp(m.created).toJavaUtilDate,
+      rs.timestamp(m.updated).toJavaUtilDate,
       rs.boolean(m.active)
     )
 

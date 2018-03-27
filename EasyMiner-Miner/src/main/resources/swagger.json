@@ -32,11 +32,26 @@
       "apiKeyQuery": []
     }
   ],
+  "tags": [
+    {
+      "name": "Association rules mining",
+      "description": "This service provides operations for association rules mining."
+    },
+    {
+      "name": "Outlier detection",
+      "description": "This service provides operations for outliers detection from infrequent itemsets."
+    }
+  ],
   "paths": {
     "/status": {
       "get": {
         "summary": "Check whether all dependent services are available.",
-        "produces": ["application/xml"],
+        "tags": [
+          "Association rules mining"
+        ],
+        "produces": [
+          "application/xml"
+        ],
         "responses": {
           "200": {
             "description": "All dependencies are available."
@@ -54,6 +69,9 @@
       "post": {
         "summary": "Create a mining task by some PMML definition",
         "description": "",
+        "tags": [
+          "Association rules mining"
+        ],
         "consumes": [
           "application/xml; charset=UTF-8"
         ],
@@ -96,6 +114,9 @@
     "/partial-result/{taskId}": {
       "get": {
         "summary": "Return a partial result of the mining task.",
+        "tags": [
+          "Association rules mining"
+        ],
         "produces": [
           "application/xml"
         ],
@@ -136,6 +157,9 @@
     "/complete-result/{taskId}": {
       "get": {
         "summary": "Return a final result of the mining task.",
+        "tags": [
+          "Association rules mining"
+        ],
         "produces": [
           "application/xml"
         ],
@@ -160,6 +184,275 @@
           },
           "500": {
             "description": "Some error during mining.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/outlier-detection": {
+      "post": {
+        "summary": "Create a task for outliers seeking",
+        "tags": [
+          "Outlier detection"
+        ],
+        "description": "",
+        "consumes": [
+          "application/json; charset=utf-8"
+        ],
+        "produces": [
+          "application/json; charset=utf-8",
+          "application/xml; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "JSON settings.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OutlierDetectionTask"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Task was accepted and is in progress.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            },
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Location: {address-with-result}"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad input data.",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/outlier-detection/{taskId}": {
+      "get": {
+        "summary": "Get status of an outlier detection seeking task.",
+        "tags": [
+          "Outlier detection"
+        ],
+        "description": "",
+        "produces": [
+          "application/json; charset=utf-8",
+          "application/xml; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "task ID",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Task has been finished successfully.",
+            "schema": {
+              "$ref": "#/definitions/OutliersTask"
+            },
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Location: {address-with-result}"
+              }
+            }
+          },
+          "202": {
+            "description": "Task is still in progress.",
+            "schema": {
+              "$ref": "#/definitions/TaskStatus"
+            }
+          },
+          "404": {
+            "description": "Task does not exist."
+          }
+        }
+      }
+    },
+    "/outlier-detection/result/{datasetId}": {
+      "get": {
+        "summary": "Get all finished outlier detection tasks for a dataset.",
+        "tags": [
+          "Outlier detection"
+        ],
+        "description": "",
+        "produces": [
+          "application/json; charset=utf-8",
+          "application/xml; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "dataset ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of tasks.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/OutliersTask"
+              }
+            }
+          },
+          "404": {
+            "description": "Dataset does not exist."
+          }
+        }
+      }
+    },
+    "/outlier-detection/result/{datasetId}/{taskId}": {
+      "get": {
+        "summary": "Get the detail of of a finished outlier detection task.",
+        "tags": [
+          "Outlier detection"
+        ],
+        "description": "",
+        "produces": [
+          "application/json; charset=utf-8",
+          "application/xml; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "task ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task detail.",
+            "schema": {
+              "$ref": "#/definitions/OutliersTask"
+            }
+          },
+          "404": {
+            "description": "Dataset or task does not exist."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete some outlier detection task.",
+        "tags": [
+          "Outlier detection"
+        ],
+        "description": "",
+        "produces": [
+          ""
+        ],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "task ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted."
+          },
+          "404": {
+            "description": "Dataset or task does not exist."
+          }
+        }
+      }
+    },
+    "/outlier-detection/result/{datasetId}/{taskId}/outliers": {
+      "get": {
+        "summary": "Get all outliers for some dataset and task.",
+        "tags": [
+          "Outlier detection"
+        ],
+        "description": "There are two required query parameters: offset and limit. Maximum 1000 outliers can be returned within one request.",
+        "produces": [
+          "application/json; charset=utf-8",
+          "application/xml; charset=utf-8"
+        ],
+        "parameters": [
+          {
+            "name": "datasetId",
+            "in": "path",
+            "description": "dataset ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "task ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "A starting position for the outliers listing.",
+            "required": true,
+            "type": "integer",
+            "minimum": 0
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of displayed outliers.",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Outliers.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/OutlierWithInstance"
+              }
+            }
+          },
+          "404": {
+            "description": "Dataset or task does not exist."
+          },
+          "400": {
+            "description": "Bad query parameter.",
             "schema": {
               "$ref": "#/definitions/Error"
             }
@@ -228,6 +521,94 @@
       },
       "xml": {
         "name": "Error"
+      }
+    },
+    "TaskStatus": {
+      "type": "object",
+      "required": [
+        "taskId",
+        "taskName"
+      ],
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The task ID."
+        },
+        "taskName": {
+          "type": "string",
+          "description": "The task name."
+        },
+        "statusMessage": {
+          "type": "string",
+          "description": "Some message about the state of the task background process."
+        },
+        "statusLocation": {
+          "type": "string",
+          "description": "URL with a location of the task status (this is returned if the task is still in progress)."
+        },
+        "resultLocation": {
+          "type": "string",
+          "description": "URL with a location of the task result (this is returned if the task has been completed successfully)."
+        }
+      }
+    },
+    "OutliersTask": {
+      "type": "object",
+      "required": [
+        "id",
+        "time",
+        "dataset"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Task ID."
+        },
+        "time": {
+          "type": "string",
+          "description": "Creation time of this task."
+        },
+        "dataset": {
+          "type": "integer",
+          "description": "Dataset ID."
+        }
+      }
+    },
+    "OutlierWithInstance": {
+      "type": "object",
+      "required": [
+        "score",
+        "instance"
+      ],
+      "properties": {
+        "score": {
+          "type": "number",
+          "format": "double",
+          "description": "Outlier score."
+        },
+        "instance": {
+          "type": "string",
+          "description": "Json object which represents an instance of this outlier from a dataset."
+        }
+      }
+    },
+    "OutlierDetectionTask": {
+      "type": "object",
+      "required": [
+        "datasetId",
+        "minSupport"
+      ],
+      "properties": {
+        "datasetId": {
+          "type": "integer",
+          "description": "Dataset ID."
+        },
+        "minSupport": {
+          "type": "number",
+          "format": "double",
+          "description": "Minimal support for infrequent itemset mining."
+        }
       }
     }
   }

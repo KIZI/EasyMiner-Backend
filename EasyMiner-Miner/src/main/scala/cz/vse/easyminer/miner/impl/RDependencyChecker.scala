@@ -34,7 +34,7 @@ class RDependencyChecker(implicit mysqlDBConnector: MysqlDBConnector) extends De
 
   val innerDependencyCheckers: Option[(Nothing) => Runner] = None
 
-  implicit val rcp: RConnectionPool = RConnectionPoolImpl.default
+  implicit val rcp: RConnectionPool = RConnectionPoolImpl.defaultMiner
   implicit val taskStatusProcessor = TaskStatusProcessor.EmptyTaskStatusProcessor
 
   def check(): Unit = RDependencyChecker.synchronized {
@@ -61,7 +61,7 @@ class RDependencyChecker(implicit mysqlDBConnector: MysqlDBConnector) extends De
         val fieldOps = MysqlFieldOps(dataSourceDetail)
         val datasetDetail = MysqlDatasetBuilder(Dataset("r-dependency-checker-dataset", dataSourceDetail)).build
         for (field <- fieldOps.getAllFields) {
-          MysqlSimpleAttributeBuilder(List(SimpleAttribute(field.name, field.id)), datasetDetail).build
+          MysqlSimpleAttributeBuilder(List(SimpleAttribute(field.name, field.id, Nil)), datasetDetail).build
         }
         val attributeOps = MysqlAttributeOps(datasetDetail)
         val attributesMap = attributeOps.getAllAttributes.map(x => x.name -> x).toMap

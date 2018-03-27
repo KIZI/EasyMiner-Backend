@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS `{{prefix}}outliers_task` (
+`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+`time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`dataset` int(10) unsigned NOT NULL,
+PRIMARY KEY (`id`),
+KEY `dataset` (`dataset`)
+) ENGINE=InnoDB  DEFAULT CHARSET=ascii COLLATE=ascii_bin AUTO_INCREMENT=1 ;

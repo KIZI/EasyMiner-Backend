@@ -29,10 +29,10 @@ import spray.routing.Directives
   */
 class DatasetService(implicit dBConnectors: DBConnectors, actorContext: ActorContext)
   extends Directives
-    with SprayJsonSupport
-    with DefaultJsonProtocol
-    with TaskStatusRestHelper
-    with PreprocessingMainService.BaseUriPath {
+  with SprayJsonSupport
+  with DefaultJsonProtocol
+  with TaskStatusRestHelper
+  with PreprocessingMainService.BaseUriPath {
 
   import JsonFormatters.JsonDatasetDetail._
   import cz.vse.easyminer.preprocessing.impl.db.DatasetTypeConversions._

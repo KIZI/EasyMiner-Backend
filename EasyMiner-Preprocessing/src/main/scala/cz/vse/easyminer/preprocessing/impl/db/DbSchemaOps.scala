@@ -18,11 +18,11 @@ import cz.vse.easyminer.preprocessing.{SchemaOps => PreprocessingSchemaOps}
   */
 trait DbSchemaOps extends PreprocessingSchemaOps {
 
-  private[db] val dataSchemaOps: DataSchemaOps
+  protected val dataSchemaOps: DataSchemaOps
 
-  private[db] def preprocessingSchemaExists: Boolean
+  protected def preprocessingSchemaExists: Boolean
 
-  private[db] def createPreprocessingSchema(): Unit
+  protected def createPreprocessingSchema(): Unit
 
   final def schemaExists: Boolean = dataSchemaOps.schemaExists && preprocessingSchemaExists
 

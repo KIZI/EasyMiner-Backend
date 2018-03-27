@@ -33,14 +33,14 @@ import scala.language.postfixOps
   */
 class UserService(user: User, val apiKey: String)
   extends HttpServiceActor
-    with DefaultResponseHandlers
-    with JsonErrorMessage
-    with SprayJsonSupport
-    with DefaultJsonProtocol
-    with TaskStatusRestHelper
-    with DataMainService.BaseUriPath
-    with DbService
-    with UserEndpoint {
+  with DefaultResponseHandlers
+  with JsonErrorMessage
+  with SprayJsonSupport
+  with DefaultJsonProtocol
+  with TaskStatusRestHelper
+  with DataMainService.BaseUriPath
+  with DbService
+  with UserEndpoint {
 
   import JsonFormatters.JsonValueInterval._
 

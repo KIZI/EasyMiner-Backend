@@ -64,8 +64,3 @@ $RECYCLE.BIN/
 *.lnk
 private.sbt
 webapp
-
-src/main/scala/cz/vse/easyminer/data/hadoop*
-src/main/scala/cz/vse/easyminer/data/impl/db/hive*
-src/test*
-.idea/

@@ -7,7 +7,7 @@
 package cz.vse.easyminer.preprocessing.impl.db.mysql
 
 import cz.vse.easyminer.core.db.MysqlDBConnector
-import cz.vse.easyminer.preprocessing.impl.db.ValidationAttributeOps
+import cz.vse.easyminer.preprocessing.impl.db.{DatasetTypeConversions, ValidationAttributeOps}
 import cz.vse.easyminer.preprocessing.impl.db.mysql.Tables.{AttributeTable, InstanceTable, ValueTable}
 import cz.vse.easyminer.preprocessing.{AttributeDetail, AttributeOps, DatasetDetail}
 import scalikejdbc._
@@ -73,6 +73,8 @@ class MysqlAttributeOps private[db](val dataset: DatasetDetail)(implicit connect
 }
 
 object MysqlAttributeOps {
+
+  import DatasetTypeConversions.Limited._
 
   /**
     * Create attribute operations instance decorated by validator

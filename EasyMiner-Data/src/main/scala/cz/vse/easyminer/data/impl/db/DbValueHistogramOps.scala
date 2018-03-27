@@ -110,7 +110,7 @@ trait DbValueHistogramOps extends ValueHistogramOps {
           val binTo = if (interval.tail.head == max.value) max else ExclusiveIntervalBorder(interval.tail.head)
           def sumRestDataIfEnd(data: Seq[(Double, Int)]) = if (bins.size == 2) data.foldLeft(0)(_ + _._2) else 0
           data match {
-            case Seq((x, freq), tail@_*) if x >= binFrom.value && x < binTo.value =>
+            case Seq((x, freq), tail @ _*) if x >= binFrom.value && x < binTo.value =>
               fillBins(bins.tail, tail, result :+ NumericValueInterval(binFrom, binTo, freq + sumRestDataIfEnd(tail)))
             case _ =>
               fillBins(bins.tail, data, result :+ NumericValueInterval(binFrom, binTo, 0 + sumRestDataIfEnd(data)))
@@ -120,9 +120,9 @@ trait DbValueHistogramOps extends ValueHistogramOps {
         }
       }
       fillBins((min.value to max.value by intervalSize).toList, data.view.collect { case Bin(Some(x), y) => x -> y })
-    /*data.collectFirst {
-      case Bin(None, freq) => NullValueInterval(freq) +: result
-    }.getOrElse(result)*/
+      /*data.collectFirst {
+        case Bin(None, freq) => NullValueInterval(freq) +: result
+      }.getOrElse(result)*/
     case NoneColumnStats => Nil
   }
 
