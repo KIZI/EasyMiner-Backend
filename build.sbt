@@ -1,4 +1,3 @@
-import com.github.retronym.SbtOneJar
 import xerial.sbt.Pack._
 
 name := "EasyMiner"
@@ -8,8 +7,8 @@ val akkaV = "2.3.9"
 val sprayV = "1.3.3"
 val scalikejdbcV = "2.4.0"
 val slf4jV = "1.7.7"
-val hadoopV = "2.7.1"
-val hiveV = "1.2.1"
+val hadoopV = "2.6.5"
+val hiveV = "1.2.2"
 val sparkV = "1.6.0"
 val jenaV = "3.1.1"
 
@@ -55,18 +54,18 @@ val rDependencies = Seq(rServe, rEngine)
 
 val basicSettings = Seq(
   organization := "cz.vse.easyminer",
-  version := "1.0",
+  version := "2.5.0",
   scalaVersion := "2.11.7",
   scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf8"),
   exportJars := true,
   resolvers ++= Seq("conjars.org" at "http://conjars.org/repo/", "cloudera" at "https://repository.cloudera.com/content/repositories/releases/", "spring plugins" at "http://repo.spring.io/plugins-release/", "jitpack" at "https://jitpack.io"),
   scalacOptions ++= Seq("-Xmax-classfile-name","78")
-) ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ packSettings ++ SbtOneJar.oneJarSettings
+) ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ packSettings
 
 lazy val root = project
   .in(file("."))
   .settings(basicSettings: _*)
-  .aggregate(core, task, data, preprocessing, miner)
+  .aggregate(core, data, preprocessing, miner)
 
 lazy val core = project
   .in(file("EasyMiner-Core"))
@@ -74,14 +73,13 @@ lazy val core = project
   .settings(libraryDependencies ++= (basicDependencies ++ Seq(scalaTest, scalate)))
   .settings(parallelExecution in Test := false)
 
-lazy val task = project.in(file("EasyMiner-Task"))
-
 lazy val data = project
   .in(file("EasyMiner-Data"))
   .configs()
   .settings(basicSettings: _*)
   .settings(libraryDependencies ++= (basicDependencies ++ testRestDependencies ++ Seq(scalate, apacheCompress, jena)))
   .settings(parallelExecution in Test := false)
+  .settings(testOptions in Test += Tests.Argument("-oF"))
   .settings(scalateSettings ++ Seq(
     ScalateKeys.scalateOverwrite := true,
     ScalateKeys.scalateTemplateConfig in Compile := Seq(TemplateConfig(file("EasyMiner-Data") / "src" / "main" / "resources", Nil, Nil, Some("")))
@@ -95,6 +93,7 @@ lazy val preprocessing = project
   .settings(basicSettings: _*)
   .settings(libraryDependencies ++= (basicDependencies ++ testRestDependencies ++ Seq(scalate, emDiscretization)))
   .settings(parallelExecution in Test := false)
+  .settings(testOptions in Test += Tests.Argument("-oF"))
   .settings(scalateSettings ++ Seq(
     ScalateKeys.scalateOverwrite := true,
     ScalateKeys.scalateTemplateConfig in Compile := Seq(TemplateConfig(file("EasyMiner-Preprocessing") / "src" / "main" / "resources", Nil, Nil, Some("")))

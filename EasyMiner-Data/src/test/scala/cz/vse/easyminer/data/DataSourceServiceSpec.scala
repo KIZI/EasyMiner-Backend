@@ -20,7 +20,7 @@ class DataSourceServiceSpec(restSpec: RestSpec) extends FlatSpec with Matchers {
     authorizedRequest(Get("/api/v1/datasource")) ~> route ~> check {
       response.headers.map(x => x.lowercaseName -> x.value) should contain(("access-control-allow-origin", "*"))
       response.status.intValue shouldBe 200
-      responseAs[JsArray].elements.size should (be(1) or be(2))
+      responseAs[JsArray].elements.size should (be >= 1 or be <= 3)
     }
     authorizedRequest(Get("/api/v1/datasource/1")) ~> route ~> check {
       response.status.intValue shouldBe 200

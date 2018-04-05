@@ -51,7 +51,7 @@ class HiveSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
     schemaOps.createSchema()
   }
 
-  "Hdfs object" should "upload a CSV file to HDFS and delete it" ignore {
+  "Hdfs object" should "upload a CSV file to HDFS and delete it" in {
     DataHdfs { hdfs =>
       val fileName = "test.csv"
       hdfs.useCsvWriter(fileName, ",", "~") { csvWriter =>
@@ -65,7 +65,7 @@ class HiveSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
     }
   }
 
-  "Hive data source builder" should "upload a CSV document and save it to a Hive table including meta information" ignore {
+  "Hive data source builder" should "upload a CSV document and save it to a Hive table including meta information" in {
     val builder = HiveDataSourceBuilder("test")
     val csvHandler = new CsvInputParser(builder, defaultCsvSettings)
     val detail = csvHandler.write(getClass.getResourceAsStream("/test.csv"))
@@ -74,7 +74,7 @@ class HiveSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
     detail.size shouldBe 6181
   }
 
-  "Hive" should "have query controller" ignore {
+  "Hive" should "have query controller" in {
     implicit val ec = ExecutionContext.global
     val dataSources = dataSourceOps.getAllDataSources
     for (dataSource <- dataSources) {
@@ -90,7 +90,7 @@ class HiveSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
     }
   }
 
-  "Hive data source read/update ops" should "read and update data source/s" ignore {
+  "Hive data source read/update ops" should "read and update data source/s" in {
     val dataSources = dataSourceOps.getAllDataSources
     dataSources.size shouldBe 1
     for (dataSource <- dataSources) {
@@ -113,7 +113,7 @@ class HiveSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
     }
   }
 
-  "Hive field read/update ops" should "read and update fields" ignore {
+  "Hive field read/update ops" should "read and update fields" in {
     for (dataSource <- dataSourceOps.getAllDataSources) {
       val fieldOps = HiveFieldOps(dataSource)
       val fields = fieldOps.getAllFields
@@ -129,7 +129,7 @@ class HiveSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
     }
   }
 
-  "Hive field value ops" should "read values" ignore {
+  "Hive field value ops" should "read values" in {
     for (dataSource <- dataSourceOps.getAllDataSources) {
       val fieldOps = HiveFieldOps(dataSource)
       val fields = fieldOps.getAllFields

@@ -29,7 +29,7 @@ object JsonFormatters extends DefaultJsonProtocol {
     implicit object DateJsonFormat extends JsonFormat[Date] {
       def write(x: Date) = JsString(new DateTime(x).toString(ISODateTimeFormat.basicDateTimeNoMillis()))
 
-      def read(value: JsValue) = value match {
+      def read(value: JsValue): Date = value match {
         case JsString(date) => Try(DateTime.parse(date, ISODateTimeFormat.basicDateTimeNoMillis())).getOrElse(throw new JsonDeserializeAttributeException("Date", "Date should have ISO8601 format (yyyyMMdd'T'HHmmssZ)")).toDate
         case _ => throw new JsonDeserializeAttributeException("Date", "Date should be a string.")
       }
@@ -195,11 +195,28 @@ object JsonFormatters extends DefaultJsonProtocol {
     import JsonFieldType._
 
     implicit object JsonFieldDetailFormat extends RootJsonFormat[FieldDetail] {
-      def read(json: JsValue): FieldDetail = throw JsonDeserializationNotSupported
+      def read(json: JsValue): FieldDetail = {
+        val map = json.asJsObject.fields
+        val fieldType = map("type").convertTo[FieldType]
+        val (uvsNom, uvsNum, supNom, supNum) = fieldType match {
+          case NominalFieldType => (map("uniqueValuesSize").convertTo[Int], 0, map("support").convertTo[Int], 0)
+          case NumericFieldType => (0, map("uniqueValuesSize").convertTo[Int], 0, map("support").convertTo[Int])
+        }
+        FieldDetail(
+          map("id").convertTo[Int],
+          map("dataSource").convertTo[Int],
+          map("name").convertTo[String],
+          fieldType,
+          uvsNom,
+          uvsNum,
+          supNom,
+          supNum
+        )
+      }
 
       def write(obj: FieldDetail): JsValue = {
         val fieldDetailMap = jsonFormat8(FieldDetail).write(obj).asJsObject.fields
-        JsObject(fieldDetailMap.filterNot(x => x._1.endsWith("Nominal") || x._1.endsWith("Numeric")) +("uniqueValuesSize" -> JsNumber(obj.uniqueValuesSize), "support" -> JsNumber(obj.support)))
+        JsObject(fieldDetailMap.filterNot(x => x._1.endsWith("Nominal") || x._1.endsWith("Numeric")) + ("uniqueValuesSize" -> JsNumber(obj.uniqueValuesSize), "support" -> JsNumber(obj.support)))
       }
     }
 

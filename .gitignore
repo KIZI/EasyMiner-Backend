@@ -70,3 +70,4 @@ sandbox-conf.xml
 hive-site.xml
 cesnet-conf-prod/
 cesnet-conf-test/
+private.sbt

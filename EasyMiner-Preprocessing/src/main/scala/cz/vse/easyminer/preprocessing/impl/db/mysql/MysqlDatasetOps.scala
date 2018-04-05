@@ -59,11 +59,6 @@ class MysqlDatasetOps private[db](implicit mysqlDBConnector: MysqlDBConnector) e
     sql"DROP TABLE IF EXISTS ${valueTable.table}".execute().apply()
   }
 
-  def getDataset(datasetId: Int): Option[DatasetDetail] = DBConn readOnly { implicit session =>
-    val d = DatasetTable.syntax("d")
-    sql"SELECT ${d.result.*} FROM ${DatasetTable as d} WHERE ${d.id} = $datasetId AND ${d.active} = 1".map(DatasetTable(d.resultName)).first().apply()
-  }
-
   /**
     * Get all existed dataset
     *
