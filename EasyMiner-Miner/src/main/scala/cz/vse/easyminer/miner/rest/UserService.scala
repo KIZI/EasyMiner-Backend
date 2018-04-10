@@ -45,23 +45,25 @@ class UserService private(user: User, val apiKey: String)
     */
   context.setReceiveTimeout(5 minutes)
 
-  val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.rest.UserService")
+  private val logger = LoggerFactory.getLogger("cz.vse.easyminer.miner.rest.UserService")
 
   logger.debug(s"User service ${self.path.toString} has been created.")
 
   /**
     * Create service for mining which requires database connections
     */
-  val minerService = dbConnectors.map { implicit dbConnectors =>
+  private val minerService = dbConnectors.map { implicit dbConnectors =>
     new MinerService()
   }
 
-  val outlierDetectionService = dbConnectors.map { implicit dbConnectors =>
+  private val outlierDetectionService = dbConnectors.map { implicit dbConnectors =>
     new OutlierDetectionService()
   }
 
+  private lazy val extensionsService = new ExtensionsService(apiKey)
+
   val route = sealRoute {
-    onSuccess(minerService)(_.route) ~ onSuccess(outlierDetectionService)(_.route)
+    onSuccess(minerService)(_.route) ~ onSuccess(outlierDetectionService)(_.route) ~ extensionsService.route
   }
 
   def receive: Receive = {
