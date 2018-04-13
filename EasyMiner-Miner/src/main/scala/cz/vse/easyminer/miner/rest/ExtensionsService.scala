@@ -65,7 +65,7 @@ class ExtensionsService(apiKey: String)(implicit actorContext: ActorContext, ec:
           val body = data.get("body").map(_.entity)
           (params.get("name"), params.get("address").map(Uri(_))) match {
             case (Some(name), Some(address)) if registeredHosts(address.authority.host.address) =>
-              val taskId = sendTask(name, address, params.filterKeys(x => x != "name" && x != "address"), body)
+              val taskId = sendTask(name, address, params.filterKeys(x => x != "address"), body)
               complete(taskId)
             case _ => reject(ValidationRejection("Name or valid (registered) address parameter is missing."))
           }
